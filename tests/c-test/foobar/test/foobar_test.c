@@ -1,6 +1,12 @@
 /* Standalone tester of the Foobar service.
  *
+ * Directly links to the foobar library.
+ *
  */
+
+
+// For the foobar API:
+#include "foobar.h"
 
 
 // For printf:
@@ -9,32 +15,30 @@
 // For free:
 #include <stdlib.h>
 
-// For service API:
-#include "foobar.h"
 
 
 int main( int argc, const char* argv[] )
 {
 
-	printf( "\nTesting the foobar service\n\n" ) ;
+	printf( "\nTesting the foobar service (directly from C)\n\n" ) ;
 
 	// Not needed in this context: foobar:start(),
 
 
 	// myFooRecord = foobar:bar(3.14,full_speed),
 
-	struct s * my_s = bar( 3.14, full_speed ) ;
+	struct foo * my_foo = bar( 3.14, full_speed ) ;
 
 	printf( "Count set to %i and value set to %f.\n",
-			my_s->count, my_s->value ) ;
+			my_foo->count, my_foo->value ) ;
 
 
-	// NewCount = foobar:foo(myFooRecord#some_foo_record.count),
+	// NewCount = foobar:foo(myFoo#foo.count),
 
-	int new_count = foo( my_s->count ) ;
+	int new_count = foo( my_foo->count ) ;
 
 	// Not needed anymore:
-	free( my_s ) ;
+	free( my_foo ) ;
 
 	printf( "Count now set to %i.\n", new_count ) ;
 
@@ -54,7 +58,7 @@ int main( int argc, const char* argv[] )
 	{
 
 	  /* false ->
-		   non_tur
+		   non_tur_value
 	  */
 	  res = non_tur_value ;
 	}
@@ -62,6 +66,8 @@ int main( int argc, const char* argv[] )
 	// Not needed in this context: foobar:stop(),
 
 	printf( "Having: %s.\n", frob( res ) ) ;
+
+	printf( "\nEnd of the foobar direct test.\n" ) ;
 
 	return 0 ;
 

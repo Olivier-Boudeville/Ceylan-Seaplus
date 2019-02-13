@@ -5,11 +5,13 @@ SEAPLUS_TOP = ../../..
 
 
 .PHONY: all build build-foobar compile-foobar link-foobar-lib \
-		build-foobar-test run-foobar-test
+		build-foobar-test test run-foobar-test                \
+		info info-binaries info-link info-target
 
 
 obj/%.o: src/%.c inc/%.h
-	@echo "  Compiling $< for library inclusion"
+	@echo "   Compiling $< for library inclusion"
+	@mkdir -p obj
 	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(FOOBAR_INC_OPT) -o $@ -c $<
 
 
@@ -45,7 +47,8 @@ link-foobar-lib: $(TARGET_SERVICE_LIBRARY)
 
 
 $(TARGET_SERVICE_LIBRARY): $(TARGET_SERVICE_OBJ)
-	@echo "  Linking $(TARGET_SERVICE_LIBRARY) from $^"
+	@echo "   Linking $(TARGET_SERVICE_LIBRARY) from $^"
+	@mkdir -p lib
 	@$(C_LINKER) $^ $(C_LINKER_OPT) -o $(TARGET_SERVICE_LIBRARY)
 
 
@@ -58,12 +61,15 @@ build-foobar-test: $(TARGET_SERVICE_TEST_EXEC)
 
 
 $(TARGET_SERVICE_TEST_EXEC): $(TARGET_SERVICE_TEST_SRC) $(TARGET_SERVICE_LIBRARY)
-	@echo "  Building executable $@"
+	@echo "   Building executable $@"
+	@mkdir -p bin
 	@$(C_COMPILER) $(C_COMPILER_OPT) $< -o $(TARGET_SERVICE_TEST_EXEC) $(FOOBAR_INC_OPT) -Llib -l$(TARGET_SERVICE)
 
 
+test: run-foobar-test
+
 run-foobar-test: $(TARGET_SERVICE_TEST_EXEC)
-	@echo "  Running test $<"
+	@echo "   Running test $<"
 	@LD_LIBRARY_PATH=$(FOOBAR_LIB):$(LD_LIBRARY_PATH) $(TARGET_SERVICE_TEST_EXEC)
 
 
