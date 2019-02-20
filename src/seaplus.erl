@@ -56,8 +56,12 @@
 
 
 -export([ start/1, start_link/1, start/2, start_link/2,
-		  restart/1, restart/2, stop/0,
-		  get_id_for/2 ]).
+		  restart/1, restart/2, stop/1,
+		  call_port_for/3 ]).
+
+
+% The name of a C-based service to make available:
+-type service_name() :: atom().
 
 
 % A key corresponding to the port of a service instance, whose reference is to
@@ -116,22 +120,26 @@
 %
 % - the function identifier mapping, made available thanks to a
 % 'foobar_seaplus_api_mapping.h' generated C header file (to be included in
-% 'foobar_seapllus_driver.c') containing for example:
+% 'foobar_seaplus_driver.c') containing for example:
 %
 % """
 %/*
 % * Of course these identifiers must match their Erlang counterparts:
 % *
-% * ('const fun_id foo_id = 1 ;' could not be used with switch...)
+% * ('const fun_id foo_1_id = 1 ;' could not be used with switch...)
 % *
 % */
-%#define FOO_ID  1
-%#define BAR_ID  2
-%#define BAZ_ID  3
-%#define TUR_ID  4
-%#define FROB_ID 5
+%#define FOO_1_ID  1
+%#define BAR_2_ID  2
+%#define BAZ_2_ID  3
+%#define TUR_0_ID  4
+%#define FROB_1_ID 5
 %
 % """
+%
+% (format: (FUNCTION_NAME)_(ARITY)_ID; arity is specified as of course, on both
+% sides, two different functions might bear the same name but then should have a
+% different arity)
 %
 % - all relevant utility functions transverse to all services (start/0, etc.)
 %
@@ -142,7 +150,7 @@
 % marshalling the corresponding results (C to Erlang), like in:
 %
 % [...]
-% case FOO_ID:
+% case FOO_1_ID:
 %	  // Second one is its (single, int) parameter:
 %	  write_as_int( buffer, paramTuple, foo( get_as_int( 2, paramTuple ) ) ) ;
 %	  break ;
@@ -157,10 +165,6 @@
 
 
 
-% The name of a C-based service to make available:
--type service_name() :: atom().
-
-
 
 % Starts the support for the specified named service.
 %
@@ -168,12 +172,13 @@
 % to be the one of the service once suffixed with "_seaplus_driver".
 %
 % For example, a service 'foobar', hence having the Erlang-side bridge
-% implemented in foobar.erl, is expected here to rely on the 'foobar_seaplus_driver'
-% generated executable.
+% implemented in foobar.erl, is expected here to rely on the
+% 'foobar_seaplus_driver' generated executable.
 %
 % Note: as the created port is not linked here, as a side-effect the caller
 % (user) process will be set to trapping exit signals, so that EXIT messages can
-% be received, and be translated to exceptions to be raised.
+% be received, and be translated to exceptions to be raised. This is the
+% recommended choice.
 %
 -spec start( service_name() ) -> void().
 start( ServiceName ) when is_atom( ServiceName ) ->
@@ -191,12 +196,12 @@ start( ServiceName ) when is_atom( ServiceName ) ->
 % one of the service once suffixed with "_seaplus_driver".
 %
 % For example, a service 'foobar', hence having the Erlang-side bridge
-% implemented in foobar.erl, is expected here to rely on the 'foobar_seaplus_driver'
-% generated executable.
+% implemented in foobar.erl, is expected here to rely on the
+% 'foobar_seaplus_driver' generated executable.
 %
 % Note: as the created port is linked here, as a side-effect the caller (user)
 % process will be set to *not* trapping exit signals; so it will die whenever a
-% port-side problem happens.
+% port-side problem happens. This is not the recommended choice, prefer start/1.
 %
 -spec start_link( service_name() ) -> void().
 start_link( ServiceName ) when is_atom( ServiceName ) ->
@@ -263,42 +268,24 @@ restart( ServiceName, DriverExecutableName ) ->
 %
 -spec stop( service_name() ) -> void().
 stop( ServiceName ) when is_atom( ServiceName ) ->
-	ServiceName ! stop.
 
+	ServiceKey = get_service_key_for( ServiceName ),
 
+	case process_dictionary:get( ServiceKey ) of
 
+		undefined ->
+			trace_utils:warning_fmt( "Service key '~s', for service '~s', "
+									 "not found, so service is supposed not "
+									 "to be running - hence not to be stopped.",
+									 [ ServiceKey, ServiceName ] ),
+			ok;
 
-% Returns the identifier for specified service-exported function.
-%
-% If the list of exported service functions is: [ {foo,1}, {bar,2}, {baz,1},
-% {tur,1}, {frob,1} ], the identifier of a given function is its index in this
-% list, like it using:
-%
-% -define( foo_id,  1 ).
-% -define( bar_id,  2 ).
-% -define( baz_id,  3 ).
-% -define( tur_id,  4 ).
-% -define( frob_id, 5 ).
-%
-% A table (hence probably some persistent state) could be relevant as well.
-%
-get_id_for( FunctionName, FunctionArity ) ->
-
-	FunctionIds = list_exported_service_functions(),
-	%FIXME
-	try
-
-		FunId = lists_utils:get_index_of( FunctionName, Functions ),
-
-		trace_utils:trace_fmt( "Returning ID ~B for function '~s'.",
-							   [ FunId, FunctionName ] ),
-
-		FunId
-
-	catch _:_ ->
-		throw( { unknown_service_function, FunctionName, Functions } )
+		TargetPort ->
+			TargetPort ! stop,
+			process_dictionary:remove( ServiceKey )
 
 	end.
+
 
 
 % Helper section.
@@ -348,30 +335,27 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 %
 % (helper)
 %
--spec launch( service_name(, file_utils:executable_name() ) ) -> void().
+-spec launch( service_name(), file_utils:executable_name() ) -> void().
 launch( ServiceName, DriverExecPath ) ->
 
-	% To receive EXIT messages, should the port fail:
+	% To receive EXIT messages, should the port fail (best option):
 	process_flag( trap_exit, true ),
 
 	% No need to create a process_in-the-middle:
 	%spawn( fun() -> init_driver( ServiceName, DriverExecPath ) end ),
-	init_driver( ServiceName, DriverExecPath ),
-
-	post_launch( ServiceName ).
+	init_driver( ServiceName, DriverExecPath ).
 
 
 % (helper)
-launch_link( ServiceName, ExecPath ) ->
+launch_link( ServiceName, DriverExecPath ) ->
 
-	% To be killed in turn should the port fail:
+	% To be killed in turn should the port fail (not the best option):
 	process_flag( trap_exit, false ),
 
 	% No need to create a process-in-the-middle:
 	%spawn_link( fun() -> init_driver( ServiceName, DriverExecPath ) end ),
-	init_driver( ServiceName, DriverExecPath ),
+	init_driver( ServiceName, DriverExecPath ).
 
-	post_launch( ServiceName ).
 
 
 % Inits the driver of specified service.
@@ -420,207 +404,15 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 
 
-% Main loop of the driver process:
-driver_main_loop( Port, ServiceName ) ->
-
-	trace_utils:debug_fmt( "Driver looping over, using port ~p.", [ Port ] ),
-
-	receive
-
-		{ call, CallerPid, Msg } ->
-
-			Port ! { self(), { command, term_to_binary( Msg ) } } ,
-
-			receive
-
-				{ Port, { data, Data } } ->
-					CallerPid ! { ServiceName, binary_to_term( Data ) };
-
-				{ Port, { exit_status, Status } } when Status > 128 ->
-					io:format( "Port terminated with signal: ~p~n",
-							  [ Status - 128 ] ),
-					exit( { port_terminated, Status } );
-
-				{ Port, { exit_status, Status } } ->
-					io:format( "Port terminated with status: ~p~n",
-							  [ Status ] ),
-					exit( { port_terminated, Status } );
-
-				% Should the executable controlled by this port crash (ex:
-				% SEGV), a 'normal' reason is still returned:
-				%
-				{ 'EXIT', Port, Reason } ->
-					%io:format( "Driver: error exit triggered from port ~p "
-					%		   "(~p)~n", [ Port, Reason ] ),
-					% Better than {port_terminated,foobar_service,normal}:
-					case Reason of
-
-						normal ->
-							% A 'normal' reason would be misleading:
-							throw( { command_failed,
-									 ServiceName, Msg } );
-						_ ->
-							throw( { command_failed,
-									ServiceName, Msg,
-									Reason } )
-
-					end;
-
-				Unexpected ->
-					io:format( "Unexpected call-related message: ~p~n",
-							   [ Unexpected ] ),
-					throw( { unexpected_from_call,Unexpected  } )
-
-
-			% Longer time-out as the crashes are expected to be detected before,
-			% through EXIT messages:
-			%
-			after 5000 ->
-				throw( { no_answer_to, Msg } )
-
-			end,
-
-			loop( Port );
-
-
-		stop ->
-
-			Port ! { self(), close },
-
-			receive
-
-				{ Port, closed } ->
-					io:format( "Driver: exit on close triggered.~n" ),
-					timer:sleep( 500 ),
-					% Implicit name unregistering.
-					exit( normal );
-
-				{ 'EXIT', Port, _Reason=normal } ->
-					%io:format( "Driver: normal exit triggered.~n" ),
-					%timer:sleep( 500 ),
-					exit( normal );
-
-				{ 'EXIT', Port, Reason } ->
-					io:format( "Driver : crashing exit (~p) triggered by ~p.~n",
-							   [ Reason, Port ] ),
-					timer:sleep( 500 ),
-					throw( { crashing_exit, Port, Reason } )
-
-			end;
-
-
-		{ 'EXIT', Port, Reason } ->
-			io:format( "Driver: error exit triggered: ~p~n", [ Reason ] ),
-			timer:sleep( 500 ),
-			throw( { port_terminated, ServiceName, Reason } );
-
-		Unexpected ->
-			io:format( "Driver: unexpected message received (ignored): ~p~n",
-					   [ Unexpected ] ),
-			loop( Port )
-
-	end.
-
-
-
-% (helper, common to launch with or without link, introduced when an
-% intermediate process used to be spawned)
-%
-post_launch( ServiceName ) ->
-
-	% Ex: [ {foo,1}, {bar,2}, {baz,1}, {tur,1}, {frob,1} ].
-	ExportedFunIds = ServiceName:list_exported_service_functions(),
-
-	% For some services (ex: HDF5, OpenGL support, etc.), a large number of
-	% functions may have to be exported; to bet on rather constant, low look-up
-	% efforts we precompute from previous list a table whose keys are the
-	% function identifiers and whose corresponding values are their index
-	% (starting at 1) in that list.
-	%
-	% Ex: the value associated to {bar,2} shall be 2.
-
-	IndexedIds = add_indexes( ExportedFunIds, _Acc=[] ),
-
-	IdTable = get_indexed_table( ExportedFunIds ),
-
-	% For faster/easier access, we store this table in the process dictionary of
-	% the calling process:
-
-
-	% Finally ensure that at return the service is already up and running:
-	wait_for( ServiceName ).
-
-
-
-% (helper)
-get_indexed_table( ExportedFunIds ) ->
-	get_indexed_table( ExportedFunIds, table:new(), _Count=1 ).
-
-
-% (helper)
-get_indexed_table( _ExportedFunIds=[], IdTable, _Count ) ->
-	IdTable;
-
-get_indexed_table( _ExportedFunIds=[ FunId | T ], IdTable, Count ) ->
-
-	% Check no duplicates:
-	NewIdTable = table:addNewEntry( FunId, Count, IdTable ),
-
-	get_indexed_table( T, NewIdTable, Count+1 ).
-
-
-
-% Waits until the service is ready, otherwise the first use of it may fail,
-% should it be triggered before the spawned process gets registered.
-%
-wait_for( DriverName )->
-
-	log( "Waiting for registration of '~s'.~n", [ DriverName ] ),
-
-	case erlang:whereis( DriverName ) of
-
-		undefined ->
-			timer:sleep( 100 ),
-			wait_for( DriverName );
-
-		Pid ->
-			%io:format( "Driver is ~p.~n", [ Pid ] ),
-			Pid
-
-	end.
-
-
-call_port_for( _FunctionName, _Arity, _Arguments ) ->
-	fixme.
-
-
-% Logs specified service-related message.
-%
--spec log( text_utils:ustring() ) -> void().
-log( Message ) ->
-	trace_utils:debug( Message ).
-
-
-
-% Logs specified service-related message.
-%
--spec log( text_utils:format_string(), text_utils:format_values() ) -> void().
-log( FormatString, Values ) ->
-	log( text_utils:format( FormatString, Values ) ).
-
-
-
-
-
 % Service Driver section.
 
 
-% The actual bridge from the user code to the port.
+% The actual bridge from the user code to the port (and then to the driver).
 %
 % The identifier will suffice, no real need to pass along the
 % basic_utils:function_name().
 %
--spec call_port_for( service_key(), function_seaplus_driver_id(), function_params() ) ->
+-spec call_port_for( service_key(), function_driver_id(), function_params() ) ->
 						   function_result().
 call_port_for( ServiceKey, FunctionId, Params ) ->
 
@@ -628,7 +420,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 		undefined ->
 			trace_utils:error_fmt( "Service key '~s' not set in process "
-				"dictionary, has the corresponding been started?",
+				"dictionary; has the corresponding service been started?",
 				[ ServiceKey ] ),
 			throw( { service_key_not_set, ServiceKey } );
 
@@ -637,24 +429,42 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 	end,
 
-	% Vaguely similar to WOOPER conventions:
+	% Vaguely similar to WOOPER conventions (tuple vs list):
 	Message = { FunctionId, Params },
 
-	TargetPort ! { executeFunction, Message, self() },
+	% To be handled by the (C-based) driver:
+	%
+	% (note that message structure and content are dictated by how Erlang ports
+	% have been defined; for example 'TargetPort ! { executeFunction, Message,
+	% self() }' would not be relevant here, see
+	% http://erlang.org/doc/tutorial/c_port.html for more information)
+	%
+	% Message already encoded as wanted here:
+	%
+	TargetPort ! { self(), { command, Message } },
 
 	receive
 
-		{ ?some_service_registration_name, Result } ->
+		{ ServiceKey, Result } ->
 			Result;
 
-		{ 'EXIT', _seaplus_driverPid, Reason } ->
-			%io:format( "Received exit failure from driver ~p, reason: ~p",
-			%		   [ DriverPid, Reason ] ),
+		{ 'EXIT', TargetPort, Reason } ->
+			trace_utils:error_fmt( "Received exit failure from port ~p, "
+					"reason: ~p", [ TargetPort, Reason ] ),
 			throw( { driver_crashed, Reason } );
 
 		Unexpected ->
-			io:format( "Driver call: unexpected message received: ~p~n",
-					   [ Unexpected ] ),
+			trace_utils:error_fmt(
+			  "Driver call: unexpected message received: ~p~n",
+			  [ Unexpected ] ),
 			throw( { unexpected_driver_message, Unexpected } )
 
 	end.
+
+
+% Returns the key that shall be used to store information in the process
+% dictionary of the calling user process for the specified service.
+%
+-spec get_service_key_for( service_name() ) -> service_key().
+get_service_key_for( ServiceName ) ->
+	text_utils:format( "_seaplus_for_service_~s", [ ServiceName ] ).

@@ -1,0 +1,9 @@
+# Listing path patterns that shall be ignored by git:
+*.beam
+*.o
+*.so
+*.traces
+*.log
+*.plt
+*erlang.log.*
+declared-types-in-*.txt

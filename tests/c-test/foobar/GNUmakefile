@@ -18,15 +18,6 @@ obj/%.o: src/%.c inc/%.h
 
 TARGET_SERVICE := foobar
 
-FOOBAR_ROOT = $(SEAPLUS_TOP)/tests/c-test/foobar
-
-FOOBAR_INC = $(FOOBAR_ROOT)/inc
-
-FOOBAR_INC_OPT = -I$(FOOBAR_INC)
-
-# Shorter:
-#FOOBAR_LIB = $(FOOBAR_ROOT)/lib
-FOOBAR_LIB = lib
 
 
 TARGET_SERVICE_LIBRARY := $(FOOBAR_LIB)/lib$(TARGET_SERVICE).so
