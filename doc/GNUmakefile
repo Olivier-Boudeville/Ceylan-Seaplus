@@ -28,7 +28,7 @@ PROJECT_CSS := pygments-default.css,seaplus.css
 PROJECT_ICON := seaplus-icon.png
 
 
-WEB_CONTENT = *.html *.css *.png *.pdf
+WEB_CONTENT = *.html *.css *.png tmp-rst/*.pdf
 
 # Read from the user's environment:
 GITHUB_PAGES_BASE := $(shell basename "(SEAPLUS_WEB_MIRROR_BRANCH)")
@@ -71,7 +71,7 @@ export-to-official:
 
 export-to-mirror:
 	@echo "   Exporting Seaplus documentation to mirror website in $(SEAPLUS_WEB_MIRROR_BRANCH)"
-	@/bin/cp -f $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push
+	@/bin/cp -f $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
 
 
 clean: clean-doc
