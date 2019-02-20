@@ -151,6 +151,8 @@ At the very least, what will be offered on the Erlang side by our ``foobar`` mod
 
  -module(foobar).
 
+ -include("seaplus.hrl").
+
  -record(foo_data, {count :: integer(), value :: float()}).
  -type foo_data() :: #foo_data{}.
 
@@ -167,6 +169,7 @@ At the very least, what will be offered on the Erlang side by our ``foobar`` mod
 
 .. comment Not relevant anymore: Note that some pseudo-builtin types (like ``void/0`` or ``maybe/1``) are introduced here thanks to the use of Myriad - this does not matter for the current topic.
 
+The Seaplus include allows notably to mark this ``foobar`` module as a service stub.
 
 Comments (description, usage, examples) are also expected to be joined to these specs, they are omitted in this documentation for brevity.
 
@@ -205,13 +208,38 @@ Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar
 .. [#] See the full, unedited version of the `foobar_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_test.erl>`_ module used to test the Erlang-integrated service (emulating an actual use of that service).
 
 
-At this point, one may think that, thanks to these function specs, the full counterpart C bridging code might have been automagically generated, in the same movement as the Erlang bridging code? Unfortunately, not exactly! At least, not yet; maybe some day (if ever possible and tractable). Currently: only parts of it are generated.
+At this point, one may think that, thanks to these function specs, the full counterpart C bridging code might have been automagically generated, in the same movement as the Erlang bridging code? Unfortunately, not exactly! At least, not yet; maybe some day (if ever possible and tractable). Currently: only *parts* of it are generated.
 
 Indeed C-side elements will have been produced by the Seaplus parse-transform (notably the function selector include, used to map functions on either sides), but the conversion (thanks to ``Erl_Interface``) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.
 
 This work remains, yet it is also a chance to better adapt the bridging code to the interfacing contract one would like to be fulfilled, for example with regard to resource ownership. Indeed, should the C part take pointers as arguments, shall it delete them once having used them? Conversely, should a C function return a pointer to a dynamically allocated memory, who is responsible for the eventual deallocation of it?
 
-To address these questions, service-specific choices and conventions have to be applied, and this information cannot be found or deduced generically by an algorithm (including the Seaplus one). As a result, we believe that in all cases some effort has still to be done by the service integrator.
+To address these questions, service-specific choices and conventions have to be applied, and this information cannot be found or deduced from the C/C++ pre-existing code generically by an algorithm (including the Seaplus one). As a result, we believe that in all cases some effort remains to be done by the service integrator.
+
+So we saw that nothing special had to be done on the Erlang side (the ``foobar.erl`` stub will suffice), and that the C side deserved some love to be complete.
+
+Indeed Seaplus generated an header file, ``foobar_seaplus_api_mapping.h``, in charge of telling that C side about the actual encoding of the service functions across the bridge. In our example this generated header would contain:
+
+.. code:: c
+
+ #define FOO_1_ID  1
+ #define BAR_2_ID  2
+ #define BAZ_2_ID  3
+ #define TUR_0_ID  4
+ #define FROB_1_ID 5
+
+This indicates that for example the ``baz/2`` Erlang function, as hinted by its type specification in ``foobar.erl``, has been associated by Seaplus to the ``BAZ_2_ID`` (namely, of course: ``${FUNCTION_NAME}_${ARITY}_ID``) identifier (whose value happens to be ``3`` here [#]_).
+
+.. [#] Of course no code should rely on that actual value, which could change from a generation to another, or as the API is updated; only the ``BAZ_2_ID`` identifier shall be trusted.
+
+The C part of the bridge, typically defined by the service integrated in ``foobar_seaplus_driver.c``, is thus to include that ``foobar_seaplus_api_mapping.h`` generated header in order to map the Erlang function identifier in a call request to its processing.
+
+Seaplus offers moreover various helpers to facilitate the writing of this C driver; they are gathered in the Seaplus library (typically ``libseaplus.so``) and available by including the Seaplus C header file, ``seaplus.h``.
+
+Based on these elements, the actual bridging code can be written, like in:
+
+.. code:: c
+
 
 
 
@@ -321,7 +349,13 @@ Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sen
 Seaplus Inner Workings
 ======================
 
-It is mostly the one described in the `Erl_Interface <http://erlang.org/doc/tutorial/erl_interface.html>`_ tutorial, once augmented with conventions and automated by the `Seaplus parse transform <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_ as much as realistically possible (hence a code generation that is exhaustive on the Erlang side, and partial of the C side) and adapted for increased performances (notably: no extra relay process between the user code and the port).
+It is mostly the one described in the `Erl_Interface <http://erlang.org/doc/tutorial/erl_interface.html>`_ tutorial, once augmented with conventions and automated by the `Seaplus parse transform <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_ as much as realistically possible (hence a code generation that is exhaustive on the Erlang side, and partial of the C side) and adapted for increased performances (notably: no extra relay process between the user code and the port involving more messages and processing, no string-based mapping of function signatures across the bridge - direct integer identifiers used instead).
+
+The parse transform just:
+
+- derives from the type specifications of the Erlang service API (as specified by the service integrator) the implementation of the corresponding (Erlang-side) functions (they are injected in the AST of the resulting service BEAM file)
+- adds the facility functions to start, stop, etc. that service (they are actually directly obtained through the Seaplus include)
+- generates the Seaplus service-specific C header file, ready to be included by the C-side service driver that is to be filled by the service integration
 
 
 
