@@ -1,3 +1,13 @@
+/*
+ * Copyright (C) 2018-2019 Olivier Boudeville
+ *
+ * This file is part of the Ceylan-Seaplus tests and examples.
+ *
+ * It has been placed in the public domain.
+ *
+ * Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
+ *
+ */
 
 /* Example of code to be gathered in a library typically called by a C-wrapper
  * available as an Erlang module.

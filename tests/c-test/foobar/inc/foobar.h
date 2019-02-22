@@ -1,3 +1,14 @@
+/*
+ * Copyright (C) 2018-2019 Olivier Boudeville
+ *
+ * This file is part of the Ceylan-Seaplus tests and examples.
+ *
+ * It has been placed in the public domain.
+ *
+ * Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
+ *
+ */
+
 
 /*
  * Declaration of the C API:
@@ -12,8 +23,8 @@
 
 // Type declarations.
 
-// We need more than a forward declaration like 'struct foo ;':
-struct foo
+// We need more than a forward declaration like 'struct foo_data ;':
+struct foo_data
 {
 
   // Some comment about count:
@@ -42,7 +53,7 @@ int foo( int a ) ;
 
 
 // Detailed comment for bar.
-struct foo * bar( double a, enum foo_status status ) ;
+struct foo_data * bar( double a, enum foo_status status ) ;
 
 
 // Detailed comment for baz.

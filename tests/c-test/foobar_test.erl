@@ -1,3 +1,13 @@
+% Copyright (C) 2018-2019 Olivier Boudeville
+%
+% This file is part of the Ceylan-Seaplus tests and examples.
+%
+% It has been placed in the public domain.
+%
+% Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
+
+
+
 % Allows to test the full chain, from the initial service call to the obtaining
 % of its result.
 %
@@ -23,9 +33,9 @@ run() ->
 	%
 	foobar:start(),
 
-	MyFooRecord = foobar:bar( 3.14, full_speed ),
+	MyFooData = foobar:bar( 3.14, full_speed ),
 
-	NewCount = foobar:foo( MyFooRecord#foo.count ),
+	NewCount = foobar:foo( MyFooData#foo_data.count ),
 
 	Res = case foobar:tur() of
 

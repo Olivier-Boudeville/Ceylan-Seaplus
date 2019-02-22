@@ -1,4 +1,8 @@
 % This header file auto-defines base, generic service functions.
+%
+% It is meant to be included by the bridgin modules (ex: by foobar.erl for a
+% Foobar service).
+
 
 -define( service_module_name, ?MODULE ).
 
@@ -36,3 +40,24 @@ start_link() ->
 %
 stop() ->
 	service_support:stop( ?service_module_name ).
+
+
+
+% None defined yet:
+-type seaplus_option() :: any().
+
+
+
+-ifndef(override_seaplus_activation).
+
+
+% Simply defining that function allows to activate the Seaplus transformations
+% for the current module.
+%
+-spdec activate_seaplus( [ seaplus_option() ] ) -> void().
+activate_seaplus( Options ) ->
+	Options.
+
+
+-endif. % override_seaplus_activation
+

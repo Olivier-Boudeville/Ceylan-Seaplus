@@ -1,4 +1,17 @@
-/* Standalone tester of the Foobar service.
+/*
+ * Copyright (C) 2018-2019 Olivier Boudeville
+ *
+ * This file is part of the Ceylan-Seaplus tests and examples.
+ *
+ * It has been placed in the public domain.
+ *
+ * Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
+ *
+ */
+
+
+/*
+ * Standalone tester of the Foobar service.
  *
  * Directly links to the foobar library.
  *

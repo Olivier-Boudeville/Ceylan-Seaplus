@@ -1,8 +1,8 @@
 SEAPLUS_TOP = ../..
 
-.PHONY: all compile-erl-generic-support compile-service-driver         \
-		compile-service-to-wrap run-driver erlang-test base-test       \
-		clean clean-local clean-driver clean-beams                     \
+.PHONY: all compile-erl-generic-support compile-service-driver          \
+		compile-service-to-wrap run-driver erlang-test integration-test \
+		clean clean-local clean-driver clean-beams                      \
 		info info-compile info-erlang-local info-target
 
 
@@ -18,7 +18,7 @@ TARGET_DRIVER_EXEC := $(TARGET_DRIVER)
 
 %.o: %.c
 	@echo "   Compiling $<"
-	$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(INC) $(FOOBAR_INC_OPT) -o $@ -c $<
+	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(INC) $(FOOBAR_INC_OPT) -o $@ -c $<
 
 
 all: $(TARGET_DRIVER_EXEC) erlang-test
@@ -59,7 +59,7 @@ run-driver: $(TARGET_DRIVER_EXEC)
 erlang-test: foobar.beam $(TEST).beam
 
 
-base-test: erlang-test $(TARGET_DRIVER_EXEC)
+integration-test: erlang-test $(TARGET_DRIVER_EXEC)
 	@echo "  Running test $(TEST)"
 	@$(ERL_INTERPRETER) -s $(TEST) run -s init stop -noshell
 

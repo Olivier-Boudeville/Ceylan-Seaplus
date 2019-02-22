@@ -1,3 +1,13 @@
+% Copyright (C) 2018-2019 Olivier Boudeville
+%
+% This file is part of the Ceylan-Seaplus tests and examples.
+%
+% It has been placed in the public domain.
+%
+% Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
+
+
+
 % Erlang-side API (minimal wrapper made available to the user code) in order to
 % interact with the foobar service through its driver.
 %
@@ -7,6 +17,10 @@
 % Refer to inc/foobar.h for the vanilla, C foobar API.
 %
 -module(foobar).
+
+
+% For the Seaplus support:
+-include("seaplus.hrl").
 
 
 % For the foo record:
@@ -33,7 +47,7 @@
 
 
 % Detailed comment for bar/2.
--spec bar( float(), atom() ) -> foo().
+-spec bar( float(), foo_status() ) -> foo_data().
 
 
 % Detailed comment for baz/2.
