@@ -48,7 +48,7 @@ compile-service-to-wrap: $(TARGET_SERVICE_OBJ)
 $(TARGET_DRIVER_EXEC): compile-service-driver compile-service-to-wrap
 	@echo "  Linking $(TARGET_DRIVER)"
 	$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) \
-	$(TARGET_SERVICE_OBJ) $(SEAPLUS_OBJ) $(C_LINKER_OPT)
+	$(TARGET_SERVICE_OBJ) $(SEAPLUS_LIB) $(C_LINKER_OPT)
 
 
 run-driver: $(TARGET_DRIVER_EXEC)

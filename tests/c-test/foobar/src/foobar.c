@@ -61,10 +61,10 @@ int foo( int a )
  * expected to deallocate it at some time in the future.
  *
  */
-struct foo * bar( double a, enum foo_status status )
+struct foo_data * bar( double a, enum foo_status status )
 {
 
-  struct foo * res = malloc( sizeof( struct foo ) ) ;
+  struct foo_data * res = malloc( sizeof( struct foo_data ) ) ;
 
   if ( status == moderate_speed )
   {

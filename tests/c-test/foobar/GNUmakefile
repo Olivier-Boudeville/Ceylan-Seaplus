@@ -10,7 +10,7 @@ SEAPLUS_TOP = ../../..
 
 
 obj/%.o: src/%.c inc/%.h
-	@echo "   Compiling $< for library inclusion"
+	@echo "   Compiling $< in $@ for inclusion in foobar library"
 	@mkdir -p obj
 	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(FOOBAR_INC_OPT) -o $@ -c $<
 
