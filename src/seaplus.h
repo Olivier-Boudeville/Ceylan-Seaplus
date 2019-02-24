@@ -32,6 +32,8 @@
 #define _SEAPLUS_H_
 
 
+// Seaplus-defined types:
+
 // To address the message buffer:
 typedef unsigned char byte;
 
@@ -40,7 +42,10 @@ typedef unsigned char byte;
 typedef int message_size ;
 
 
-// Designates the index of an element in a tuple:
+// Designates an index in a buffer:
+typedef int buffer_index ;
+
+// Designates the index of an element in a tuple (start at 1):
 typedef unsigned int tuple_index ;
 
 
@@ -51,12 +56,21 @@ const message_size buffer_size = 4096*8 ;
 // Seaplus reference onto an Erlang API function:
 typedef unsigned int fun_id ;
 
+// The arity of an Erlang function:
+typedef unsigned int arity ;
 
-// Forward declarations:
+typedef unsigned int list_size ;
 
-message_size read_seaplus_command( byte *buf ) ;
-message_size write_seaplus_command( byte *buf, message_size len ) ;
+typedef unsigned int string_len ;
 
+typedef unsigned int tuple_size ;
+
+
+// For bool:
+#include <stdbool.h>
+
+
+// Seaplus-provided functions (roughly listed in their expected order of use)
 
 
 // No forward declaration seems possible:
@@ -67,48 +81,185 @@ message_size write_seaplus_command( byte *buf, message_size len ) ;
 // For ETERM and all:
 #include "erl_interface.h"
 
-byte * start_seaplus_driver() ;
-void stop_seaplus_driver( byte * buffer ) ;
 
-int get_as_int( tuple_index i, ETERM *tupleTerm ) ;
-unsigned int get_as_unsigned_int( tuple_index i, ETERM *tupleTerm ) ;
-double get_as_double( tuple_index i, ETERM *tupleTerm ) ;
-char * get_as_string( tuple_index i, ETERM *tupleTerm ) ;
-
-void write_as_int( byte * buffer, ETERM * paramTuple, int result ) ;
-
-void write_as_unsigned_int( byte * buffer, ETERM * paramTuple,
-							unsigned int result ) ;
-
-void write_as_string( byte * buffer, ETERM * paramTuple, char * string ) ;
-void write_as_binary( byte * buffer, ETERM * paramTuple, char * string ) ;
-
-
-/*
- * Logs are displayed as expected on the console.
+/**
+ * Starts the C driver.
  *
- * Directly inspired from
- * http://www.valvers.com/programming/c/logging-with-gcc/:
+ * Returns the encoding/decoding buffer.
  *
  */
-
-#ifdef DEBUG_SEAPLUS
-
-
-#include <stdio.h>
-
-#define LOG_DEBUG(x, ...) do { fprintf( stderr, "[%s:%s:%d] " x "\r\n", "DBG", __func__, __LINE__, ##__VA_ARGS__) ; } while (0)
+byte * start_seaplus_driver() ;
 
 
-#else // DEBUG_SEAPLUS
+// Logs specified debug message.
+void log_debug( const char * format, ... ) ;
+
+// Logs specified trace message.
+void log_trace( const char * format, ... ) ;
 
 
-#define LOG_DEBUG(x, ...) do { } while(0)
+// Raises specified error: reports it in logs, and halts.
+  void raise_error( const char * format, ... ) ;
 
-#endif // DEBUG_SEAPLUS
+
+/**
+ * Receives the next command from the port's input file descriptor, and stores
+ * it in the specified buffer.
+ *
+ */
+message_size read_command( byte *buf ) ;
 
 
-#define LOG_ERROR(x, ...) do { fprintf( stderr, "[%s:%s:%d] " x "\r\n", "ERR", __func__, __LINE__, ##__VA_ARGS__) ; } while (0)
+/**
+ * Raises an error should the actual arity not be the expected one.
+ *
+ */
+void check_arity_is( arity expected, arity actual, fun_id id ) ;
+
+
+
+
+// First, accessors to values (getters).
+
+
+
+/// For tuples:
+
+
+/**
+ * Returns the element i of specified tuple, as a term that shall be
+ * deallocated.
+ *
+ */
+ETERM * get_element_from_tuple( tuple_index i, ETERM *tuple_term ) ;
+
+
+// Returns the element i of specified tuple, as an integer.
+int get_element_as_int( tuple_index i, ETERM *tuple_term ) ;
+
+
+// Returns the element i of specified tuple, as an unsigned integer.
+unsigned int get_element_as_unsigned_int( tuple_index i, ETERM *tuple_term ) ;
+
+// Returns the element i of specified tuple, as a double.
+double get_element_as_double( tuple_index i, ETERM *tuple_term ) ;
+
+
+/**
+ * Returns the element i of specified tuple, as a string (char *).
+ *
+ * Ownership of the returned string transferred to the caller.
+ *
+ * Note: cannot return a const char*, as the caller is to deallocate that
+ * string.
+ *
+ */
+char * get_element_as_string( tuple_index i, ETERM *tuple_term ) ;
+
+
+
+/// For lists:
+
+
+/**
+ * Returns the head of the specified, supposedly non-empty, list.
+ *
+ * Note that the return term shall be freed (with erl_free_term/1) by the
+ * caller.
+ *
+ */
+ETERM * get_head( ETERM * list_term ) ;
+
+
+/**
+ * Returns the head of the specified, supposedly non-empty, list, as an integer.
+ *
+ */
+int get_head_as_int( ETERM * list_term ) ;
+
+
+/**
+ * Returns the head of the specified, supposedly non-empty, list, as an unsigned
+ * integer.
+ *
+ */
+unsigned int get_head_as_unsigned_int( ETERM * list_term ) ;
+
+
+/**
+ * Returns the head of the specified, supposedly non-empty, list, as a double.
+ *
+ */
+double get_head_as_double( ETERM * list_term ) ;
+
+
+/**
+ * Returns the head of the specified, supposedly non-empty, list, as a string.
+ *
+ */
+char * get_head_as_string( ETERM * list_term ) ;
+
+
+
+
+
+// Second, setters of values:
+
+
+/**
+ * Writes in specified return buffer the specified boolean result.
+ *
+ */
+void write_as_bool( byte * buffer, bool b ) ;
+
+
+/**
+ * Writes in specified return buffer the specified (signed) integer result.
+ *
+ */
+void write_as_int( byte * buffer, int i ) ;
+
+
+/**
+ * Writes in specified return buffer the specified unsigned integer result.
+ *
+ */
+void write_as_unsigned_int( byte * buffer, unsigned int u ) ;
+
+/**
+ * Writes in specified return buffer the specified string result.
+ *
+ * Note: not taking ownership of the input string.
+ *
+ */
+void write_as_string( byte * buffer, char * string ) ;
+
+
+/**
+ * Writes in specified return buffer the specified binary result.
+ *
+ * Note: not taking ownership of the input string.
+ *
+ */
+void write_as_binary( byte * buffer, char * string ) ;
+
+
+
+/**
+ * Sends the command result stored in the specified buffer to the port's output
+ * file descriptor.
+ *
+ */
+message_size write_command( byte *buf, message_size len ) ;
+
+
+
+/**
+ * Stops the C driver.
+ *
+ */
+void stop_seaplus_driver( byte * buffer ) ;
+
 
 
 #endif // _SEAPLUS_H_
