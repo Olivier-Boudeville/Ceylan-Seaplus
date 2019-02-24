@@ -18,11 +18,9 @@ obj/%.o: src/%.c inc/%.h
 
 TARGET_SERVICE := foobar
 
-
-
-TARGET_SERVICE_LIBRARY := $(FOOBAR_LIB)/lib$(TARGET_SERVICE).so
-
 TARGET_SERVICE_OBJ := obj/foobar.o
+
+TARGET_LIBRARY = lib/libfoobar.so
 
 all: build
 
@@ -34,13 +32,13 @@ build-foobar: compile-foobar link-foobar-lib
 compile-foobar: $(TARGET_SERVICE_OBJ)
 
 
-link-foobar-lib: $(TARGET_SERVICE_LIBRARY)
+link-foobar-lib: $(TARGET_LIBRARY)
 
 
-$(TARGET_SERVICE_LIBRARY): $(TARGET_SERVICE_OBJ)
-	@echo "   Linking $(TARGET_SERVICE_LIBRARY) from $^"
+$(TARGET_LIBRARY): $(TARGET_SERVICE_OBJ)
+	@echo "   Linking service library $@ from $^"
 	@mkdir -p lib
-	@$(C_LINKER) $^ $(C_LINKER_OPT) -o $(TARGET_SERVICE_LIBRARY)
+	@$(C_LINKER) $^ $(C_LINKER_OPT) -o $@
 
 
 TARGET_SERVICE_TEST := foobar_test
@@ -61,7 +59,7 @@ test: run-foobar-test
 
 run-foobar-test: $(TARGET_SERVICE_TEST_EXEC)
 	@echo "   Running test $<"
-	@LD_LIBRARY_PATH=$(FOOBAR_LIB):$(LD_LIBRARY_PATH) $(TARGET_SERVICE_TEST_EXEC)
+	@LD_LIBRARY_PATH=$(FOOBAR_LIB_DIR):$(LD_LIBRARY_PATH) $(TARGET_SERVICE_TEST_EXEC)
 
 
 info: info-binaries info-link info-target

@@ -40,18 +40,18 @@ int main( int argc, const char* argv[] )
 
 	// myFooRecord = foobar:bar(3.14,full_speed),
 
-	struct foo * my_foo = bar( 3.14, full_speed ) ;
+	struct foo_data * my_foo_data = bar( 3.14, full_speed ) ;
 
 	printf( "Count set to %i and value set to %f.\n",
-			my_foo->count, my_foo->value ) ;
+			my_foo_data->count, my_foo_data->value ) ;
 
 
 	// NewCount = foobar:foo(myFoo#foo.count),
 
-	int new_count = foo( my_foo->count ) ;
+	int new_count = foo( my_foo_data->count ) ;
 
 	// Not needed anymore:
-	free( my_foo ) ;
+	free( my_foo_data ) ;
 
 	printf( "Count now set to %i.\n", new_count ) ;
 

@@ -4,32 +4,69 @@ SEAPLUS_TOP = ..
 .PHONY: all build-seaplus clean clean-local info info-bin
 
 
+# List of the object files comprised in the library:
+#SEAPLUS_OBJ := seaplus.lo
 SEAPLUS_OBJ := seaplus.o
 
+SEAPLUS_TEST_OBJ := seaplus_test.o
 
-SEAPLUS_LIB = libseaplus-$(SEAPLUS_VERSION).so
+
+# This is a C-based (not C++) example:
+LIBTOOL_OPT += --tag=CC --verbose
+
+
+# Must be included prior to specifying variable-based targets:
+include $(SEAPLUS_TOP)/GNUmakesettings.inc
 
 
 %.o: %.c %.h
+	@echo "   Compiling $< with header in $@ for inclusion in Seaplus library"
+	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(SEAPLUS_INC) -c $<
+
+
+%.o: %.c
 	@echo "   Compiling $< in $@ for inclusion in Seaplus library"
-	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(SEAPLUS_INC) -o $@ -c $<
+	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(SEAPLUS_INC) -c $<
+
+
+#@$(LIBTOOL) $(LIBTOOL_OPT) --mode=compile $(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(SEAPLUS_INC) -c $<
 
 
 
-all: build-seaplus
+all: $(SEAPLUS_LIB) seaplus_test
 
-build-seaplus: $(SEAPLUS_LIB)
+build-seaplus: build-lib built-test
+
+build-lib: $(SEAPLUS_LIB)
 
 $(SEAPLUS_LIB): $(SEAPLUS_OBJ)
 	@echo "   Linking, in Seaplus library $(SEAPLUS_LIB), $^"
-	@$(C_LINKER) $^ $(C_LINKER_OPT) -o $(SEAPLUS_LIB)
+	@$(C_LINKER) $^ $(C_LINKER_OPT) -shared -o $@ $(C_LINKER_LIBS)
 
+#$(LIBTOOL) --mode=link $(LIBTOOL_OPT) $(C_LINKER) -shared $(C_LINKER_OPT) -o $(SEAPLUS_LIB) $^ $(C_LINKER_LIBS)
+
+
+built-test: seaplus_test $(SEAPLUS_LIB)
+
+seaplus_test: $(SEAPLUS_TEST_OBJ) $(SEAPLUS_LIB)
+	@echo "   Linking Seaplus test from $^"
+	@$(C_LINKER) $(C_LINKER_OPT) -o $@ $< $(SEAPLUS_LIB_OPT)
+
+#$(LIBTOOL) --mode=link $(LIBTOOL_OPT) $(C_LINKER) -o $@ $^ $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT)
+
+
+run-test: built-test
+	@./seaplus_test
 
 
 clean: clean-local
 
+
+# Apparently libtool systematically compiles a .lo and a .o:
 clean-local:
-	-@/bin/rm -f $(SEAPLUS_OBJ) $(SEAPLUS_LIB)
+	-@/bin/rm -rf .libs
+	-@/bin/rm -f *.lo $(SEAPLUS_OBJ) $(SEAPLUS_LIB) seaplus_test \
+		seaplus.o $(SEAPLUS_TEST_OBJ) seaplus_test.log
 
 
 info: info-bin
@@ -37,6 +74,3 @@ info: info-bin
 info-bin:
 	@echo "SEAPLUS_OBJ = $(SEAPLUS_OBJ)"
 	@echo "SEAPLUS_LIB = $(SEAPLUS_LIB)"
-
-
-include $(SEAPLUS_TOP)/GNUmakesettings.inc

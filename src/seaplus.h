@@ -39,7 +39,7 @@ typedef unsigned char byte;
 
 
 // As a number of bytes (negative values meaning errors):
-typedef int message_size ;
+typedef int byte_count ;
 
 
 // Designates an index in a buffer:
@@ -50,7 +50,7 @@ typedef unsigned int tuple_index ;
 
 
 // Size of the buffer for port input/output:
-const message_size buffer_size = 4096*8 ;
+extern const byte_count buffer_size ;
 
 
 // Seaplus reference onto an Erlang API function:
@@ -99,7 +99,7 @@ void log_trace( const char * format, ... ) ;
 
 
 // Raises specified error: reports it in logs, and halts.
-  void raise_error( const char * format, ... ) ;
+void raise_error( const char * format, ... ) ;
 
 
 /**
@@ -107,7 +107,7 @@ void log_trace( const char * format, ... ) ;
  * it in the specified buffer.
  *
  */
-message_size read_command( byte *buf ) ;
+byte_count read_command( byte *buf ) ;
 
 
 /**
@@ -172,6 +172,16 @@ ETERM * get_head( ETERM * list_term ) ;
 
 
 /**
+ * Returns the tail of the specified, supposedly non-empty, list.
+ *
+ * Note that the return term shall be freed (with erl_free_term/1) by the
+ * caller.
+ *
+ */
+ETERM * get_tail( ETERM * list_term ) ;
+
+
+/**
  * Returns the head of the specified, supposedly non-empty, list, as an integer.
  *
  */
@@ -194,7 +204,21 @@ double get_head_as_double( ETERM * list_term ) ;
 
 
 /**
+ * Returns the head of the specified, supposedly non-empty, list as an atom
+ * (translated to a char*)
+ *
+ * Ownership of the returned string transferred to the caller (who shall use
+ * erl_free/1 to deallocate it).
+ *
+ */
+char * get_head_as_atom( ETERM * list_term ) ;
+
+
+/**
  * Returns the head of the specified, supposedly non-empty, list, as a string.
+ *
+ * Ownership of the returned string transferred to the caller (who shall use
+ * erl_free/1 to deallocate it).
  *
  */
 char * get_head_as_string( ETERM * list_term ) ;
@@ -204,6 +228,15 @@ char * get_head_as_string( ETERM * list_term ) ;
 
 
 // Second, setters of values:
+
+
+/**
+ * Writes specified term into specified buffer.
+ *
+ * Takes ownership, and deallocates, specified term.
+ *
+ */
+void write_term( byte * buffer, ETERM * term ) ;
 
 
 /**
@@ -226,6 +259,7 @@ void write_as_int( byte * buffer, int i ) ;
  */
 void write_as_unsigned_int( byte * buffer, unsigned int u ) ;
 
+
 /**
  * Writes in specified return buffer the specified string result.
  *
@@ -246,11 +280,13 @@ void write_as_binary( byte * buffer, char * string ) ;
 
 
 /**
- * Sends the command result stored in the specified buffer to the port's output
- * file descriptor.
+ * Sends the content of the specified buffer through the port's output file
+ * descriptor.
+ *
+ * Returns the number of bytes written.
  *
  */
-message_size write_command( byte *buf, message_size len ) ;
+byte_count write_buffer( byte *buf, byte_count len ) ;
 
 
 
@@ -260,6 +296,12 @@ message_size write_command( byte *buf, message_size len ) ;
  */
 void stop_seaplus_driver( byte * buffer ) ;
 
+
+// Mostly exported for separate testing:
+
+void start_logging( const char * log_filename ) ;
+
+void stop_logging() ;
 
 
 #endif // _SEAPLUS_H_

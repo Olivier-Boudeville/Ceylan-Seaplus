@@ -56,6 +56,8 @@
 const char * default_log_filename = "seaplus.log" ;
 
 
+const byte_count buffer_size = 4096*8 ;
+
 // Actual file used for logging:
 FILE * log_file = NULL ;
 
@@ -127,6 +129,8 @@ void log_debug( const char * format, ... )
 	vfprintf( log_file, format, arg_ptr ) ;
 	va_end( arg_ptr ) ;
 
+	fprintf( log_file, "\n" );
+
   }
 
 }
@@ -147,6 +151,8 @@ void log_trace( const char * format, ... )
 	vfprintf( log_file, format, arg_ptr ) ;
 	va_end( arg_ptr ) ;
 
+	fprintf( log_file, "\n" );
+
   }
 
 }
@@ -166,6 +172,8 @@ void raise_error( const char * format, ... )
 	va_start( arg_ptr, format ) ;
 	vfprintf( log_file, format, arg_ptr ) ;
 	va_end( arg_ptr ) ;
+
+	fprintf( log_file, "\n" );
 
   }
 
@@ -235,7 +243,7 @@ void stop_seaplus_driver( byte * buffer )
  * (helper)
  *
  */
-message_size read_exact( byte *buf, message_size len )
+byte_count read_exact( byte *buf, byte_count len )
 {
 
   int i, got=0 ;
@@ -262,7 +270,7 @@ message_size read_exact( byte *buf, message_size len )
  * it in the specified buffer.
  *
  */
-message_size read_command( byte *buf )
+byte_count read_command( byte *buf )
 {
 
   int len ;
@@ -500,10 +508,33 @@ unsigned int get_head_as_unsigned_int( ETERM * list_term )
 
 
 /**
+ * Returns the head of the specified, supposedly non-empty, list as a double.
+ *
+ */
+double get_head_as_double( ETERM * list_term )
+{
+
+  ETERM * head_term = get_head( list_term ) ;
+
+   if ( ! ERL_IS_FLOAT( head_term ) )
+	raise_error( "Head of list cannot be cast to double." ) ;
+
+  double res = ERL_FLOAT_VALUE( head_term ) ;
+
+  erl_free_term( head_term ) ;
+
+  return res ;
+
+}
+
+
+
+/**
  * Returns the head of the specified, supposedly non-empty, list as an atom
  * (translated to a char*)
  *
- * Note: the returned string shall be deallocated by the caller.
+ * Ownership of the returned string transferred to the caller (who shall use
+ * erl_free/1 to deallocate it).
  *
  */
 char * get_head_as_atom( ETERM * list_term )
@@ -531,26 +562,6 @@ char * get_head_as_atom( ETERM * list_term )
 }
 
 
-
-/**
- * Returns the head of the specified, supposedly non-empty, list as a double.
- *
- */
-double get_head_as_double( ETERM * list_term )
-{
-
-  ETERM * head_term = get_head( list_term ) ;
-
-   if ( ! ERL_IS_FLOAT( head_term ) )
-	raise_error( "Head of list cannot be cast to double." ) ;
-
-  double res = ERL_FLOAT_VALUE( head_term ) ;
-
-  erl_free_term( head_term ) ;
-
-  return res ;
-
-}
 
 /**
  * Returns the head of the specified, supposedly non-empty, list, as a string.
@@ -614,7 +625,7 @@ ETERM * get_tail( ETERM * list_term )
 /**
  * Writes specified term into specified buffer.
  *
- * Takes ownership and deallocates specified term.
+ * Takes ownership, and deallocates, specified term.
  *
  */
 void write_term( byte * buffer, ETERM * term )
@@ -630,7 +641,7 @@ void write_term( byte * buffer, ETERM * term )
 	raise_error( "Empty term length." ) ;
 
   // Sends that buffer:
-  write_command( buffer, bytes_to_write ) ;
+  write_buffer( buffer, bytes_to_write ) ;
 
   // Clean-up ETERM memory allocated for this round:
   erl_free_term( term ) ;
@@ -747,7 +758,7 @@ void write_as_binary( byte * buffer, char * string )
   erl_encode( binary_term, buffer ) ;
 
   // Sends that buffer:
-  write_command( buffer, erl_term_len( binary_term ) ) ;
+  write_buffer( buffer, erl_term_len( binary_term ) ) ;
 
   // Clean-up ETERM memory allocated for this round:
   erl_free_term( binary_term ) ;
@@ -766,7 +777,7 @@ void write_as_binary( byte * buffer, char * string )
  * (helper)
  *
  */
-int write_exact( byte *buf, message_size len )
+byte_count write_exact( byte *buf, byte_count len )
 {
 
   int i, wrote = 0 ;
@@ -789,11 +800,13 @@ int write_exact( byte *buf, message_size len )
 
 
 /**
- * Sends the command result stored in the specified buffer to the port's output
- * file descriptor.
+ * Sends the content of the specified buffer through the port's output file
+ * descriptor.
+ *
+ * Returns the number of bytes written.
  *
  */
-message_size write_command( byte *buf, message_size len )
+byte_count write_buffer( byte *buf, byte_count len )
 {
 
   log_debug( "Will write %i bytes.", len ) ;

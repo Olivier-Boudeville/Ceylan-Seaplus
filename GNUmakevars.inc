@@ -43,6 +43,12 @@ SEAPLUS_BEAM := $(SEAPLUS_SRC)
 # Include path section.
 SEAPLUS_INC = -I$(SEAPLUS_SRC)
 
+# Library referencing section.
+
+SEAPLUS_LIB = libseaplus-$(SEAPLUS_VERSION).so
+SEAPLUS_LIB_DIR = $(SEAPLUS_TOP)/src
+SEAPLUS_LIB_OPT = -L$(SEAPLUS_LIB_DIR) -lseaplus-$(SEAPLUS_VERSION)
+
 
 DOC_ROOT       = $(SEAPLUS_TOP)/doc
 SEAPLUS_DOC_DIR = $(DOC_ROOT)/web/main/documentation/seaplus
@@ -133,6 +139,13 @@ else
 endif
 
 
+# Build section.
+
+
+LIBTOOL = $(shell which libtool)
+
+
+
 # Compiler section.
 
 SEAPLUS_BASE_NAME := seaplus
@@ -149,14 +162,14 @@ ERL_INTERFACE_LIB = -L$(ERL_INTERFACE)/lib
 
 C_COMPILER := $(shell which gcc)
 
+
 C_INC = $(ERL_INTERFACE_INC) -I.
 C_LIB = $(ERL_INTERFACE_LIB)
 
-C_COMPILER_OPT = $(C_INC) $(DEBUG_FLAGS) -Wall -Werror  -g
+C_COMPILER_OPT = $(C_INC) $(DEBUG_FLAGS) -Wall -Werror -g
 
 C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT) -fPIC
 
-SEAPLUS_OBJ := $(SEAPLUS_BASE_NAME).o
 
 
 
@@ -273,7 +286,8 @@ COMPILER_PARSE_TRANSFORM_FOR_SEAPLUS_CLASSES_OPT = \
 
 C_LINKER := $(C_COMPILER)
 
-C_LINKER_OPT := -g -shared
+# -shared probably unwelcome with libtool:
+C_LINKER_OPT := -g
 
 C_LINKER_LIBS := $(ERL_INTERFACE_LIB) -lerl_interface -lei -lpthread
 
@@ -297,6 +311,8 @@ ifndef PLT_FILE
 endif
 
 
+
+
 # Foobar-related section.
 
 FOOBAR_ROOT = $(SEAPLUS_TOP)/tests/c-test/foobar
@@ -305,7 +321,11 @@ FOOBAR_INC = $(FOOBAR_ROOT)/inc
 
 FOOBAR_INC_OPT = -I$(FOOBAR_INC)
 
-FOOBAR_LIB = $(FOOBAR_ROOT)/lib
+FOOBAR_LIB_DIR = $(FOOBAR_ROOT)/lib
+
+FOOBAR_LIBRARY = libfoobar.so
+
+FOOBAR_LIBRARY_PATH = $(FOOBAR_LIB_DIR)/$(FOOBAR_LIBRARY)
 
 
 
