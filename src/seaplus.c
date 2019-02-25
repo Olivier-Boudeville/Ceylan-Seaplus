@@ -83,6 +83,9 @@ void start_logging( const char * log_filename )
 	 */
 	log_file = fopen( log_filename, "w" ) ;
 
+	// No buffering wanted here:
+	setbuf( log_file, NULL ) ;
+
 	fprintf( log_file, "Starting Seaplus session...\n" ) ;
 
   }

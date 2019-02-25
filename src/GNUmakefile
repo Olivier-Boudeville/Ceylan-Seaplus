@@ -11,9 +11,6 @@ SEAPLUS_OBJ := seaplus.o
 SEAPLUS_TEST_OBJ := seaplus_test.o
 
 
-# This is a C-based (not C++) example:
-LIBTOOL_OPT += --tag=CC --verbose
-
 
 # Must be included prior to specifying variable-based targets:
 include $(SEAPLUS_TOP)/GNUmakesettings.inc
@@ -29,33 +26,35 @@ include $(SEAPLUS_TOP)/GNUmakesettings.inc
 	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(SEAPLUS_INC) -c $<
 
 
-#@$(LIBTOOL) $(LIBTOOL_OPT) --mode=compile $(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(SEAPLUS_INC) -c $<
+#@$(LIBTOOL) $(LIBTOOL_C_OPT) --mode=compile $(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(SEAPLUS_INC) -c $<
 
 
 
 all: $(SEAPLUS_LIB) seaplus_test
 
-build-seaplus: build-lib built-test
+build-seaplus: build-lib build-test
 
 build-lib: $(SEAPLUS_LIB)
 
 $(SEAPLUS_LIB): $(SEAPLUS_OBJ)
-	@echo "   Linking, in Seaplus library $(SEAPLUS_LIB), $^"
+	@echo "   Linking, in Seaplus library $@, $^"
 	@$(C_LINKER) $^ $(C_LINKER_OPT) -shared -o $@ $(C_LINKER_LIBS)
 
-#$(LIBTOOL) --mode=link $(LIBTOOL_OPT) $(C_LINKER) -shared $(C_LINKER_OPT) -o $(SEAPLUS_LIB) $^ $(C_LINKER_LIBS)
+#$(LIBTOOL) --mode=link $(LIBTOOL_C_OPT) $(C_LINKER) -shared $(C_LINKER_OPT) -o $(SEAPLUS_LIB) $^ $(C_LINKER_LIBS)
 
 
-built-test: seaplus_test $(SEAPLUS_LIB)
+build-test: seaplus_test $(SEAPLUS_LIB)
 
 seaplus_test: $(SEAPLUS_TEST_OBJ) $(SEAPLUS_LIB)
 	@echo "   Linking Seaplus test from $^"
 	@$(C_LINKER) $(C_LINKER_OPT) -o $@ $< $(SEAPLUS_LIB_OPT)
 
-#$(LIBTOOL) --mode=link $(LIBTOOL_OPT) $(C_LINKER) -o $@ $^ $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT)
+#$(LIBTOOL) --mode=link $(LIBTOOL_C_OPT) $(C_LINKER) -o $@ $^ $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT)
 
 
-run-test: built-test
+test: run-test
+
+run-test: build-test
 	@./seaplus_test
 
 

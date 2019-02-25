@@ -16,12 +16,20 @@ TARGET_DRIVER_EXEC := $(TARGET_DRIVER)
 
 
 
+# Must be included prior to specifying variable-based targets:
+include $(SEAPLUS_TOP)/GNUmakesettings.inc
+
+
 %.o: %.c
 	@echo "   Compiling $<"
 	$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(INC) $(FOOBAR_INC_OPT) -o $@ -c $<
 
 
-all: $(TARGET_DRIVER_EXEC) erlang-test
+all: build-foobar-lib $(TARGET_DRIVER_EXEC) erlang-test
+
+
+build-foobar-lib:
+	@cd foobar && $(MAKE) -s build-foobar-lib
 
 
 compile-service-driver: $(TARGET_DRIVER_OBJ)
@@ -32,23 +40,23 @@ link-service-library: $(TARGET_SERVICE_LIBRARY)
 
 $(TARGET_SERVICE_LIBRARY): $(TARGET_SERVICE_OBJ)
 	@echo "   Linking $(TARGET_SERVICE_LIBRARY)"
-	$(C_LINKER) $+ $(C_LINKER_OPT) -o $(TARGET_SERVICE_LIBRARY)
+	@$(C_LINKER) $+ $(C_LINKER_OPT) -o $(TARGET_SERVICE_LIBRARY)
 
 
 build-service-library-tester: $(TARGET_SERVICE_TESTER_EXEC)
 
 $(TARGET_SERVICE_TESTER_EXEC): $(TARGET_SERVICE_TESTER_SRC) $(TARGET_SERVICE_LIBRARY)
 	@echo "   Building executable $@"
-	$(C_COMPILER) $(C_COMPILER_OPT) $< -o $(TARGET_SERVICE_TESTER_EXEC) -L. -l$(TARGET_SERVICE)
+	@$(C_COMPILER) $(C_COMPILER_OPT) $< -o $(TARGET_SERVICE_TESTER_EXEC) -L. -l$(TARGET_SERVICE)
 
 
 compile-service-to-wrap: $(TARGET_SERVICE_OBJ)
 
 
-$(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB)
+$(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB_PATH)
 	@echo "   Linking driver $(TARGET_DRIVER)"
-	$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) \
-	 $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT)
+	@$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) \
+	 $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT) -L$(FOOBAR_LIB_DIR) -lfoobar
 
 
 #FOOBAR_LIBRARY = $(FOOBAR_LIB_DIR)/libfoobar.so
@@ -56,10 +64,10 @@ $(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB)
 # One day I will understand why the $(FOOBAR_LIBRARY) prerequisite is not taken
 # into account, as if that variable was not defined:
 #
-run-driver: $(TARGET_DRIVER_EXEC) $(FOOBAR_LIBRARY)
+run-driver: $(TARGET_DRIVER_EXEC) $(FOOBAR_LIB_PATH)
 	@cd foobar && $(MAKE) -s link-foobar-lib
 	@echo "   Running foobar driver, which will use $(FOOBAR_LIBRARY)"
-	LD_LIBRARY_PATH=$(FOOBAR_LIB_DIR):$(SEAPLUS_LIB):$(LD_LIBRARY_PATH) ./$(TARGET_DRIVER_EXEC)
+	@LD_LIBRARY_PATH=$(FOOBAR_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH) ./$(TARGET_DRIVER_EXEC)
 
 
 erlang-test: foobar.beam $(TEST).beam
@@ -95,6 +103,3 @@ info-target:
 	@echo "TARGET_DRIVER_SRC = $(TARGET_DRIVER_SRC)"
 	@echo "TARGET_DRIVER = $(TARGET_DRIVER)"
 	@echo "FOOBAR_LIBRARY = $(FOOBAR_LIBRARY)"
-
-
-include $(SEAPLUS_TOP)/GNUmakesettings.inc

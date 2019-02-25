@@ -47,6 +47,7 @@ SEAPLUS_INC = -I$(SEAPLUS_SRC)
 
 SEAPLUS_LIB = libseaplus-$(SEAPLUS_VERSION).so
 SEAPLUS_LIB_DIR = $(SEAPLUS_TOP)/src
+SEAPLUS_LIB_PATH = $(SEAPLUS_LIB_DIR)/$(SEAPLUS_LIB)
 SEAPLUS_LIB_OPT = -L$(SEAPLUS_LIB_DIR) -lseaplus-$(SEAPLUS_VERSION)
 
 
@@ -144,6 +145,8 @@ endif
 
 LIBTOOL = $(shell which libtool)
 
+# This is a C-based (not C++) example:
+LIBTOOL_C_OPT += --tag=CC --verbose
 
 
 # Compiler section.
@@ -325,7 +328,7 @@ FOOBAR_LIB_DIR = $(FOOBAR_ROOT)/lib
 
 FOOBAR_LIBRARY = libfoobar.so
 
-FOOBAR_LIBRARY_PATH = $(FOOBAR_LIB_DIR)/$(FOOBAR_LIBRARY)
+FOOBAR_LIB_PATH = $(FOOBAR_LIB_DIR)/$(FOOBAR_LIBRARY)
 
 
 

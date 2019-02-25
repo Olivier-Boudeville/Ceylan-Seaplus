@@ -1,7 +1,7 @@
 SEAPLUS_TOP = ../../..
 
 
-# Makefile in charge of the vanilla foobar fake service.
+# Makefile in charge of the building of the vanilla foobar example service.
 
 
 .PHONY: all build build-foobar compile-foobar link-foobar-lib \
@@ -10,7 +10,7 @@ SEAPLUS_TOP = ../../..
 
 
 obj/%.o: src/%.c inc/%.h
-	@echo "   Compiling $< in $@ for inclusion in foobar library"
+	@echo "   Compiling $< in $@ for inclusion in the foobar library"
 	@mkdir -p obj
 	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(FOOBAR_INC_OPT) -o $@ -c $<
 
@@ -18,27 +18,32 @@ obj/%.o: src/%.c inc/%.h
 
 TARGET_SERVICE := foobar
 
-TARGET_SERVICE_OBJ := obj/foobar.o
+TARGET_SERVICE_OBJ := obj/$(TARGET_SERVICE).o
 
-TARGET_LIBRARY = lib/libfoobar.so
+TARGET_LIB = lib/lib$(TARGET_SERVICE).so
+
+
+# Must be included prior to specifying variable-based targets:
+include $(SEAPLUS_TOP)/GNUmakesettings.inc
+
 
 all: build
 
-build: build-foobar build-foobar-test
+build: build-foobar-lib build-foobar-test
 
-build-foobar: compile-foobar link-foobar-lib
-
-
-compile-foobar: $(TARGET_SERVICE_OBJ)
+build-foobar-lib: compile-foobar-lib link-foobar-lib
 
 
-link-foobar-lib: $(TARGET_LIBRARY)
+compile-foobar-lib: $(TARGET_SERVICE_OBJ)
 
 
-$(TARGET_LIBRARY): $(TARGET_SERVICE_OBJ)
-	@echo "   Linking service library $@ from $^"
+link-foobar-lib: $(TARGET_LIB)
+
+
+$(TARGET_LIB): $(TARGET_SERVICE_OBJ)
+	@echo "   Linking, in service library $@, $^"
 	@mkdir -p lib
-	@$(C_LINKER) $^ $(C_LINKER_OPT) -o $@
+	@$(C_LINKER) $^ $(C_LINKER_OPT) -shared -o $@
 
 
 TARGET_SERVICE_TEST := foobar_test
@@ -79,4 +84,3 @@ info-target:
 	@echo "TARGET_SERVICE_TEST_EXEC = $(TARGET_SERVICE_TEST_EXEC)"
 
 
-include $(SEAPLUS_TOP)/GNUmakesettings.inc

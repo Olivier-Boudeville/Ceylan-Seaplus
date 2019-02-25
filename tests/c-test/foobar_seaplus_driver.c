@@ -82,9 +82,6 @@ enum tur_status get_tur_status_enum_from_atom( const char * atom_name ) ;
 int main()
 {
 
-  printf( "hello") ;
-  exit( 0 ) ;
-
   // Provided by the Seaplus library:
   byte * buffer = start_seaplus_driver() ;
 
