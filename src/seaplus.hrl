@@ -23,7 +23,7 @@
 %
 start() ->
 	% Allows to register and identify target executable:
-	service_support:start( ?service_module_name ).
+	seaplus:start( ?service_module_name ).
 
 
 
@@ -33,13 +33,22 @@ start() ->
 %
 start_link() ->
 	% Allows to register and identify target executable:
-	service_support:start_link( ?service_module_name ).
+	seaplus:start_link( ?service_module_name ).
+
+
+% Restarts the supportof this foobar service (ex: to overcome a detected crash
+% thereof).
+%
+-spec restart() -> void().
+restart() ->
+	seaplus:restart( ?MODULE ).
+
 
 
 % Stops the service.
 %
 stop() ->
-	service_support:stop( ?service_module_name ).
+	seaplus:stop( ?service_module_name ).
 
 
 
@@ -54,10 +63,9 @@ stop() ->
 % Simply defining that function allows to activate the Seaplus transformations
 % for the current module.
 %
--spdec activate_seaplus( [ seaplus_option() ] ) -> void().
+-spec activate_seaplus( [ seaplus_option() ] ) -> void().
 activate_seaplus( Options ) ->
 	Options.
 
 
 -endif. % override_seaplus_activation
-

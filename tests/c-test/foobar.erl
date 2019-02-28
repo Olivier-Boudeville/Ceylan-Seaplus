@@ -73,7 +73,7 @@
 % - stop/0
 % - list_exported_service_functions/0
 %
--include("seaplus.hrl").
+%-include("seaplus.hrl").
 
 
 % The name of the driver executable:
@@ -84,40 +84,7 @@
 %-define( driver_exec_name, "foobar_service_driver" ).
 
 
-% Service generic API.
-
-
--export([ start/0, start_link/0, restart/0, stop/0,
-		  get_service_key_name() ]).
-
-
-% Starts the support of this foobar service.
-%
--spec start() -> void()
-start() ->
-	seaplus:start( ?MODULE ).
-
-
-% Starts and links the support of this foobar service.
-%
--spec start_link() -> void()
-start_link() ->
-	seaplus:start_link( ?MODULE ).
-
-
-% Restarts the supportof this foobar service (ex: to overcome a detected crash
-% thereof).
-%
--spec restart() -> void().
-restart() ->
-	seaplus:restart( ?MODULE ).
-
-
-% Stops the support of this foobar service.
-%
--spec stop() -> void()
-stop() ->
-	seaplus:stop( ?MODULE ).
+% Service generic API obtained through Seaplus header.
 
 
 
@@ -125,7 +92,7 @@ stop() ->
 
 
 % Better than ?MODULE:
--define( foobar_port_dict_key, seaplus_foobar_port_dict_key ).
+-define( seaplus_foobar_port_dict_key, seaplus_foobar_port_dict_key ).
 
 
 % Returns the key under which this service shall be referenced in the process
@@ -157,20 +124,20 @@ get_service_key() ->
 
 
 foo( A ) ->
-	seaplus:call_port_for( ?foobar_port_dict_key, 1, [ A ] ).
+	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 1, [ A ] ).
 
 
 bar( A, B ) ->
-	seaplus:call_port_for( ?foobar_port_dict_key, 2, [ A, B ] ).
+	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 2, [ A, B ] ).
 
 
 baz( A, B ) ->
-	seaplus:call_port_for( ?foobar_port_dict_key, 3, [ A, B ] ).
+	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 3, [ A, B ] ).
 
 
 tur() ->
-	seaplus:call_port_for( ?foobar_port_dict_key, 4, [] ).
+	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 4, [] ).
 
 
 frob( A ) ->
-	seaplus:call_port_for( ?foobar_port_dict_key, 5, [ A ] ).
+	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 5, [ A ] ).

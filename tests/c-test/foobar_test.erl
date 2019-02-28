@@ -11,13 +11,12 @@
 % Allows to test the full chain, from the initial service call to the obtaining
 % of its result.
 %
-% Erlang counterpart of foobar_test.c, with additions.
+% Erlang counterpart translation of foobar_test.c, with additions at the end.
 %
 -module(foobar_test).
 
 
 -export([ run/0 ]).
-
 
 
 
@@ -28,8 +27,8 @@ run() ->
 	test_facilities:display( "Testing the Erlang-integrated foobar service." ),
 
 	% Not foobar:start_link(), as here we want to survive a crash of the foobar
-	% service (i.e. to be able to handle failures explicitly from the test
-	% process):
+	% service (i.e. to be able to handle failures explicitly, as messages
+	% received by this test process):
 	%
 	foobar:start(),
 
