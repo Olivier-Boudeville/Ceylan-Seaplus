@@ -19,6 +19,9 @@
 -export([ run/0 ]).
 
 
+% For the foo_data record:
+-include("foobar.hrl").
+
 
 run() ->
 
@@ -67,7 +70,7 @@ run() ->
 								 [ ErrorReason ] ),
 		true
 
-	end
+	end,
 
 	case FooCrashed of
 
@@ -82,7 +85,7 @@ run() ->
 	foobar:restart(),
 
 
-	#foo{ count=4, value = -20.0 } = foobar:bar( 2.0, moderate_speed ),
+	#foo_data{ count=4, value = -20.0 } = foobar:bar( 2.0, moderate_speed ),
 
 	tur_value = foobar:baz( 10, "cat" ),
 	non_tur_value = foobar:baz( 7, "dog" ),

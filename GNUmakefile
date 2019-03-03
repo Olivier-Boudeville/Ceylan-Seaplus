@@ -109,7 +109,7 @@ clean: clean-release clean-archive
 
 
 clean-release:
-	@echo "   Cleaning release archive for SEAPLUS"
+	@echo "   Cleaning release archive for Seaplus"
 	-@cd .. && /bin/rm -rf $(SEAPLUS_RELEASE_BASE)
 
 

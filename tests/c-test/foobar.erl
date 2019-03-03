@@ -19,14 +19,6 @@
 -module(foobar).
 
 
-% For the Seaplus support:
--include("seaplus.hrl").
-
-
-% For the foo record:
--include("foobar.hrl").
-
-
 % Detailed comment for foo_status/0.
 -type foo_status() :: 'low_speed' | 'moderate_speed' | 'full_speed'.
 
@@ -35,7 +27,11 @@
 -type tur_status() :: 'tur_value' | 'non_tur_value'.
 
 
--export_type([ foo/0, foo_status/0, tur_status/0 ]).
+-export_type([ foo_data/0, foo_status/0, tur_status/0 ]).
+
+
+% For the foo record:
+-include("foobar.hrl").
 
 
 
@@ -55,7 +51,7 @@
 
 
 % Detailed comment for tur/0.
--spec tur() -> bool().
+-spec tur() -> boolean().
 
 
 % Detailed comment for frob/1.
@@ -94,16 +90,6 @@
 % Better than ?MODULE:
 -define( seaplus_foobar_port_dict_key, seaplus_foobar_port_dict_key ).
 
-
-% Returns the key under which this service shall be referenced in the process
-% dictionary of the (creator) user process.
-%
--spec get_service_key() -> seaplus:service_key().
-get_service_key() ->
-	?seaplus_foobar_port_dict_key.
-
-
-
 % Service-specific API, delegated through the driver.
 %
 % A call is either to return a result (if any) or to throw an exception in case
@@ -121,6 +107,22 @@ get_service_key() ->
 
 
 -export([ foo/1, bar/2, baz/2, tur/0, frob/1 ]).
+
+
+% For the Seaplus support:
+-include("seaplus.hrl").
+
+
+% Returns the key under which this service shall be referenced in the process
+% dictionary of the (creator) user process.
+%
+-spec get_service_key() -> seaplus:service_key().
+get_service_key() ->
+	?seaplus_foobar_port_dict_key.
+
+
+
+
 
 
 foo( A ) ->

@@ -10,10 +10,8 @@
 
 
 -export([ % Base service behaviour:
-		  start/0, start_link/0, stop/0,
-
-		  % Service-related meta-data:
-		  list_exported_service_functions/0 ]).
+		  start/0, start_link/0,  restart/0, stop/0, activate_seaplus/1,
+		  get_service_key/0 ]).
 
 
 % Starts the service.
