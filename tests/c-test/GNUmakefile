@@ -14,6 +14,7 @@ TARGET_DRIVER_SRC := $(TARGET_DRIVER).c
 TARGET_DRIVER_OBJ := $(TARGET_DRIVER).o
 TARGET_DRIVER_EXEC := $(TARGET_DRIVER)
 
+TEST := foobar_test
 
 
 # Must be included prior to specifying variable-based targets:

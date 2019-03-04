@@ -21,6 +21,11 @@ include $(SEAPLUS_TOP)/GNUmakesettings.inc
 	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(SEAPLUS_INC) -c $<
 
 
+%_test.o: %_test.c
+	@echo "   Compiling $< in $@ for test of the Seaplus library"
+	@$(C_COMPILER) $(C_COMPILER_OPT) $(SEAPLUS_INC) -c $<
+
+
 %.o: %.c
 	@echo "   Compiling $< in $@ for inclusion in Seaplus library"
 	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(SEAPLUS_INC) -c $<
@@ -30,7 +35,12 @@ include $(SEAPLUS_TOP)/GNUmakesettings.inc
 
 
 
-all: $(SEAPLUS_LIB) seaplus_test
+all: all-local
+
+all-recurse: all-local
+
+
+all-local: $(SEAPLUS_LIB) seaplus_test
 
 build-seaplus: build-lib build-test
 
