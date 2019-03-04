@@ -62,9 +62,6 @@ $(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB_PATH)
 
 #FOOBAR_LIBRARY = $(FOOBAR_LIB_DIR)/libfoobar.so
 
-# One day I will understand why the $(FOOBAR_LIBRARY) prerequisite is not taken
-# into account, as if that variable was not defined:
-#
 run-driver: $(TARGET_DRIVER_EXEC) $(FOOBAR_LIB_PATH)
 	@cd foobar && $(MAKE) -s link-foobar-lib
 	@echo "   Running foobar driver, which will use $(FOOBAR_LIBRARY)"
@@ -75,8 +72,7 @@ erlang-test: foobar.beam $(TEST).beam
 
 
 integration-test: erlang-test $(TARGET_DRIVER_EXEC)
-	@echo "   Running test $(TEST)"
-	@$(ERL_INTERPRETER) -s $(TEST) run -s init stop -noshell
+	@$(MAKE) -s foobar_run
 
 
 clean: clean-local
