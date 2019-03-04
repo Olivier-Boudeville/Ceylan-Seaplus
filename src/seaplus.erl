@@ -115,8 +115,8 @@
 %
 % where for example 1d is the static index (compile-time, immediate value)
 % chosen for foo/1 (and foobar_port_dict_key is the service-specific key of
-% foobar in the user process dictionary, so that multiple Seaplus-using services can
-% coexist)
+% foobar in the user process dictionary, so that multiple Seaplus-using services
+% can coexist)
 %
 % - the function identifier mapping, made available thanks to a
 % 'foobar_seaplus_api_mapping.h' generated C header file (to be included in
@@ -269,7 +269,7 @@ restart( ServiceName, DriverExecutableName ) ->
 -spec stop( service_name() ) -> void().
 stop( ServiceName ) when is_atom( ServiceName ) ->
 
-	ServiceKey = get_service_key_for( ServiceName ),
+	ServiceKey = get_service_port_key_for( ServiceName ),
 
 	case process_dictionary:get( ServiceKey ) of
 
@@ -309,13 +309,15 @@ get_driver_name( ServiceName ) ->
 							 file_utils:executable_path().
 get_driver_path( ServiceName, DriverExecutableName ) ->
 
-	ExecPath = case executable_utils:lookup_executable( DriverExecutableName ) of
+	ExecPath = case executable_utils:lookup_executable(
+					  DriverExecutableName ) of
 
 		false ->
 			trace_utils:error_fmt( "Unable to find executable '~s' "
 								   "for service '~s'.",
 								   [ DriverExecutableName, ServiceName ] ),
-			throw( { executable_not_found, DriverExecutableName, ServiceName } );
+			throw( { executable_not_found, DriverExecutableName,
+					 ServiceName } );
 
 		Path ->
 			Path
@@ -360,9 +362,14 @@ launch_link( ServiceName, DriverExecPath ) ->
 
 % Inits the driver of specified service.
 %
+% DriverExecPath supposed already checked for existence.
+%
 % (helper)
 %
 init_driver( ServiceName, DriverExecPath ) ->
+
+	trace_utils:debug_fmt( "For service '~s', launching driver '~s'.",
+						   [ ServiceName, DriverExecPath ] ),
 
 	% Used to intercept driver crashes, when was a spawned process:
 	%process_flag( trap_exit, true ),
@@ -377,7 +384,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 	% Will store the spawned port for later use in the process dictionary of the
 	% calling user process:
 
-	ServiceKey = get_service_key_for( ServiceName ),
+	ServiceKey = get_service_port_key_for( ServiceName ),
 
 	case process_dictionary:get( ServiceKey ) of
 
@@ -395,6 +402,10 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	% Respect the erl_interface conventions:
 	Port = open_port( { spawn, DriverExecPath }, [ { packet, 2 }, binary ] ),
+
+	trace_utils:debug_fmt( "Storing port ~w under the service key '~s' in the "
+						   "process dictionary of ~p.",
+						   [ Port, ServiceKey, self() ] ),
 
 	process_dictionary:put( ServiceKey, Port ).
 
@@ -420,8 +431,9 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 		undefined ->
 			trace_utils:error_fmt( "Service key '~s' not set in process "
-				"dictionary; has the corresponding service been started?",
-				[ ServiceKey ] ),
+				"dictionary of ~p; has the corresponding service been started?",
+				[ ServiceKey, self() ] ),
+			io:format( process_dictionary:to_string() ),
 			throw( { service_key_not_set, ServiceKey } );
 
 		V ->
@@ -465,6 +477,10 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 % Returns the key that shall be used to store information in the process
 % dictionary of the calling user process for the specified service.
 %
--spec get_service_key_for( service_name() ) -> service_key().
-get_service_key_for( ServiceName ) ->
-	text_utils:format( "_seaplus_for_service_~s", [ ServiceName ] ).
+-spec get_service_port_key_for( service_name() ) -> service_key().
+get_service_port_key_for( ServiceName ) ->
+
+	KeyString = text_utils:format( "_seaplus_port_for_service_~s",
+								   [ ServiceName ] ),
+
+	text_utils:string_to_atom( KeyString ).
