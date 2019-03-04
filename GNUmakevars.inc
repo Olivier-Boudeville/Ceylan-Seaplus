@@ -78,8 +78,8 @@ endif
 # So that they can be fetched from outside
 # (see the 'list-beam-dirs' target)
 #
-SEAPLUS_BEAM_DIRS = $(SEAPLUS_BEAM)/src      \
-					$(SEAPLUS_BEAM)/examples
+SEAPLUS_BEAM_DIRS = $(SEAPLUS_TOP)/src      \
+					$(SEAPLUS_TOP)/examples
 
 
 # We rely on Myriad as well:
