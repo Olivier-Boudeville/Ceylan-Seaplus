@@ -262,6 +262,8 @@ byte_count read_exact( byte *buf, byte_count len )
 
   } while ( got < len ) ;
 
+  log_debug( "Read %i bytes.", len ) ;
+
   return( len ) ;
 
 }
@@ -276,11 +278,12 @@ byte_count read_exact( byte *buf, byte_count len )
 byte_count read_command( byte *buf )
 {
 
-  int len ;
+  int len = read_exact( buf, 2 ) ;
 
   // Two bytes for command length:
-  if ( read_exact( buf, 2 ) != 2 )
-	raise_error( "Reading of the length of the command buffer failed." ) ;
+  if ( len != 2 )
+	raise_error( "Reading of the length of the command buffer failed "
+	  "(read %i bytes).", len ) ;
 
   len = (buf[0] << 8) | buf[1] ;
 
@@ -356,6 +359,8 @@ signed int get_element_as_int( tuple_index i, ETERM *tuple_term )
 
   int res = ERL_INT_VALUE( elem ) ;
 
+  log_debug( "Read integer %i.", res ) ;
+
   erl_free_term( elem ) ;
 
   return res ;
@@ -363,7 +368,14 @@ signed int get_element_as_int( tuple_index i, ETERM *tuple_term )
 }
 
 
-// Returns the element i of specified tuple, as an unsigned int.
+
+/**
+ * Returns the element i of specified tuple, as an unsigned integer.
+ *
+ * Note: apparently, Erlang integers are rather returned as 'int', not 'unsigned
+ * int'.
+ *
+ */
 unsigned int get_element_as_unsigned_int( tuple_index i, ETERM *tuple_term )
 {
 
@@ -375,6 +387,8 @@ unsigned int get_element_as_unsigned_int( tuple_index i, ETERM *tuple_term )
   unsigned int res = ERL_INT_UVALUE( elem ) ;
 
   erl_free_term( elem ) ;
+
+  log_debug( "Read unsigned integer %u.", res ) ;
 
   return res ;
 
@@ -391,6 +405,8 @@ double get_element_as_double( tuple_index i, ETERM *tuple_term )
 	raise_error( "Tuple element %u cannot be cast to double.", i ) ;
 
   double res = ERL_FLOAT_VALUE( elem ) ;
+
+  log_debug( "Read double %e.", res ) ;
 
   erl_free_term( elem ) ;
 
@@ -524,6 +540,8 @@ double get_head_as_double( ETERM * list_term )
 
   double res = ERL_FLOAT_VALUE( head_term ) ;
 
+  log_debug( "Read double %e.", res ) ;
+
   erl_free_term( head_term ) ;
 
   return res ;
@@ -556,6 +574,11 @@ char * get_head_as_atom( ETERM * list_term )
 
   char * atom_name = ERL_ATOM_PTR( head_term ) ;
 
+  if ( atom_name == NULL )
+	raise_error( "Head of list cannot be converted to atom." ) ;
+
+  log_debug( "Read head as atom '%s'.", atom_name ) ;
+
   char * res = strdup( atom_name ) ;
 
    erl_free_term( head_term ) ;
@@ -586,6 +609,8 @@ char * get_head_as_string( ETERM * list_term )
 
   if ( res_string == NULL )
 	raise_error( "Head of list cannot be converted to string." ) ;
+
+  log_debug( "Read head as string '%s'.", res_string ) ;
 
   erl_free_term( head_term ) ;
 
@@ -814,7 +839,7 @@ byte_count write_buffer( byte *buf, byte_count len )
 
   log_debug( "Will write %i bytes.", len ) ;
 
-  if ( len + 2 > len )
+  if ( len + 2 > buffer_size )
   {
 
 	raise_error( "Write length (%i) too high (buffer size: %i).",

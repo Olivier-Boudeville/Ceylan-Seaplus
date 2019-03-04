@@ -138,7 +138,13 @@ ETERM * get_element_from_tuple( tuple_index i, ETERM *tuple_term ) ;
 int get_element_as_int( tuple_index i, ETERM *tuple_term ) ;
 
 
-// Returns the element i of specified tuple, as an unsigned integer.
+/**
+ * Returns the element i of specified tuple, as an unsigned integer.
+ *
+ * Note: apparently, Erlang integers are rather returned as 'int', not 'unsigned
+ * int'.
+ *
+ */
 unsigned int get_element_as_unsigned_int( tuple_index i, ETERM *tuple_term ) ;
 
 // Returns the element i of specified tuple, as a double.

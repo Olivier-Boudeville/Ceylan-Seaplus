@@ -117,7 +117,7 @@ int main()
 
 	tuple_size tuple_s = ERL_TUPLE_SIZE( read_pair ) ;
 
-	if( tuple_s != 2 )
+	if ( tuple_s != 2 )
 	  raise_error( "Read tuple is not a pair (%u elements found).",
 		tuple_s ) ;
 
@@ -126,7 +126,7 @@ int main()
 	 * identifier (ex: whose value is FOO_1_ID):
 	 *
 	 */
-	fun_id current_fun_id = get_element_as_unsigned_int( 1, read_pair ) ;
+	fun_id current_fun_id = get_element_as_int( 1, read_pair ) ;
 
 	log_debug( "Reading command: function identifier is %u.", current_fun_id ) ;
 
@@ -151,7 +151,7 @@ int main()
 	if ( param_count == -1 )
 	  raise_error( "Improper list received." ) ;
 
-	log_debug( "%u parameters received for this function.", param_count ) ;
+	log_debug( "%u parameter(s) received for this function.", param_count ) ;
 
 
 	/* Now, take care of the corresponding function call:
@@ -163,6 +163,7 @@ int main()
 
 	case FOO_1_ID:
 
+	  log_debug( "Executing foo/1." ) ;
 	  // -spec foo( integer() ) -> integer() vs int foo( int a )
 
 	  check_arity_is( 1, param_count, FOO_1_ID ) ;
@@ -181,6 +182,8 @@ int main()
 
 	case BAR_2_ID:
 
+	  log_debug( "Executing bar/2." ) ;
+
 	  /* -spec bar( float(), foo_status() ) -> foo_data() vs
 	   * struct foo * bar( double a, enum foo_status status )
 	   *
@@ -191,10 +194,10 @@ int main()
 	  // Getting first the float:
 	  double bar_double_param = get_head_as_double( cmd_params ) ;
 
-	  ETERM * cmd_params = get_tail( cmd_params ) ;
+	  ETERM * other_params = get_tail( cmd_params ) ;
 
 	  // Then the atom for foo_status():
-	  char * atom_name = get_head_as_atom( cmd_params ) ;
+	  char * atom_name = get_head_as_atom( other_params ) ;
 
 	  enum foo_status bar_status_param = get_foo_status_from_atom( atom_name ) ;
 
@@ -211,6 +214,8 @@ int main()
 
 	case BAZ_2_ID:
 
+	  log_debug( "Executing baz/2." ) ;
+
 	  /* -spec baz( integer(), text_utils:ustring() ) -> tur_status() vs
 	   * enum tur_status baz( unsigned int u, const char * m )
 	   *
@@ -219,7 +224,7 @@ int main()
 	  check_arity_is( 2, param_count, BAZ_2_ID ) ;
 
 	  // Getting first the (unsigned) integer:
-	  unsigned int baz_int_param = get_head_as_unsigned_int( cmd_params ) ;
+	  unsigned int baz_int_param = get_head_as_int( cmd_params ) ;
 
 	  // Then the string:
 	  cmd_params = get_tail( cmd_params ) ;
@@ -239,6 +244,8 @@ int main()
 
 	case TUR_0_ID:
 
+	  log_debug( "Executing tur/0." ) ;
+
 	  // -spec tur() -> bool() vs bool tur()
 
 	  check_arity_is( 0, param_count, TUR_0_ID ) ;
@@ -253,6 +260,8 @@ int main()
 
 
 	case FROB_1_ID:
+
+	  log_debug( "Executing frob/1." ) ;
 
 	  /* frob( tur_status() ) -> text_utils:ustring() vs
 	   * char * frob( enum tur_status )

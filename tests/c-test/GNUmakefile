@@ -74,6 +74,8 @@ erlang-test: foobar.beam $(TEST).beam
 integration-test: clean-log erlang-test $(TARGET_DRIVER_EXEC)
 	@$(MAKE) -s foobar_run LD_LIBRARY_PATH=$(SEAPLUS_TOP)/src:foobar/lib:$(LD_LIBRARY_PATH)
 
+# || cat seaplus.log
+
 
 clean: clean-local
 

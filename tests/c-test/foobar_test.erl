@@ -64,10 +64,14 @@ run() ->
 		foobar:foo( 0 ),
 		false
 
-	catch _:{ call_failed, ErrorReason } ->
+	catch throw:{ driver_crashed, ErrorReason } ->
 
-		test_facilities:display( "Exception thrown as expected:~n~p",
+		test_facilities:display( "Exception thrown as expected: ~p",
 								 [ ErrorReason ] ),
+
+		% Check:
+		unknown_reason = ErrorReason,
+
 		true
 
 	end,

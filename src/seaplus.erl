@@ -423,6 +423,8 @@ init_driver( ServiceName, DriverExecPath ) ->
 % The identifier will suffice, no real need to pass along the
 % basic_utils:function_name().
 %
+% Will return the result of the corresponding call, or will raise an exception.
+%
 -spec call_port_for( service_key(), function_driver_id(), function_params() ) ->
 						   function_result().
 call_port_for( ServiceKey, FunctionId, Params ) ->
@@ -433,7 +435,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			trace_utils:error_fmt( "Service key '~s' not set in process "
 				"dictionary of ~p; has the corresponding service been started?",
 				[ ServiceKey, self() ] ),
-			io:format( process_dictionary:to_string() ),
+
 			throw( { service_key_not_set, ServiceKey } );
 
 		V ->
@@ -444,6 +446,12 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 	% Vaguely similar to WOOPER conventions (tuple vs list):
 	Message = { FunctionId, Params },
 
+	BinMessage = term_to_binary( Message ),
+
+	trace_utils:debug_fmt( "Sending command message '~p' (size: ~B bytes) "
+						   "to port ~w.",
+						   [ Message, size( BinMessage ), TargetPort ] ),
+
 	% To be handled by the (C-based) driver:
 	%
 	% (note that message structure and content are dictated by how Erlang ports
@@ -453,12 +461,22 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 	%
 	% Message already encoded as wanted here:
 	%
-	TargetPort ! { self(), { command, Message } },
+	TargetPort ! { self(), { command, BinMessage } },
 
 	receive
 
-		{ ServiceKey, Result } ->
-			Result;
+		{ TargetPort, { data, BinAnswer } } ->
+			binary_to_term( BinAnswer );
+
+		{ 'EXIT', TargetPort, _Reason=normal } ->
+
+			%trace_utils:warning_fmt( "Normal EXIT of port ~p.",
+			%						 [ TargetPort ] ),
+
+			% Actually even when hard crashing (zero division), a 'normal'
+			% reason is thrown:
+			%
+			throw( { driver_crashed, unknown_reason } );
 
 		{ 'EXIT', TargetPort, Reason } ->
 			trace_utils:error_fmt( "Received exit failure from port ~p, "
