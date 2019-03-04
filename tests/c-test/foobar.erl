@@ -30,7 +30,7 @@
 -export_type([ foo_data/0, foo_status/0, tur_status/0 ]).
 
 
-% For the foo record:
+% For the foo_data record/type:
 -include("foobar.hrl").
 
 
@@ -88,7 +88,9 @@
 
 
 % Better than ?MODULE:
--define( seaplus_foobar_port_dict_key, seaplus_foobar_port_dict_key ).
+-define( seaplus_foobar_port_dict_key, '_seaplus_port_for_service_foobar' ).
+
+
 
 % Service-specific API, delegated through the driver.
 %
