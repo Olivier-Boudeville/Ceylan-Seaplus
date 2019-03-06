@@ -76,9 +76,11 @@ run() ->
 	% Better than { ok, 4 }, as we rely on exception support:
 	4 = foobar:foo( 3 ),
 
+	test_facilities:display( "Now triggering on purpose a crash of the "
+							 "integrated service." ),
+
 	% Throwing an exception is better than returning { error, FailReason }:
 	FooCrashed = try
-
 		% Expected to crash:
 		foobar:foo( 0 ),
 		false
@@ -104,6 +106,9 @@ run() ->
 			throw( foo_exception_not_raised )
 
 	end,
+
+	test_facilities:display( "Next restart supposed to discover that this "
+					 "(just crashed) service is not registered anymore." ),
 
 	foobar:restart(),
 
