@@ -1,7 +1,36 @@
-% This header file auto-defines base, generic service functions.
+% Copyright (C) 2018-2019 Olivier Boudeville
 %
-% It is meant to be included by the bridgin modules (ex: by foobar.erl for a
-% Foobar service).
+% This file is part of the Ceylan-Seaplus library.
+%
+% This library is free software: you can redistribute it and/or modify
+% it under the terms of the GNU Lesser General Public License or
+% the GNU General Public License, as they are published by the Free Software
+% Foundation, either version 3 of these Licenses, or (at your option)
+% any later version.
+% You can also redistribute it and/or modify it under the terms of the
+% Mozilla Public License, version 1.1 or later.
+%
+% This library is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU Lesser General Public License and the GNU General Public License
+% for more details.
+%
+% You should have received a copy of the GNU Lesser General Public
+% License, of the GNU General Public License and of the Mozilla Public License
+% along with this library.
+% If not, see <http://www.gnu.org/licenses/> and
+% <http://www.mozilla.org/MPL/>.
+%
+% Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
+% Creation date: December 16, 2018
+
+
+
+% This header file auto-defines the Seaplus base, generic service functions.
+%
+% It is meant to be included by the bridging modules (ex: for a Foobar service,
+% by foobar.erl).
 
 
 -define( service_module_name, ?MODULE ).
@@ -10,14 +39,19 @@
 
 
 -export([ % Base service behaviour:
-		  start/0, start_link/0,  restart/0, stop/0, activate_seaplus/1,
+		  start/0, start_link/0, restart/0, stop/0, activate_seaplus/1,
 		  get_service_key/0 ]).
+
 
 
 % Starts the service.
 %
-% Note: not linking caller here; so, if the C code crashes, the corresponding
-% call will block.
+% Preferred form, to detect crashes of the driver and/or of the integrated
+% library: the current process will then trap EXIT signals, and thus Seaplus
+% will throw a { driver_crashed, ErrorReason } exception if appropriate.
+%
+% As a result, the user code may catch this exception and react accordingly (ex:
+% by restaring the driver).
 %
 start() ->
 	% Allows to register and identify target executable:
@@ -27,14 +61,18 @@ start() ->
 
 % Starts and links the service.
 %
-% Preferred form, to detect crashes.
+% The current process will then not trap EXIT signals, and thus will crash
+% whenever its associated driver crashed (because of the driver itself, or
+% because of the integrated library).
+%
+% Note that start/0 is the generally preferred form.
 %
 start_link() ->
 	% Allows to register and identify target executable:
 	seaplus:start_link( ?service_module_name ).
 
 
-% Restarts the supportof this foobar service (ex: to overcome a detected crash
+% Restarts the support of this foobar service (ex: to overcome a detected crash
 % thereof).
 %
 -spec restart() -> void().
@@ -44,7 +82,6 @@ restart() ->
 
 
 % Stops the service.
-%
 stop() ->
 	seaplus:stop( ?service_module_name ).
 

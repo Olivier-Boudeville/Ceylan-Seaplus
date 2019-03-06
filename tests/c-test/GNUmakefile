@@ -6,7 +6,11 @@ SEAPLUS_TOP = ../..
 		info info-compile info-erlang-local info-target
 
 
-MODULES_DIRS = foobar
+# Explicit recursion (done by build-foobar-lib) preferred, to avoid parallel
+# build potentially resulting in libfoobar.so not being available when the
+# foobar driver is linked):
+#
+#MODULES_DIRS = foobar
 
 TARGET_DRIVER := foobar_seaplus_driver
 
@@ -23,7 +27,7 @@ include $(SEAPLUS_TOP)/GNUmakesettings.inc
 
 %.o: %.c
 	@echo "   Compiling $<"
-	$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(INC) $(FOOBAR_INC_OPT) -o $@ -c $<
+	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(INC) $(FOOBAR_INC_OPT) -o $@ -c $<
 
 
 all: build-foobar-lib $(TARGET_DRIVER_EXEC) erlang-test
@@ -72,9 +76,7 @@ erlang-test: foobar.beam $(TEST).beam
 
 
 integration-test: clean-log erlang-test $(TARGET_DRIVER_EXEC)
-	@$(MAKE) -s foobar_run LD_LIBRARY_PATH=$(SEAPLUS_TOP)/src:foobar/lib:$(LD_LIBRARY_PATH)
-
-# || cat seaplus.log
+	@$(MAKE) -s foobar_run LD_LIBRARY_PATH=$(SEAPLUS_TOP)/src:foobar/lib:$(LD_LIBRARY_PATH) || cat seaplus-driver.*.log
 
 
 clean: clean-local
@@ -86,7 +88,7 @@ $(TARGET_DRIVER) $(TARGET_DRIVER_OBJ)
 
 
 clean-log:
-	-@/bin/rm -f seaplus.log
+	-@/bin/rm -f seaplus-driver-for-*.log
 
 
 info: info-erlang info-target

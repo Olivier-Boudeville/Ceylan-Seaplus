@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2019 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Wednesday, February 20, 2019
+:Lastly updated: Wednesday, March 6, 2019
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -82,11 +82,11 @@ Seaplus is still **work in progress** - not usable yet!
 Overview
 ========
 
-A typical use-case is **having a C or C++ library of interest that we would like be able to use from Erlang**, whereas, for any reason (availability of sources, complexity, size or interest), recoding it (in Erlang) is not desirable.
+A typical use-case is **having a C or C++ library of interest that we would like be able to use from Erlang**, whereas, for any reason (availability of sources, complexity, size, performance or interest), recoding it (in Erlang) is not desirable.
 
 However tempting it may be to integrate tightly C/C++ code to the Erlang VM (typically through a `NIF <http://erlang.org/doc/tutorial/nif.html>`_), one may prefer trading maximum performances for safety, and run that C/C++ code (which is often at last partly foreign, hence possibly unreliable) into a separate, isolated (operating system) process.
 
-Then the integrated code will not be able to crash the Erlang application, and for example any memory leak it would induce would only affect its own process - not the application one.
+Then the integrated code will not be able to crash the Erlang application, and for example any memory leak it would induce would only affect its own process (that, morevoer, depending on the use case, may be safely restarted) - not the application one.
 
 Indeed, taking into account the Erlang `Interoperability Tutorial <http://erlang.org/doc/tutorial/users_guide.html>`_, the following approaches are the most commonly considered ones when having to make C/C++ code available from Erlang:
 
@@ -176,17 +176,20 @@ Comments (description, usage, examples) are also expected to be joined to these 
 
 Other facility functions that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (ex: to start/stop this service from Erlang), will also certainly be needed. However listing these facility functions in our ``foobar`` module would offer little interest (as they are the same for all integrated services), so these extra functions are to remain implicit here [#]_.
 
-These service-level built-in functions automatically defined by Seaplus are:
+These service-level built-in functions automatically defined by Seaplus of user interest are, notably:
 
-- ``start/{0,1,2}`` and ``start_link/{0,1,2}``
-- ``stop/{0,1}``
+- ``start/0``: starts said service, a ``{driver_crashed,ErrorReason}`` exception being thrown should the driver or the integrated library crash (ex: SEGV)
+- ``start_link/0``: starts and links said service to the user process, expected to crash in turn should the driver or the integrated library crash
+- ``restart/0``: restarts the service, typically after it was started with ``start/0``, failed and threw an exception
+- ``stop/0``: stops the service
+
 
 .. [#] Note though that, at least for some services, specific initialisation/tear-down functions may exist in the vanilla, C version of that service. In that case, they should be added among said function specifications (preferably named for example ``init``/``teardown`` or alike, in order to distinguish from the Seaplus-reserved ``start``/``stop`` primitives), so that they are available from Erlang as well.
 
 
-Of course such a module, as it was defined above (i.e. just a set of function specifications), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part will be available, the ``Foobar`` service will become fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.
+Of course such a module, as it was defined above (i.e. just a set of function specifications), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) will be available, the ``Foobar`` service will become fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.
 
-More precisely, for each of the function type specification, a corresponding bridging implementation will be generated and added (unless the ``foobar`` module already includes one, so that the user can selectively override the Seaplus code generation), whilst the facility functions will be included as well.
+More precisely, for each of the function type specification, a corresponding bridging implementation will be generated and added (unless the ``foobar`` module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.
 
 Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar`` module, when executed from any given process (ex: a test one):
 
@@ -216,9 +219,9 @@ This work remains, yet it is also a chance to better adapt the bridging code to 
 
 To address these questions, service-specific choices and conventions have to be applied, and this information cannot be found or deduced from the C/C++ pre-existing code generically by an algorithm (including the Seaplus one). As a result, we believe that in all cases some effort remains to be done by the service integrator.
 
-So we saw that nothing special had to be done on the Erlang side (the ``foobar.erl`` stub will suffice), and that the C side deserved some love to be complete.
+So: we saw that nothing special had to be done on the Erlang side (the ``foobar.erl`` stub will suffice), and that the C side deserved some love to be complete; what kind of extra work is needed then?
 
-Indeed Seaplus generated an header file, ``foobar_seaplus_api_mapping.h``, in charge of telling that C side about the actual encoding of the service functions across the bridge. In our example this generated header would contain:
+Seaplus generated an header file, ``foobar_seaplus_api_mapping.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h>`_ for an *example* of it), in charge of telling that C side about the actual encoding of the service functions across the bridge. In our example this generated header would contain:
 
 .. code:: c
 
@@ -230,18 +233,86 @@ Indeed Seaplus generated an header file, ``foobar_seaplus_api_mapping.h``, in ch
 
 This indicates that for example the ``baz/2`` Erlang function, as hinted by its type specification in ``foobar.erl``, has been associated by Seaplus to the ``BAZ_2_ID`` (namely, of course: ``${FUNCTION_NAME}_${ARITY}_ID``) identifier (whose value happens to be ``3`` here [#]_).
 
-.. [#] Of course no code should rely on that actual value, which could change from a generation to another, or as the API is updated; only the ``BAZ_2_ID`` identifier shall be trusted.
+.. [#] Of course no code should rely on that actual value, which could change from a generation to another, or as the API is updated; only the ``BAZ_2_ID`` identifier shall be trusted by user code.
 
-The C part of the bridge, typically defined by the service integrated in ``foobar_seaplus_driver.c``, is thus to include that ``foobar_seaplus_api_mapping.h`` generated header in order to map the Erlang function identifier in a call request to its processing.
+The C part of the bridge, typically defined by the service integrated in ``foobar_seaplus_driver.c`` [#]_, is thus to include that ``foobar_seaplus_api_mapping.h`` generated header in order to map the Erlang function identifier in a call request to its processing.
 
-Seaplus offers moreover various helpers to facilitate the writing of this C driver; they are gathered in the Seaplus library (typically ``libseaplus.so``) and available by including the Seaplus C header file, ``seaplus.h``.
+.. [#] See the full, unedited version of the `foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ driver, i.e. the core of the service-specific, C-side integration.
 
-Based on these elements, the actual bridging code can be written, like in:
+
+
+Seaplus offers moreover various helpers to facilitate the writing of this C driver; they are gathered in the Seaplus library (typically ``libseaplus.so``) and available by including the Seaplus C header file, ``seaplus.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_).
+
+Based on these elements, the actual bridging code can be written, like in (shortened version):
 
 .. code:: c
 
+  int main()
+  {
+
+	// Provided by the Seaplus library:
+	byte * buffer = start_seaplus_driver() ;
+
+   while ( read_command( buffer ) > 0 )
+   {
+
+	  // Reads a { FunId, FunParams } pair thanks to Erl_Interface:
+	  ETERM * read_pair = erl_decode( buffer ) ;
+
+	  /* Gets the first element of the pair, i.e. the Seaplus-defined function
+	   * identifier (ex: whose value is FOO_1_ID):
+	   */
+	  fun_id current_fun_id = get_element_as_int( 1, read_pair ) ;
 
 
+	  /* Now reading the second element of the pair, supposed to be the list of
+	   * the call parameters:
+	   *
+	   */
+
+	  ETERM * cmd_params = get_element_from_tuple( 2, read_pair ) ;
+
+	  // The number of elements in the list of call parameters:
+	  list_size param_count = erl_length( cmd_params ) ;
+
+	  // Now, taking care of the corresponding function call:
+	  switch( current_fun_id )
+	  {
+
+
+	  case FOO_1_ID:
+
+		// -spec foo( integer() ) -> integer() vs int foo( int a )
+
+		check_arity_is( 1, param_count, FOO_1_ID ) ;
+
+		// So we expect the parameter list to contain a single integer:
+		int foo_a_param = get_head_as_int( cmd_params ) ;
+
+		// Actual call:
+		int foo_result = foo( foo_a_param ) ;
+
+		// Sending of the result:
+		write_as_int( buffer, foo_result ) ;
+
+		break ;
+
+
+	  case BAR_2_ID:
+		[...]
+
+	  default:
+		raise_error( "Unknown function identifier: %u", current_fun_id ) ;
+
+	  }
+
+	  erl_free_compound( read_pair ) ;
+
+	}
+
+	stop_seaplus_driver( buffer ) ;
+
+  }
 
 
 :raw-latex:`\pagebreak`
@@ -329,10 +400,58 @@ One can then test the whole with:
 
 
 
+
+Miscellaneous Technical Points
+==============================
+
+
+Seaplus Log System
+------------------
+
+When integrating a C service, the most difficult part is ensuring the sanity of the C driver, i.e. knowing what happens within it whenever converting terms back and forth, handling pointers, allocating memory, crashing unexpectedly, etc. (a.k.a. the joys of C programming).
+
+To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done by the driver (including the user code and the Seaplus facilities that it relies on).
+
+This log system is enabled by default. To disable it (then no runtime penalty will be incurred), set ``SEAPLUS_ENABLE_LOG`` to ``0`` (ex: add the ``-DSEAPLUS_ENABLE_LOG=0`` option when compiling the library, see `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_ for the various build settings).
+
+So running a Seaplus-integrated service, with log system enabled, should produce a ``seaplus-driver.N.log`` timestamped text log file, where ``N`` is the (operating system level) PID [#]_ of the process corresponding to the driver.
+
+Example content::
+
+ [2019/3/6 14:32:42][debug] Starting Seaplus session...
+ [2019/3/6 14:32:42][debug] Starting the Seaplus C driver, with a buffer of 32768 bytes.
+ [2019/3/6 14:32:42][trace] Driver started.
+ [2019/3/6 14:32:42][debug] Read 2 bytes.
+ [2019/3/6 14:32:42][debug] Will read 37 bytes.
+ [2019/3/6 14:32:42][debug] Read 37 bytes.
+ [2019/3/6 14:32:42][trace] New command received.
+ [2019/3/6 14:32:42][debug] Read integer 2.
+ [2019/3/6 14:32:42][debug] Reading command: function identifier is 2.
+ [2019/3/6 14:32:42][debug] 2 parameter(s) received for this function.
+ [2019/3/6 14:32:42][debug] Executing bar/2.
+ [2019/3/6 14:32:42][debug] Read double 2.000000e+00.
+ [2019/3/6 14:32:42][debug] Read head as atom 'moderate_speed'.
+ [2019/3/6 14:32:42][debug] Will write 47 bytes.
+
+
+.. [#] Including the PID in the filename allows notably, in case of driver restart, to ensure that the logs of the new instance do not overwrite the ones of the restarted one.
+
+
+
+Towards a more General C/C++ Interface
+--------------------------------------
+
+Functionally, `Erl_Interface <http://erlang.org/doc/apps/erl_interface/>`_ and the `Erlang NIF support <http://erlang.org/doc/man/erl_nif.html>`_ provide the same services, and could probably be unified under a common API (that one day Seaplus could provide).
+
+This could enable the possibility of integrating C/C++ code seamlessly as a C-Node and/or as a NIF, for a greater flexibility of use.
+
+
+
+
 Issues & Planned Enhancements
 =============================
 
-None yet!
+- thorough testing of the C-side should be done, notably with regard to the hunt for memory links; so a `Valgrind-based <http://valgrind.org/>`_ runtime mode for the driver would surely be useful
 
 
 :raw-latex:`\pagebreak`
@@ -341,7 +460,7 @@ None yet!
 Support
 =======
 
-Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent to the `project interface <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_, or directly at the mail address mentioned at the beginning of this longer document.
+Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent to the `project interface <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_, or directly at the email address mentioned at the beginning of this document.
 
 
 
@@ -356,6 +475,7 @@ The parse transform just:
 - derives from the type specifications of the Erlang service API (as specified by the service integrator) the implementation of the corresponding (Erlang-side) functions (they are injected in the AST of the resulting service BEAM file)
 - adds the facility functions to start, stop, etc. that service (they are actually directly obtained through the Seaplus include)
 - generates the Seaplus service-specific C header file, ready to be included by the C-side service driver that is to be filled by the service integration
+
 
 
 

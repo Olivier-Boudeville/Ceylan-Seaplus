@@ -89,6 +89,8 @@ BEAM_DIRS += $(SEAPLUS_BEAM_DIRS)
 # Overall settings section.
 
 
+#EXECUTION_TARGET=production
+
 ifndef EXECUTION_TARGET
 
   # Other possible value: production
@@ -102,7 +104,6 @@ ifeq ($(EXECUTION_TARGET),development)
   #$(info Execution target is development)
 
   ENABLE_DEBUG=true
-
 
 else ifeq ($(EXECUTION_TARGET),production)
 
@@ -118,6 +119,8 @@ endif
 
 
 
+#ENABLE_DEBUG=false
+
 # By default, this debug mode is enabled:
 ifndef ENABLE_DEBUG
 
@@ -129,15 +132,17 @@ endif
 
 # Tells whether the debug mode will be activated for the next Seaplus classes to
 # be built (maximum performance versus extended checkings).
+#
 ifeq ($(ENABLE_DEBUG),true)
 
-	ENABLE_SEAPLUS_DEBUG_OPT = -Dseaplus_debug
+	SEAPLUS_DEBUG_OPT = -DDEBUG_SEAPLUS -DSEAPLUS_ENABLE_LOG=1
 
 else
 
-	ENABLE_SEAPLUS_DEBUG_OPT =
+	SEAPLUS_DEBUG_OPT = -DSEAPLUS_ENABLE_LOG=0
 
 endif
+
 
 
 # Build section.
@@ -153,8 +158,6 @@ LIBTOOL_C_OPT += --tag=CC --verbose
 
 SEAPLUS_BASE_NAME := seaplus
 
-#DEBUG_FLAGS :=
-DEBUG_FLAGS := -DDEBUG_SEAPLUS
 
 
 # C subsection.
@@ -169,7 +172,7 @@ C_COMPILER := $(shell which gcc)
 C_INC = $(ERL_INTERFACE_INC) -I.
 C_LIB = $(ERL_INTERFACE_LIB)
 
-C_COMPILER_OPT = $(C_INC) $(DEBUG_FLAGS) -Wall -Werror -g
+C_COMPILER_OPT = $(C_INC) $(SEAPLUS_DEBUG_OPT) -Wall -Werror -g
 
 C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT) -fPIC
 
@@ -233,7 +236,7 @@ ifndef ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES
 	ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES =                          \
 			$(ERLANG_COMPILER_OPT_BASE)                                 \
 			$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES) \
-			$(ENABLE_SEAPLUS_DEBUG_OPT)
+			$(SEAPLUS_DEBUG_OPT)
 
 endif
 

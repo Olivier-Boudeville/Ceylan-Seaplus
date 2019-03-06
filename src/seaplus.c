@@ -32,8 +32,12 @@
 #include "seaplus.h"
 
 
-// For read and write:
+// For read and write, get_pid:
 #include <unistd.h>
+
+// For time and localtime:
+#include <time.h>
+
 
 // For exit, free:
 #include <stdlib.h>
@@ -41,7 +45,7 @@
 // For strlen:
 #include <string.h>
 
-// For fprintf:
+// For fprintf, sprintf:
 #include <stdio.h>
 
 // For vffprintf:
@@ -49,11 +53,7 @@
 
 
 
-/* Obtaining an identifier of the current service instance could allow
- * log files not to step on each other by bearing different names.
- *
- */
-const char * default_log_filename = "seaplus.log" ;
+const char * default_log_base_filename = "seaplus-driver" ;
 
 
 const byte_count buffer_size = 4096*8 ;
@@ -75,6 +75,8 @@ FILE * log_file = NULL ;
 void start_logging( const char * log_filename )
 {
 
+#if SEAPLUS_ENABLE_LOG
+
   if ( log_file == NULL )
   {
 
@@ -86,15 +88,17 @@ void start_logging( const char * log_filename )
 	// No buffering wanted here:
 	setbuf( log_file, NULL ) ;
 
-	fprintf( log_file, "Starting Seaplus session...\n" ) ;
+	log_debug( "Starting Seaplus session..." ) ;
 
   }
   else
   {
 
-	fprintf( log_file, "Error: Seaplus session already started.\n" ) ;
+	log_debug( "Error: Seaplus session already started." ) ;
 
   }
+
+#endif // SEAPLUS_ENABLE_LOG
 
 }
 
@@ -102,10 +106,12 @@ void start_logging( const char * log_filename )
 void stop_logging()
 {
 
+#if SEAPLUS_ENABLE_LOG
+
   if ( log_file != NULL )
   {
 
-	fprintf( log_file, "Stopping Seaplus session.\n");
+	log_debug( "Stopping Seaplus session.") ;
 
 	fclose( log_file ) ;
 
@@ -113,8 +119,12 @@ void stop_logging()
 
   }
 
+#endif // SEAPLUS_ENABLE_LOG
+
 }
 
+
+#define TIMESTAMP_FORMAT "[%d/%d/%d %d:%02d:%02d]"
 
 
 // Logs specified debug message.
@@ -124,7 +134,12 @@ void log_debug( const char * format, ... )
   if ( log_file != NULL )
   {
 
-	fprintf( log_file, "[debug] " );
+	time_t t = time( NULL ) ;
+
+	struct tm tm = *localtime( &t ) ;
+
+	fprintf( log_file, TIMESTAMP_FORMAT "[debug] ", tm.tm_year + 1900,
+	  tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec ) ;
 
 	va_list arg_ptr ;
 
@@ -146,7 +161,12 @@ void log_trace( const char * format, ... )
   if ( log_file != NULL )
   {
 
-	fprintf( log_file, "[trace] " );
+	time_t t = time( NULL ) ;
+
+	struct tm tm = *localtime( &t ) ;
+
+	fprintf( log_file, TIMESTAMP_FORMAT "[trace] ", tm.tm_year + 1900,
+	  tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec ) ;
 
 	va_list arg_ptr ;
 
@@ -198,9 +218,20 @@ void raise_error( const char * format, ... )
 byte * start_seaplus_driver()
 {
 
-  start_logging( default_log_filename ) ;
 
-  log_debug( "Starting the Seaplus C driver, with a buffer of %u bytes.",
+  pid_t current_pid = getpid() ;
+
+  char log_filename[100] ;
+
+  int res = sprintf( log_filename, "%s.%i.log", default_log_base_filename,
+	current_pid ) ;
+
+  if ( res < 0 )
+	exit( EXIT_FAILURE ) ;
+
+  start_logging( log_filename ) ;
+
+  LOG_DEBUG( "Starting the Seaplus C driver, with a buffer of %u bytes.",
 			 buffer_size ) ;
 
   /* Initiating memory handling, always as:
@@ -226,7 +257,7 @@ byte * start_seaplus_driver()
 void stop_seaplus_driver( byte * buffer )
 {
 
-  log_debug( "Stopping the Seaplus C driver." ) ;
+  LOG_DEBUG( "Stopping the Seaplus C driver." ) ;
 
   free( buffer ) ;
 
@@ -262,7 +293,7 @@ byte_count read_exact( byte *buf, byte_count len )
 
   } while ( got < len ) ;
 
-  log_debug( "Read %i bytes.", len ) ;
+  LOG_DEBUG( "Read %i bytes.", len ) ;
 
   return( len ) ;
 
@@ -287,7 +318,7 @@ byte_count read_command( byte *buf )
 
   len = (buf[0] << 8) | buf[1] ;
 
-  log_debug( "Will read %i bytes.", len ) ;
+  LOG_DEBUG( "Will read %i bytes.", len ) ;
 
   if ( len + 2 > buffer_size )
 	raise_error( "Read length (%i) is too high (buffer size: %i).",
@@ -359,7 +390,7 @@ signed int get_element_as_int( tuple_index i, ETERM *tuple_term )
 
   int res = ERL_INT_VALUE( elem ) ;
 
-  log_debug( "Read integer %i.", res ) ;
+  LOG_DEBUG( "Read integer %i.", res ) ;
 
   erl_free_term( elem ) ;
 
@@ -388,7 +419,7 @@ unsigned int get_element_as_unsigned_int( tuple_index i, ETERM *tuple_term )
 
   erl_free_term( elem ) ;
 
-  log_debug( "Read unsigned integer %u.", res ) ;
+  LOG_DEBUG( "Read unsigned integer %u.", res ) ;
 
   return res ;
 
@@ -406,7 +437,7 @@ double get_element_as_double( tuple_index i, ETERM *tuple_term )
 
   double res = ERL_FLOAT_VALUE( elem ) ;
 
-  log_debug( "Read double %e.", res ) ;
+  LOG_DEBUG( "Read double %e.", res ) ;
 
   erl_free_term( elem ) ;
 
@@ -432,11 +463,11 @@ char * get_element_as_string( tuple_index i, ETERM *tuple_term )
   if ( ! ERL_IS_LIST( elem ) )
 	raise_error( "Tuple element %u cannot be cast to string (i.e. list)", i ) ;
 
-  log_debug( "String length is %u bytes.", erl_length( elem ) ) ;
+  LOG_DEBUG( "String length is %u bytes.", erl_length( elem ) ) ;
 
   char * res = erl_iolist_to_string( elem ) ;
 
-  log_debug( "Read string: '%s'.", res ) ;
+  LOG_DEBUG( "Read string: '%s'.", res ) ;
 
   // Expected to be null-terminated:
   //char * stringContent = (char *) ERL_BIN_PTR( elem ) ;
@@ -540,7 +571,7 @@ double get_head_as_double( ETERM * list_term )
 
   double res = ERL_FLOAT_VALUE( head_term ) ;
 
-  log_debug( "Read double %e.", res ) ;
+  LOG_DEBUG( "Read double %e.", res ) ;
 
   erl_free_term( head_term ) ;
 
@@ -577,7 +608,7 @@ char * get_head_as_atom( ETERM * list_term )
   if ( atom_name == NULL )
 	raise_error( "Head of list cannot be converted to atom." ) ;
 
-  log_debug( "Read head as atom '%s'.", atom_name ) ;
+  LOG_DEBUG( "Read head as atom '%s'.", atom_name ) ;
 
   char * res = strdup( atom_name ) ;
 
@@ -610,7 +641,7 @@ char * get_head_as_string( ETERM * list_term )
   if ( res_string == NULL )
 	raise_error( "Head of list cannot be converted to string." ) ;
 
-  log_debug( "Read head as string '%s'.", res_string ) ;
+  LOG_DEBUG( "Read head as string '%s'.", res_string ) ;
 
   erl_free_term( head_term ) ;
 
@@ -837,7 +868,7 @@ byte_count write_exact( byte *buf, byte_count len )
 byte_count write_buffer( byte *buf, byte_count len )
 {
 
-  log_debug( "Will write %i bytes.", len ) ;
+  LOG_DEBUG( "Will write %i bytes.", len ) ;
 
   if ( len + 2 > buffer_size )
   {

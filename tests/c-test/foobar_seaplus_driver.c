@@ -85,7 +85,7 @@ int main()
   // Provided by the Seaplus library:
   byte * buffer = start_seaplus_driver() ;
 
-  log_trace( "Driver started." ) ;
+  LOG_TRACE( "Driver started." ) ;
 
 
   /* Reads a full command from (receive) buffer, based on its initial length:
@@ -96,7 +96,7 @@ int main()
   while ( read_command( buffer ) > 0 )
   {
 
-	log_trace( "New command received." ) ;
+	LOG_TRACE( "New command received." ) ;
 
 	/*
 	 * Reads a { FunId, FunParams } pair thanks to Erl_Interface:
@@ -128,15 +128,11 @@ int main()
 	 */
 	fun_id current_fun_id = get_element_as_int( 1, read_pair ) ;
 
-	log_debug( "Reading command: function identifier is %u.", current_fun_id ) ;
+	LOG_DEBUG( "Reading command: function identifier is %u.", current_fun_id ) ;
 
-	/* Now reading the second element of the pair, supposed to be the list of
-	 * the call parameters:
-	 *
-	 */
 
-	/* Second one is the list of command parameters (hence the arity of the
-	 * function to be called can be checked):
+	/* Second element of the pair is the list of the call parameters (hence the
+	 * arity of the function to be called can be checked):
 	 *
 	 */
 	ETERM * cmd_params = get_element_from_tuple( 2, read_pair ) ;
@@ -151,19 +147,17 @@ int main()
 	if ( param_count == -1 )
 	  raise_error( "Improper list received." ) ;
 
-	log_debug( "%u parameter(s) received for this function.", param_count ) ;
+	LOG_DEBUG( "%u parameter(s) received for this function.", param_count ) ;
 
 
-	/* Now, take care of the corresponding function call:
-	 *
-	 */
+	// Now, taking care of the corresponding function call:
 	switch( current_fun_id )
 	{
 
 
 	case FOO_1_ID:
 
-	  log_debug( "Executing foo/1." ) ;
+	  LOG_DEBUG( "Executing foo/1." ) ;
 	  // -spec foo( integer() ) -> integer() vs int foo( int a )
 
 	  check_arity_is( 1, param_count, FOO_1_ID ) ;
@@ -182,7 +176,7 @@ int main()
 
 	case BAR_2_ID:
 
-	  log_debug( "Executing bar/2." ) ;
+	  LOG_DEBUG( "Executing bar/2." ) ;
 
 	  /* -spec bar( float(), foo_status() ) -> foo_data() vs
 	   * struct foo * bar( double a, enum foo_status status )
@@ -214,7 +208,7 @@ int main()
 
 	case BAZ_2_ID:
 
-	  log_debug( "Executing baz/2." ) ;
+	  LOG_DEBUG( "Executing baz/2." ) ;
 
 	  /* -spec baz( integer(), text_utils:ustring() ) -> tur_status() vs
 	   * enum tur_status baz( unsigned int u, const char * m )
@@ -244,7 +238,7 @@ int main()
 
 	case TUR_0_ID:
 
-	  log_debug( "Executing tur/0." ) ;
+	  LOG_DEBUG( "Executing tur/0." ) ;
 
 	  // -spec tur() -> bool() vs bool tur()
 
@@ -261,7 +255,7 @@ int main()
 
 	case FROB_1_ID:
 
-	  log_debug( "Executing frob/1." ) ;
+	  LOG_DEBUG( "Executing frob/1." ) ;
 
 	  /* frob( tur_status() ) -> text_utils:ustring() vs
 	   * char * frob( enum tur_status )
