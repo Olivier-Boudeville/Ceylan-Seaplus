@@ -1,0 +1,1 @@
+At least for the time being, please refer to the full test examples located in https://github.com/Olivier-Boudeville/Ceylan-Seaplus/tree/master/tests.
