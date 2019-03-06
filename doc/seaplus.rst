@@ -243,7 +243,7 @@ The C part of the bridge, typically defined by the service integrated in ``fooba
 
 Seaplus offers moreover various helpers to facilitate the writing of this C driver; they are gathered in the Seaplus library (typically ``libseaplus.so``) and available by including the Seaplus C header file, ``seaplus.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_).
 
-Based on these elements, the actual bridging code can be written, like in (shortened version):
+Based on these elements, the actual bridging code can be written, like in the following shortened version. The ``FOO_1_ID`` case is among the simplest possible call, while the ``BAR_2_ID`` one is more complex; for both calls no memory leak is involved (see the `full source <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ of this test driver, notably for the conversion helpers used for ``bar/2``):
 
 .. code:: c
 
@@ -254,15 +254,15 @@ Based on these elements, the actual bridging code can be written, like in (short
 	// Provided by the Seaplus library:
 	byte * buffer = start_seaplus_driver();
 
-   while (read_command(buffer) > 0)
-   {
+	while (read_command(buffer) > 0)
+	{
 
 	  fun_id current_fun_id;
 	  arity param_count;
 	  ETERM ** parameters = NULL;
 
-	  get_function_information(buffer, &current_fun_id, &param_count,
-		&parameters);
+	  ETERM * call_term = get_function_information(buffer,
+		&current_fun_id, &param_count, &parameters);
 
 	  // Now, taking care of the corresponding function call:
 	  switch(current_fun_id)
@@ -284,43 +284,46 @@ Based on these elements, the actual bridging code can be written, like in (short
 		  // Sending of the result:
 		  write_as_int(buffer, foo_result);
 
-	  break;
+		  break;
 
-	  case BAR_2_ID:
+		case BAR_2_ID:
 
-		/* -spec bar(float(), foo_status()) -> foo_data() vs
-		 * struct foo * bar(double a, enum foo_status status)
-		 */
-		check_arity_is(2, param_count, BAR_2_ID);
+		  /* -spec bar(float(), foo_status()) -> foo_data() vs
+		   * struct foo * bar(double a, enum foo_status status)
+		   */
+		  check_arity_is(2, param_count, BAR_2_ID);
 
-		// Getting first the Erlang float:
-		double bar_double_param = get_parameter_as_double(1, parameters);
+		  // Getting first the Erlang float:
+		  double bar_double_param = get_parameter_as_double(1, parameters);
 
-		// Then the atom for foo_status():
-		char * atom_name = get_parameter_as_atom(2, parameters);
+		  // Then the atom for foo_status():
+		  char * atom_name = get_parameter_as_atom(2, parameters);
 
-		// Converting said atom for the C API:
-		enum foo_status bar_status_param = get_foo_status_from_atom(atom_name);
+		  // Converting said atom for the C API:
+		  enum foo_status bar_status_param =
+			  get_foo_status_from_atom(atom_name);
 
-		// Actual call:
-		struct foo_data * struct_res = bar(bar_double_param, bar_status_param);
+		  // Actual call:
+		  struct foo_data * struct_res = bar(bar_double_param,
+											 bar_status_param);
 
-		// Converting this result into a relevant term:
-		ETERM * foo_data_res = get_foo_data_record_from_struct(struct_res);
+		  // Converting this result into a relevant term:
+		  ETERM * foo_data_res =
+					get_foo_data_record_from_struct(struct_res);
 
-		// Sending of the result record:
-		write_term(buffer, foo_data_res);
+		  // Sending of the result record:
+		  write_term(buffer, foo_data_res);
 
-	  break;
+		  break;
 
 	  [...]
 
 	  default:
-		raise_error("Unknown function identifier: %u", current_fun_id);
+		  raise_error("Unknown function identifier: %u", current_fun_id);
 
 	  }
 
-	  clean_up_command(parameters);
+	  clean_up_command(call_term,parameters);
 
 	}
 
