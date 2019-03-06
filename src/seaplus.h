@@ -111,11 +111,13 @@ byte * start_seaplus_driver() ;
 
 #define LOG_DEBUG( format, ... ) log_debug( format, ##__VA_ARGS__ )
 #define LOG_TRACE( format, ... ) log_trace( format, ##__VA_ARGS__ )
+#define LOG_WARNING( format, ... ) log_warning( format, ##__VA_ARGS__ )
 
 #else // SEAPLUS_ENABLE_LOG
 
 #define LOG_DEBUG( format, ... )
 #define LOG_TRACE( format, ... )
+#define LOG_WARNING( format, ... )
 
 #endif // SEAPLUS_ENABLE_LOG
 
@@ -126,6 +128,9 @@ void log_debug( const char * format, ... ) ;
 
 // Logs specified trace message.
 void log_trace( const char * format, ... ) ;
+
+// Logs specified warning message.
+void log_warning( const char * format, ... ) ;
 
 
 // Raises specified error: reports it in logs, and halts.
@@ -145,8 +150,11 @@ byte_count read_command( byte *buf ) ;
  * (Erlang-side) specified function, namely its function identifier and its
  * parameters, set in the variables whose reference is specified.
  *
+ * Returns a term that is to be deallocated once all parameters will have been
+ * used.
+ *
  */
-void get_function_information( byte * buffer, fun_id * current_fun_id,
+ETERM * get_function_information( byte * buffer, fun_id * current_fun_id,
   arity * param_count, ETERM *** parameters ) ;
 
 
@@ -409,7 +417,7 @@ byte_count write_buffer( byte *buf, byte_count len ) ;
  * Performs housekeeping after a command has been executed.
  *
  */
-void clean_up_command( ETERM ** parameters ) ;
+void clean_up_command( ETERM * call_term, ETERM ** parameters ) ;
 
 
 /**

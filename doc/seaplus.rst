@@ -247,71 +247,84 @@ Based on these elements, the actual bridging code can be written, like in (short
 
 .. code:: c
 
-  [...] 
+  [...]
   int main()
   {
 
 	// Provided by the Seaplus library:
-	byte * buffer = start_seaplus_driver() ;
+	byte * buffer = start_seaplus_driver();
 
-   while ( read_command( buffer ) > 0 )
+   while (read_command(buffer) > 0)
    {
 
-	  // Reads a { FunId, FunParams } pair thanks to Erl_Interface:
-	  ETERM * read_pair = erl_decode( buffer ) ;
+	  fun_id current_fun_id;
+	  arity param_count;
+	  ETERM ** parameters = NULL;
 
-	  /* Gets the first element of the pair, i.e. the Seaplus-defined function
-	   * identifier (ex: whose value is FOO_1_ID):
-	   */
-	  fun_id current_fun_id = get_element_as_int( 1, read_pair ) ;
-
-
-	  /* Now reading the second element of the pair, supposed to be the list of
-	   * the call parameters:
-	   *
-	   */
-
-	  ETERM * cmd_params = get_element_from_tuple( 2, read_pair ) ;
-
-	  // The number of elements in the list of call parameters:
-	  list_size param_count = erl_length( cmd_params ) ;
+	  get_function_information(buffer, &current_fun_id, &param_count,
+		&parameters);
 
 	  // Now, taking care of the corresponding function call:
-	  switch( current_fun_id )
+	  switch(current_fun_id)
 	  {
 
+		case FOO_1_ID:
+		  // -spec foo(integer()) -> integer() vs int foo(int a)
+		  check_arity_is(1, param_count, FOO_1_ID);
 
-	  case FOO_1_ID:
+		  /*
+		   * So we expect the (single, hence first) parameter to
+		   * be an integer:
+		   */
+		  int foo_a_param = get_parameter_as_int(1, parameters);
 
-		// -spec foo( integer() ) -> integer() vs int foo( int a )
+		  // Actual call:
+		  int foo_result = foo(foo_a_param);
 
-		check_arity_is( 1, param_count, FOO_1_ID ) ;
+		  // Sending of the result:
+		  write_as_int(buffer, foo_result);
 
-		// So we expect the parameter list to contain a single integer:
-		int foo_a_param = get_head_as_int( cmd_params ) ;
-
-		// Actual call:
-		int foo_result = foo( foo_a_param ) ;
-
-		// Sending of the result:
-		write_as_int( buffer, foo_result ) ;
-
-		break ;
-
+	  break;
 
 	  case BAR_2_ID:
-		[...]
+
+		/* -spec bar(float(), foo_status()) -> foo_data() vs
+		 * struct foo * bar(double a, enum foo_status status)
+		 */
+		check_arity_is(2, param_count, BAR_2_ID);
+
+		// Getting first the Erlang float:
+		double bar_double_param = get_parameter_as_double(1, parameters);
+
+		// Then the atom for foo_status():
+		char * atom_name = get_parameter_as_atom(2, parameters);
+
+		// Converting said atom for the C API:
+		enum foo_status bar_status_param = get_foo_status_from_atom(atom_name);
+
+		// Actual call:
+		struct foo_data * struct_res = bar(bar_double_param, bar_status_param);
+
+		// Converting this result into a relevant term:
+		ETERM * foo_data_res = get_foo_data_record_from_struct(struct_res);
+
+		// Sending of the result record:
+		write_term(buffer, foo_data_res);
+
+	  break;
+
+	  [...]
 
 	  default:
-		raise_error( "Unknown function identifier: %u", current_fun_id ) ;
+		raise_error("Unknown function identifier: %u", current_fun_id);
 
 	  }
 
-	  erl_free_compound( read_pair ) ;
+	  clean_up_command(parameters);
 
 	}
 
-	stop_seaplus_driver( buffer ) ;
+	stop_seaplus_driver(buffer);
 
   }
 
@@ -452,7 +465,7 @@ This could enable the possibility of integrating C/C++ code seamlessly as a C-No
 Issues & Planned Enhancements
 =============================
 
-- thorough testing of the C-side should be done, notably with regard to the hunt for memory links; so a `Valgrind-based <http://valgrind.org/>`_ runtime mode for the driver would surely be useful
+- thorough testing of the C-side should be done, notably with regard to the hunt for memory leaks; so a `Valgrind-based <http://valgrind.org/>`_ runtime mode for the driver would surely be useful (note though that ``erl_eterm_statistics/2`` and ``erl_eterm_release/0`` are already used to ensure that on the C side no term is leaked)
 
 
 :raw-latex:`\pagebreak`

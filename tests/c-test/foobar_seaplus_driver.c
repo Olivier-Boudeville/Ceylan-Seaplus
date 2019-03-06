@@ -91,7 +91,6 @@ int main()
 
   LOG_TRACE( "Driver started." ) ;
 
-
   /* Reads a full command from (receive) buffer, based on its initial length:
    *
    * (a single term is expected hence read)
@@ -100,7 +99,7 @@ int main()
   while ( read_command( buffer ) > 0 )
   {
 
-	LOG_TRACE( "New command received." ) ;
+	//LOG_TRACE( "New command received." ) ;
 
 	/* Will be set to the corresponding Seaplus-defined function identifier (ex:
 	 * whose value is FOO_1_ID):
@@ -115,16 +114,16 @@ int main()
 	arity param_count ;
 
 
-	/* Array containing, in-order, the (param_count) transmitted parameters:
-	 *
-	 */
+	// Array containing, in-order, the (param_count) transmitted parameters:
 	ETERM ** parameters = NULL ;
 
-	get_function_information( buffer, &current_fun_id, &param_count,
-	  &parameters ) ;
+	ETERM * call_term = get_function_information( buffer, &current_fun_id,
+	  &param_count, &parameters ) ;
 
+	/*
 	LOG_DEBUG( "Function identifier is %u, arity is %u.", current_fun_id,
 	  param_count ) ;
+	 */
 
 	// Now, taking care of the corresponding function call:
 	switch( current_fun_id )
@@ -138,7 +137,7 @@ int main()
 
 	  check_arity_is( 1, param_count, FOO_1_ID ) ;
 
-	  // So we expect the (single, hence first) parameter to be a integer:
+	  // So we expect the (single, hence first) parameter to be an integer:
 	  int foo_a_param = get_parameter_as_int( 1, parameters ) ;
 
 	  // Actual call:
@@ -167,15 +166,21 @@ int main()
 	  // Then the atom for foo_status():
 	  char * atom_name = get_parameter_as_atom( 2, parameters ) ;
 
+	  // Converting said atom for the C API:
 	  enum foo_status bar_status_param = get_foo_status_from_atom( atom_name ) ;
 
 	  // Actual call:
 	  struct foo_data * struct_res = bar( bar_double_param, bar_status_param ) ;
 
+	  /* Converting this result into a relevant term (that will be deallocated
+	   * by next write_term/2:
+	   *
+	   */
 	  ETERM * foo_data_res = get_foo_data_record_from_struct( struct_res ) ;
 
 	  // Sending of the result record:
 	  write_term( buffer, foo_data_res ) ;
+
 
 	  break ;
 
@@ -246,13 +251,14 @@ int main()
 
 	  break ;
 
+
 	default:
 	  raise_error( "Unknown function identifier: %u", current_fun_id ) ;
 
 	}
 
-	clean_up_command( parameters ) ;
-	
+	clean_up_command( call_term, parameters ) ;
+
   }
 
   stop_seaplus_driver( buffer ) ;
@@ -287,6 +293,8 @@ enum foo_status get_foo_status_from_atom( const char * atom_name )
  *
  * We want to return a foo_data record, i.e. a { foo_data, Count:: integer(),
  * Value:: float() } triplet.
+ *
+ * Note: ownership of the returned term transferred to the caller.
  *
  */
 ETERM * get_foo_data_record_from_struct( struct foo_data * s )

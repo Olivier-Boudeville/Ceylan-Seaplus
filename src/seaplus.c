@@ -183,6 +183,33 @@ void log_trace( const char * format, ... )
 }
 
 
+// Logs specified warning message.
+void log_warning( const char * format, ... )
+{
+
+  if ( log_file != NULL )
+  {
+
+	time_t t = time( NULL ) ;
+
+	struct tm tm = *localtime( &t ) ;
+
+	fprintf( log_file, TIMESTAMP_FORMAT "[warning] ", tm.tm_year + 1900,
+	  tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec ) ;
+
+	va_list arg_ptr ;
+
+	va_start( arg_ptr, format ) ;
+	vfprintf( log_file, format, arg_ptr ) ;
+	va_end( arg_ptr ) ;
+
+	fprintf( log_file, "\n" );
+
+  }
+
+}
+
+
 // Raises specified error: reports it in logs, and halts.
 void raise_error( const char * format, ... )
 {
@@ -246,6 +273,7 @@ byte * start_seaplus_driver()
   if ( buffer == NULL )
 	raise_error( "Buffer allocation failed." ) ;
 
+#ifdef DEBUG_SEAPLUS
 
   long unsigned int allocated_count, freed_count ;
 
@@ -254,35 +282,68 @@ byte * start_seaplus_driver()
   LOG_TRACE( "At start-up: currently allocated blocks: %ld; "
 	"length of freelist: %ld.", allocated_count, freed_count ) ;
 
+#endif // DEBUG_SEAPLUS
+
   return buffer ;
 
 }
 
 
 
-/**
- * Performs housekeeping after a command has been executed.
- *
- */
-void clean_up_command( ETERM ** parameters )
+// Performs housekeeping after a command has been executed.
+void clean_up_command( ETERM * call_term, ETERM ** parameters )
 {
+
+#ifdef DEBUG_SEAPLUS
 
 	long unsigned int allocated_count, freed_count ;
 
-	erl_eterm_statistics( &allocated_count , &freed_count ) ;
+#endif // DEBUG_SEAPLUS
+
+	/*
+	erl_eterm_statistics( &allocated_count, &freed_count ) ;
 
 	LOG_TRACE( "Before term release: currently allocated blocks: %ld; "
 	  "length of freelist: %ld.", allocated_count, freed_count ) ;
 
 	erl_eterm_release() ;
 
-	erl_eterm_statistics( &allocated_count , &freed_count ) ;
+
+	erl_eterm_statistics( &allocated_count, &freed_count ) ;
 
 	LOG_TRACE( "After term release: currently allocated blocks: %ld; "
 	  "length of freelist: %ld.", allocated_count, freed_count ) ;
 
-	//erl_free_compound( read_pair ) ;
-	// free parameters
+	*/
+
+	erl_free_compound( call_term ) ;
+
+	/*
+	erl_eterm_statistics( &allocated_count, &freed_count ) ;
+
+	LOG_TRACE( "After free: currently allocated blocks: %ld; "
+	  "length of freelist: %ld.", allocated_count, freed_count ) ;
+
+	*/
+
+	erl_eterm_release() ;
+
+#ifdef DEBUG_SEAPLUS
+
+	erl_eterm_statistics( &allocated_count, &freed_count ) ;
+
+	/*
+	LOG_TRACE( "After second term release: currently allocated blocks: %ld; "
+	  "length of freelist: %ld.", allocated_count, freed_count ) ;
+	*/
+
+	if ( allocated_count != 0 )
+	  log_warning( "At command clean-up, still %lu allocated blocks.",
+		allocated_count ) ;
+
+#endif // DEBUG_SEAPLUS
+
+	free( parameters ) ;
 
 }
 
@@ -299,12 +360,19 @@ void stop_seaplus_driver( byte * buffer )
 
   free( buffer ) ;
 
+#ifdef DEBUG_SEAPLUS
+
   long unsigned int allocated_count, freed_count ;
 
   erl_eterm_statistics( &allocated_count , &freed_count ) ;
 
   LOG_TRACE( "At stop: currently allocated blocks: %ld; "
 	"length of freelist: %ld.", allocated_count, freed_count ) ;
+
+  if ( allocated_count != 0 )
+	log_warning( "At stop, still %lu allocated blocks.", allocated_count ) ;
+
+ #endif // DEBUG_SEAPLUS
 
   // No erl_init/2 counterpart.
 
@@ -374,7 +442,7 @@ byte_count read_command( byte *buf )
 
 	len = (buf[0] << 8) | buf[1] ;
 
-	LOG_DEBUG( "Will read %i bytes.", len ) ;
+	//LOG_DEBUG( "Will read %i bytes.", len ) ;
 
 	if ( len + 2 > buffer_size )
 	  raise_error( "Read length (%i) is too high (buffer size: %i).",
@@ -412,8 +480,11 @@ byte_count read_command( byte *buf )
  * (Erlang-side) specified function, namely its function identifier and its
  * parameters, set in the variables whose reference is specified.
  *
+ * Returns a term that is to be deallocated once all parameters will have been
+ * used.
+ *
  */
-void get_function_information( byte * buffer, fun_id * current_fun_id,
+ETERM * get_function_information( byte * buffer, fun_id * current_fun_id,
   arity * param_count, ETERM *** parameters )
 {
 
@@ -447,7 +518,7 @@ void get_function_information( byte * buffer, fun_id * current_fun_id,
 	 */
 	*current_fun_id = get_element_as_int( 1, read_pair ) ;
 
-	LOG_DEBUG( "Reading command: function identifier is %i.", *current_fun_id ) ;
+	//LOG_DEBUG( "Reading command: function identifier is %i.", *current_fun_id ) ;
 
 
 	/* Second element of the pair is the list of the call parameters (hence the
@@ -466,7 +537,10 @@ void get_function_information( byte * buffer, fun_id * current_fun_id,
 	if ( fun_param_count == -1 )
 	  raise_error( "Improper list received." ) ;
 
-	LOG_DEBUG( "%u parameter(s) received for this function.", fun_param_count ) ;
+	/*
+	LOG_DEBUG( "%u parameter(s) received for this function.",
+	  fun_param_count ) ;
+	 */
 
 	*param_count = fun_param_count ;
 
@@ -491,16 +565,8 @@ void get_function_information( byte * buffer, fun_id * current_fun_id,
 
 	*parameters = fun_params ;
 
-	/* We deallocate the read { FunId, FunParams } pair (i.e. the tuple itself,
-	 * not its elements), and also FunId and the FunParams list (but not the
-	 * terms it points to, which are now referenced into the specified
-	 * parameters array, and that will be freed only when the command will have
-	 * been processed.
-	 *
-	 */
-
-	//TODO
-
+	// Returned to be deallocated as a whole afterwards:
+	return read_pair ;
 
 }
 
@@ -566,7 +632,7 @@ signed int get_element_as_int( tuple_index i, ETERM *tuple_term )
 
   int res = ERL_INT_VALUE( elem ) ;
 
-  LOG_DEBUG( "Read integer %i.", res ) ;
+  //LOG_DEBUG( "Read integer %i.", res ) ;
 
   erl_free_term( elem ) ;
 
@@ -595,7 +661,7 @@ unsigned int get_element_as_unsigned_int( tuple_index i, ETERM *tuple_term )
 
   erl_free_term( elem ) ;
 
-  LOG_DEBUG( "Read unsigned integer %u.", res ) ;
+  //LOG_DEBUG( "Read unsigned integer %u.", res ) ;
 
   return res ;
 
@@ -613,7 +679,7 @@ double get_element_as_double( tuple_index i, ETERM *tuple_term )
 
   double res = ERL_FLOAT_VALUE( elem ) ;
 
-  LOG_DEBUG( "Read double %e.", res ) ;
+  //LOG_DEBUG( "Read double %e.", res ) ;
 
   erl_free_term( elem ) ;
 
@@ -642,11 +708,11 @@ char * get_element_as_string( tuple_index i, ETERM *tuple_term )
   if ( ! ERL_IS_LIST( elem ) )
 	raise_error( "Tuple element %u cannot be cast to string (i.e. list)", i ) ;
 
-  LOG_DEBUG( "String length is %u bytes.", erl_length( elem ) ) ;
+  //LOG_DEBUG( "String length is %u bytes.", erl_length( elem ) ) ;
 
   char * res = erl_iolist_to_string( elem ) ;
 
-  LOG_DEBUG( "Read string: '%s'.", res ) ;
+  //LOG_DEBUG( "Read string: '%s'.", res ) ;
 
   // Expected to be null-terminated:
   //char * stringContent = (char *) ERL_BIN_PTR( elem ) ;
@@ -750,7 +816,7 @@ double get_head_as_double( ETERM * list_term )
 
   double res = ERL_FLOAT_VALUE( head_term ) ;
 
-  LOG_DEBUG( "Read double %e.", res ) ;
+  //LOG_DEBUG( "Read double %e.", res ) ;
 
   erl_free_term( head_term ) ;
 
@@ -787,7 +853,7 @@ char * get_head_as_atom( ETERM * list_term )
   if ( atom_name == NULL )
 	raise_error( "Head of list cannot be converted to atom." ) ;
 
-  LOG_DEBUG( "Read head as atom '%s'.", atom_name ) ;
+  //LOG_DEBUG( "Read head as atom '%s'.", atom_name ) ;
 
   char * res = strdup( atom_name ) ;
 
@@ -820,7 +886,7 @@ char * get_head_as_string( ETERM * list_term )
   if ( res_string == NULL )
 	raise_error( "Head of list cannot be converted to string." ) ;
 
-  LOG_DEBUG( "Read head as string '%s'.", res_string ) ;
+  //LOG_DEBUG( "Read head as string '%s'.", res_string ) ;
 
   erl_free_term( head_term ) ;
 
@@ -855,7 +921,7 @@ int get_parameter_as_int( parameter_index index, ETERM ** parameters )
 
   int res = ERL_INT_VALUE( elem ) ;
 
-  LOG_DEBUG( "Read integer parameter %i.", res ) ;
+  //LOG_DEBUG( "Read integer parameter %i.", res ) ;
 
   return res ;
 
@@ -883,7 +949,7 @@ unsigned int get_parameter_as_unsigned_int( parameter_index index,
 
   int res = ERL_INT_UVALUE( elem ) ;
 
-  LOG_DEBUG( "Read integer parameter %u.", res ) ;
+  //LOG_DEBUG( "Read unsigned integer parameter %u.", res ) ;
 
   return res ;
 
@@ -911,7 +977,7 @@ double get_parameter_as_double( parameter_index index, ETERM ** parameters )
 
   int res = ERL_FLOAT_VALUE( elem ) ;
 
-  LOG_DEBUG( "Read double parameter %e.", res ) ;
+  //LOG_DEBUG( "Read double parameter %e.", res ) ;
 
   return res ;
 
@@ -941,7 +1007,7 @@ char * get_parameter_as_atom( parameter_index index, ETERM ** parameters )
 
   char * res = ERL_ATOM_PTR( elem ) ;
 
-  LOG_DEBUG( "Read atom '%s'.", res ) ;
+  //LOG_DEBUG( "Read atom '%s'.", res ) ;
 
   return res ;
 
@@ -970,11 +1036,11 @@ char * get_parameter_as_string( parameter_index index, ETERM ** parameters )
 	raise_error( "Parameter element of index %i cannot be cast to string "
 	  "(i.e. list)", index ) ;
 
-  LOG_DEBUG( "String length is %u bytes.", erl_length( elem ) ) ;
+  //LOG_DEBUG( "String length is %u bytes.", erl_length( elem ) ) ;
 
   char * res = erl_iolist_to_string( elem ) ;
 
-  LOG_DEBUG( "Read string: '%s'.", res ) ;
+  //LOG_DEBUG( "Read string: '%s'.", res ) ;
 
   return res ;
 
@@ -1036,7 +1102,8 @@ void write_term( byte * buffer, ETERM * term )
   write_buffer( buffer, bytes_to_write ) ;
 
   // Clean-up ETERM memory allocated for this round:
-  erl_free_term( term ) ;
+  // Not 'erl_free_term( term ) ;', as of course we may write compounds:
+  erl_free_compound( term ) ;
 
 }
 
@@ -1201,7 +1268,7 @@ byte_count write_exact( byte *buf, byte_count len )
 byte_count write_buffer( byte *buf, byte_count len )
 {
 
-  LOG_DEBUG( "Will write %i bytes.", len ) ;
+  //LOG_DEBUG( "Will write %i bytes.", len ) ;
 
   if ( len + 2 > buffer_size )
   {
