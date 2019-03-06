@@ -31,6 +31,9 @@
 #ifndef _SEAPLUS_H_
 #define _SEAPLUS_H_
 
+// For ssize_t:
+#include <unistd.h>
+
 
 // Seaplus-defined types:
 
@@ -39,7 +42,7 @@ typedef unsigned char byte;
 
 
 // As a number of bytes (negative values meaning errors):
-typedef int byte_count ;
+typedef ssize_t byte_count ;
 
 
 // Designates an index in a buffer:
@@ -56,8 +59,12 @@ extern const byte_count buffer_size ;
 // Seaplus reference onto an Erlang API function:
 typedef unsigned int fun_id ;
 
-// The arity of an Erlang function:
+// The arity of an Erlang function (i.e. a count of parameters):
 typedef unsigned int arity ;
+
+// Index of a parameter:
+typedef unsigned int parameter_index ;
+
 
 typedef unsigned int list_size ;
 
@@ -134,6 +141,16 @@ byte_count read_command( byte *buf ) ;
 
 
 /**
+ * Determines, from specified buffer, the information regarding the
+ * (Erlang-side) specified function, namely its function identifier and its
+ * parameters, set in the variables whose reference is specified.
+ *
+ */
+void get_function_information( byte * buffer, fun_id * current_fun_id,
+  arity * param_count, ETERM *** parameters ) ;
+
+
+/**
  * Raises an error should the actual arity not be the expected one.
  *
  */
@@ -172,6 +189,9 @@ unsigned int get_element_as_unsigned_int( tuple_index i, ETERM *tuple_term ) ;
 
 // Returns the element i of specified tuple, as a double.
 double get_element_as_double( tuple_index i, ETERM *tuple_term ) ;
+
+
+// char * get_element_as_atom( tuple_index i, ETERM *tuple_term ) is lacking.
 
 
 /**
@@ -226,7 +246,7 @@ unsigned int get_head_as_unsigned_int( ETERM * list_term ) ;
 
 
 /**
- * Returns the head of the specified, supposedly non-empty, list, as a double.
+ * Returns the head of the specified, supposedly non-empty, list, as a C double.
  *
  */
 double get_head_as_double( ETERM * list_term ) ;
@@ -252,6 +272,73 @@ char * get_head_as_atom( ETERM * list_term ) ;
  */
 char * get_head_as_string( ETERM * list_term ) ;
 
+
+
+// Parameter-based getters:
+
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be an integer.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ */
+int get_parameter_as_int( parameter_index index, ETERM ** parameters ) ;
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be an unsigned integer.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ */
+unsigned int get_parameter_as_unsigned_int( parameter_index index,
+  ETERM ** parameters ) ;
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be an Erlang float (hence returning a C double).
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ */
+double get_parameter_as_double( parameter_index index, ETERM ** parameters ) ;
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be an atom, translated to a char*.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ * Ownership of the returned string transferred to the caller (who shall use
+ * erl_free/1 to deallocate it).
+ *
+ */
+char * get_parameter_as_atom( parameter_index index, ETERM ** parameters ) ;
+
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be a string.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ * Ownership of the returned string transferred to the caller (who shall use
+ * erl_free/1 to deallocate it).
+ *
+ */
+char * get_parameter_as_string( parameter_index index, ETERM ** parameters ) ;
 
 
 
@@ -317,6 +404,12 @@ void write_as_binary( byte * buffer, char * string ) ;
  */
 byte_count write_buffer( byte *buf, byte_count len ) ;
 
+
+/**
+ * Performs housekeeping after a command has been executed.
+ *
+ */
+void clean_up_command( ETERM ** parameters ) ;
 
 
 /**

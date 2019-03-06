@@ -512,8 +512,11 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 	receive
 
+
+		% Normal case, receiving the corresponding result:
 		{ TargetPort, { data, BinAnswer } } ->
 			binary_to_term( BinAnswer );
+
 
 		{ 'EXIT', TargetPort, _Reason=normal } ->
 
@@ -525,13 +528,21 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			%trace_utils:warning_fmt( "Normal EXIT of port ~p.",
 			%						 [ TargetPort ] ),
 
+			trace_utils:error_fmt( "Crash of the driver port (~w) reported.",
+								   [ TargetPort ] ),
+
 			throw( { driver_crashed, unknown_reason } );
 
+
 		{ 'EXIT', TargetPort, Reason } ->
+
 			process_dictionary:remove( ServiceKey ),
-			trace_utils:error_fmt( "Received exit failure from port ~p, "
+
+			trace_utils:error_fmt( "Received exit failure from driver port ~p, "
 					"reason: ~p", [ TargetPort, Reason ] ),
+
 			throw( { driver_crashed, Reason } );
+
 
 		Unexpected ->
 			trace_utils:error_fmt(

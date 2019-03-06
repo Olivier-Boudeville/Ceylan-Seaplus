@@ -98,7 +98,7 @@ Indeed, taking into account the Erlang `Interoperability Tutorial <http://erlang
 
 In a nutshell, this approach consists on spawning a "fake" Erlang node written in C (the ``C-Node``) and using the standard *Erlang external term format* in order to communicate with it (relying for that on the ``Erl_Interface`` facility). Doing so allows a seamless communication to happen, despite language heterogeneity.
 
-C-Node and Erl_Interface help a lot, yet, as shown in `this example <http://erlang.org/doc/tutorial/erl_interface.html#erlang-program>`_, quite a lot of boiler-plate/bridging code (home-made encoding and conventions) remains needed.
+C-Node and Erl_Interface help a lot, yet, as shown in `this reference example <http://erlang.org/doc/tutorial/erl_interface.html#erlang-program>`_, quite a lot of boiler-plate/bridging code (home-made encoding and conventions) remains needed.
 
 The **goal of Seaplus is to reduce that interfacing effort**, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that he can define precisely the mapping interface that he prefers (ex: with regards to naming, types introduced and used, management of resource ownership, etc.).
 
@@ -247,6 +247,7 @@ Based on these elements, the actual bridging code can be written, like in (short
 
 .. code:: c
 
+  [...] 
   int main()
   {
 

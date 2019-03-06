@@ -34,7 +34,7 @@
  * C example Seaplus driver around the toy foobar library, giving access to its
  * API, i.e. to the functions declared in foobar.h (and defined on foobar.c).
  *
- * The messages from and to Erlang arrives as { FunId, FunParams } pairs, where
+ * The messages from and to Erlang arrive as { FunId, FunParams } pairs, where
  * FunId is an unsigned integer and FunParams is a (possibly empty) list of
  * terms.
  *
@@ -45,6 +45,10 @@
  *
  * Directly inspired from:
  * http://erlang.org/doc/tutorial/erl_interface.html#c-program
+ *
+ * Of course such a driver can maintain any additional state (context,
+ * environment, etc.) that can be made available to the actual functions exposed
+ * by the service.
  *
  */
 
@@ -75,7 +79,7 @@ enum foo_status get_foo_status_from_atom( const char * atom_name ) ;
 ETERM * get_foo_data_record_from_struct( struct foo_data * s ) ;
 
 ETERM * get_tur_status_atom_from_enum( enum tur_status s ) ;
-enum tur_status get_tur_status_enum_from_atom( const char * atom_name ) ;
+enum tur_status get_tur_status_enum_from_atom_name( const char * atom_name ) ;
 
 
 
@@ -98,57 +102,29 @@ int main()
 
 	LOG_TRACE( "New command received." ) ;
 
-	/*
-	 * Reads a { FunId, FunParams } pair thanks to Erl_Interface:
-	 *
-	 * (see http://erlang.org/doc/man/erl_marshal.html#erl_decode)
-	 *
-	 * A single term (pair) is expected here:
+	/* Will be set to the corresponding Seaplus-defined function identifier (ex:
+	 * whose value is FOO_1_ID):
 	 *
 	 */
-	ETERM * read_pair = erl_decode( buffer ) ;
+	fun_id current_fun_id ;
 
-	if ( read_pair == NULL )
-		raise_error(
-		  "Decoding of the pair command from the receive buffer failed." ) ;
-
-	if ( ! ERL_IS_TUPLE( read_pair ) )
-	  raise_error( "Read term is not a tuple" ) ;
-
-	tuple_size tuple_s = ERL_TUPLE_SIZE( read_pair ) ;
-
-	if ( tuple_s != 2 )
-	  raise_error( "Read tuple is not a pair (%u elements found).",
-		tuple_s ) ;
-
-
-	/* Gets the first element of the pair, i.e. the Seaplus-defined function
-	 * identifier (ex: whose value is FOO_1_ID):
+	/* Will be set to the number of parameters obtained from Erlang for the
+	 * function whose identifier has been transmitted:
 	 *
 	 */
-	fun_id current_fun_id = get_element_as_int( 1, read_pair ) ;
-
-	LOG_DEBUG( "Reading command: function identifier is %u.", current_fun_id ) ;
+	arity param_count ;
 
 
-	/* Second element of the pair is the list of the call parameters (hence the
-	 * arity of the function to be called can be checked):
+	/* Array containing, in-order, the (param_count) transmitted parameters:
 	 *
 	 */
-	ETERM * cmd_params = get_element_from_tuple( 2, read_pair ) ;
+	ETERM ** parameters = NULL ;
 
-	if( ! ERL_IS_LIST( cmd_params ) )
-	  raise_error( "Second element of the parameter pair cannot be cast "
-		"to a list." ) ;
+	get_function_information( buffer, &current_fun_id, &param_count,
+	  &parameters ) ;
 
-	// The number of elements in the list of call parameters:
-	list_size param_count = erl_length( cmd_params ) ;
-
-	if ( param_count == -1 )
-	  raise_error( "Improper list received." ) ;
-
-	LOG_DEBUG( "%u parameter(s) received for this function.", param_count ) ;
-
+	LOG_DEBUG( "Function identifier is %u, arity is %u.", current_fun_id,
+	  param_count ) ;
 
 	// Now, taking care of the corresponding function call:
 	switch( current_fun_id )
@@ -162,8 +138,8 @@ int main()
 
 	  check_arity_is( 1, param_count, FOO_1_ID ) ;
 
-	  // So we expect the parameter list to contain a single integer:
-	  int foo_a_param = get_head_as_int( cmd_params ) ;
+	  // So we expect the (single, hence first) parameter to be a integer:
+	  int foo_a_param = get_parameter_as_int( 1, parameters ) ;
 
 	  // Actual call:
 	  int foo_result = foo( foo_a_param ) ;
@@ -185,13 +161,11 @@ int main()
 
 	  check_arity_is( 2, param_count, BAR_2_ID ) ;
 
-	  // Getting first the float:
-	  double bar_double_param = get_head_as_double( cmd_params ) ;
-
-	  ETERM * other_params = get_tail( cmd_params ) ;
+	  // Getting first the Erlang float:
+	  double bar_double_param = get_parameter_as_double( 1, parameters ) ;
 
 	  // Then the atom for foo_status():
-	  char * atom_name = get_head_as_atom( other_params ) ;
+	  char * atom_name = get_parameter_as_atom( 2, parameters ) ;
 
 	  enum foo_status bar_status_param = get_foo_status_from_atom( atom_name ) ;
 
@@ -218,12 +192,10 @@ int main()
 	  check_arity_is( 2, param_count, BAZ_2_ID ) ;
 
 	  // Getting first the (unsigned) integer:
-	  unsigned int baz_int_param = get_head_as_int( cmd_params ) ;
+	  int baz_int_param = get_parameter_as_int( 1, parameters ) ;
 
 	  // Then the string:
-	  cmd_params = get_tail( cmd_params ) ;
-
-	  char * baz_string_param = get_head_as_string( cmd_params ) ;
+	  char * baz_string_param = get_parameter_as_string( 2, parameters ) ;
 
 	  // Actual call:
 	  enum tur_status enum_res = baz( baz_int_param, baz_string_param ) ;
@@ -264,9 +236,9 @@ int main()
 
 	  check_arity_is( 1, param_count, FROB_1_ID ) ;
 
-	  char * tur_atom_name = get_head_as_atom( cmd_params ) ;
+	  char * tur_atom_name = get_parameter_as_atom( 1, parameters ) ;
 
-	  enum tur_status s = get_tur_status_enum_from_atom( tur_atom_name ) ;
+	  enum tur_status s = get_tur_status_enum_from_atom_name( tur_atom_name ) ;
 
 	  char * string_res = frob( s ) ;
 
@@ -279,8 +251,8 @@ int main()
 
 	}
 
-	erl_free_compound( read_pair ) ;
-
+	clean_up_command( parameters ) ;
+	
   }
 
   stop_seaplus_driver( buffer ) ;
@@ -354,10 +326,10 @@ ETERM * get_tur_status_atom_from_enum( enum tur_status s )
 }
 
 
-/* Returns a tur_status enum from specified atom.
+/* Returns a tur_status enum from specified atom name (as a string).
  *
  */
-enum tur_status get_tur_status_enum_from_atom( const char * atom_name )
+enum tur_status get_tur_status_enum_from_atom_name( const char * atom_name )
 {
 
   if ( strcmp( atom_name, "tur_value" ) == 0 )

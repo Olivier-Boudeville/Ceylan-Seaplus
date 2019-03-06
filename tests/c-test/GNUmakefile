@@ -88,7 +88,7 @@ $(TARGET_DRIVER) $(TARGET_DRIVER_OBJ)
 
 
 clean-log:
-	-@/bin/rm -f seaplus-driver-for-*.log
+	-@/bin/rm -f seaplus-driver.*.log
 
 
 info: info-erlang info-target

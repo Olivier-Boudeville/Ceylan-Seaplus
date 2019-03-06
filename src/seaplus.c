@@ -51,6 +51,8 @@
 // For vffprintf:
 #include <stdarg.h>
 
+// For strerror:
+#include <errno.h>
 
 
 const char * default_log_base_filename = "seaplus-driver" ;
@@ -244,7 +246,43 @@ byte * start_seaplus_driver()
   if ( buffer == NULL )
 	raise_error( "Buffer allocation failed." ) ;
 
+
+  long unsigned int allocated_count, freed_count ;
+
+  erl_eterm_statistics( &allocated_count , &freed_count ) ;
+
+  LOG_TRACE( "At start-up: currently allocated blocks: %ld; "
+	"length of freelist: %ld.", allocated_count, freed_count ) ;
+
   return buffer ;
+
+}
+
+
+
+/**
+ * Performs housekeeping after a command has been executed.
+ *
+ */
+void clean_up_command( ETERM ** parameters )
+{
+
+	long unsigned int allocated_count, freed_count ;
+
+	erl_eterm_statistics( &allocated_count , &freed_count ) ;
+
+	LOG_TRACE( "Before term release: currently allocated blocks: %ld; "
+	  "length of freelist: %ld.", allocated_count, freed_count ) ;
+
+	erl_eterm_release() ;
+
+	erl_eterm_statistics( &allocated_count , &freed_count ) ;
+
+	LOG_TRACE( "After term release: currently allocated blocks: %ld; "
+	  "length of freelist: %ld.", allocated_count, freed_count ) ;
+
+	//erl_free_compound( read_pair ) ;
+	// free parameters
 
 }
 
@@ -260,6 +298,13 @@ void stop_seaplus_driver( byte * buffer )
   LOG_DEBUG( "Stopping the Seaplus C driver." ) ;
 
   free( buffer ) ;
+
+  long unsigned int allocated_count, freed_count ;
+
+  erl_eterm_statistics( &allocated_count , &freed_count ) ;
+
+  LOG_TRACE( "At stop: currently allocated blocks: %ld; "
+	"length of freelist: %ld.", allocated_count, freed_count ) ;
 
   // No erl_init/2 counterpart.
 
@@ -280,20 +325,31 @@ void stop_seaplus_driver( byte * buffer )
 byte_count read_exact( byte *buf, byte_count len )
 {
 
-  int i, got=0 ;
+   ssize_t got = 0 ;
 
   do
   {
 
 	// Reading from file descriptor #0:
-	if ( ( i = read( 0, buf+got, len-got ) ) <= 0 )
-	  return (i) ;
+	ssize_t i = read( 0, buf+got, len-got ) ;
+
+	if ( i <= 0 )
+	{
+
+	  // Possibly 0 bytes if the port has been closed in the meantime:
+	  if ( i == 0 )
+		return 0 ;
+
+	  // Expected to be -1 (error) then:
+	  raise_error( "Reading from buffer failed: %s.", strerror( errno ) ) ;
+
+	}
 
 	got += i ;
 
   } while ( got < len ) ;
 
-  LOG_DEBUG( "Read %i bytes.", len ) ;
+  //LOG_DEBUG( "Read %i bytes.", len ) ;
 
   return( len ) ;
 
@@ -309,22 +365,142 @@ byte_count read_exact( byte *buf, byte_count len )
 byte_count read_command( byte *buf )
 {
 
-  int len = read_exact( buf, 2 ) ;
-
   // Two bytes for command length:
-  if ( len != 2 )
-	raise_error( "Reading of the length of the command buffer failed "
-	  "(read %i bytes).", len ) ;
+  byte_count len = read_exact( buf, 2 ) ;
 
-  len = (buf[0] << 8) | buf[1] ;
+  // Not reading these length bytes may not be abnormal, if stopping:
+  if ( len == 2 )
+  {
 
-  LOG_DEBUG( "Will read %i bytes.", len ) ;
+	len = (buf[0] << 8) | buf[1] ;
 
-  if ( len + 2 > buffer_size )
-	raise_error( "Read length (%i) is too high (buffer size: %i).",
-	  len, buffer_size ) ;
+	LOG_DEBUG( "Will read %i bytes.", len ) ;
 
-  return read_exact( buf, len ) ;
+	if ( len + 2 > buffer_size )
+	  raise_error( "Read length (%i) is too high (buffer size: %i).",
+		len, buffer_size ) ;
+
+	return read_exact( buf, len ) ;
+
+  }
+  else
+  {
+
+	if ( len == 0 )
+	{
+	  // The port must have been closed:
+	  return 0 ;
+	}
+	else
+	{
+
+	  raise_error( "Reading of the length of the command buffer failed "
+		"(read %i bytes).", len ) ;
+
+	  // Silence compiler:
+	  return 0 ;
+
+	}
+
+  }
+
+}
+
+
+/**
+ * Determines, from specified buffer, the information regarding the
+ * (Erlang-side) specified function, namely its function identifier and its
+ * parameters, set in the variables whose reference is specified.
+ *
+ */
+void get_function_information( byte * buffer, fun_id * current_fun_id,
+  arity * param_count, ETERM *** parameters )
+{
+
+	/*
+	 * Reads a { FunId, FunParams } pair thanks to Erl_Interface:
+	 *
+	 * (see http://erlang.org/doc/man/erl_marshal.html#erl_decode)
+	 *
+	 * A single term (pair) is expected here:
+	 *
+	 */
+	ETERM * read_pair = erl_decode( buffer ) ;
+
+	if ( read_pair == NULL )
+		raise_error(
+		  "Decoding of the pair command from the receive buffer failed." ) ;
+
+	if ( ! ERL_IS_TUPLE( read_pair ) )
+	  raise_error( "Read term is not a tuple (whereas pair expected)." ) ;
+
+	tuple_size tuple_s = ERL_TUPLE_SIZE( read_pair ) ;
+
+	if ( tuple_s != 2 )
+	  raise_error( "Read tuple is not a pair (%u elements found).",
+		tuple_s ) ;
+
+
+	/* Gets the first element of the pair, i.e. the Seaplus-defined function
+	 * identifier (ex: whose value is FOO_1_ID):
+	 *
+	 */
+	*current_fun_id = get_element_as_int( 1, read_pair ) ;
+
+	LOG_DEBUG( "Reading command: function identifier is %i.", *current_fun_id ) ;
+
+
+	/* Second element of the pair is the list of the call parameters (hence the
+	 * arity of the function to be called can be checked):
+	 *
+	 */
+	ETERM * cmd_params = get_element_from_tuple( 2, read_pair ) ;
+
+	if( ! ERL_IS_LIST( cmd_params ) )
+	  raise_error( "Second element of the parameter pair cannot be cast "
+		"to a list." ) ;
+
+	// The number of elements in the list of call parameters:
+	arity fun_param_count = erl_length( cmd_params ) ;
+
+	if ( fun_param_count == -1 )
+	  raise_error( "Improper list received." ) ;
+
+	LOG_DEBUG( "%u parameter(s) received for this function.", fun_param_count ) ;
+
+	*param_count = fun_param_count ;
+
+	/* We used to return the FunParams list as it was, but iterating on it was
+	 * making the driver more complex than needed.
+	 *
+	 * Now we return a simple array of terms (more convenient for the driver
+	 * developer, and inline with how NIFs proceed).
+	 *
+	 */
+	ETERM ** fun_params =
+	  (ETERM **) malloc( fun_param_count * sizeof( ETERM * ) ) ;
+
+	if ( fun_params == NULL )
+	  raise_error( "Creation of parameter array failed." ) ;
+
+	for ( arity i = 0; i < fun_param_count ; i++ )
+	{
+	  fun_params[ i ] = get_head( cmd_params ) ;
+	  cmd_params = get_tail( cmd_params ) ;
+	}
+
+	*parameters = fun_params ;
+
+	/* We deallocate the read { FunId, FunParams } pair (i.e. the tuple itself,
+	 * not its elements), and also FunId and the FunParams list (but not the
+	 * terms it points to, which are now referenced into the specified
+	 * parameters array, and that will be freed only when the command will have
+	 * been processed.
+	 *
+	 */
+
+	//TODO
+
 
 }
 
@@ -386,7 +562,7 @@ signed int get_element_as_int( tuple_index i, ETERM *tuple_term )
   ETERM * elem = get_element_from_tuple( i, tuple_term ) ;
 
   if ( ! ERL_IS_INTEGER( elem ) )
-	raise_error( "Tuple element %u cannot be cast to integer.", i ) ;
+	raise_error( "Tuple element %i cannot be cast to integer.", i ) ;
 
   int res = ERL_INT_VALUE( elem ) ;
 
@@ -444,6 +620,9 @@ double get_element_as_double( tuple_index i, ETERM *tuple_term )
   return res ;
 
 }
+
+
+// char * get_element_as_atom( tuple_index i, ETERM *tuple_term ) is lacking.
 
 
 /**
@@ -648,6 +827,160 @@ char * get_head_as_string( ETERM * list_term )
   return res_string ;
 
 }
+
+
+
+
+// Parameter getters.
+
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be an integer.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ */
+int get_parameter_as_int( parameter_index index, ETERM ** parameters )
+{
+
+ // Starts at zero:
+  ETERM * elem  = parameters[ index - 1 ] ;
+
+  if ( ! ERL_IS_INTEGER( elem ) )
+	raise_error( "Parameter element of index %i cannot be cast to integer.",
+	  index ) ;
+
+  int res = ERL_INT_VALUE( elem ) ;
+
+  LOG_DEBUG( "Read integer parameter %i.", res ) ;
+
+  return res ;
+
+}
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be an unsigned integer.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ */
+unsigned int get_parameter_as_unsigned_int( parameter_index index,
+  ETERM ** parameters )
+{
+
+  // Starts at zero:
+  ETERM * elem  = parameters[ index - 1 ] ;
+
+  if ( ! ERL_IS_UNSIGNED_INTEGER( elem ) )
+	raise_error( "Parameter element of index %i cannot be cast to "
+	  "unsigned integer.", index ) ;
+
+  int res = ERL_INT_UVALUE( elem ) ;
+
+  LOG_DEBUG( "Read integer parameter %u.", res ) ;
+
+  return res ;
+
+}
+
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be an Erlang float (hence returning a C double).
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ */
+double get_parameter_as_double( parameter_index index, ETERM ** parameters )
+{
+
+   // Starts at zero:
+  ETERM * elem  = parameters[ index - 1 ] ;
+
+  if ( ! ERL_IS_FLOAT( elem ) )
+	raise_error( "Parameter element of index %i cannot be cast to double.",
+	  index ) ;
+
+  int res = ERL_FLOAT_VALUE( elem ) ;
+
+  LOG_DEBUG( "Read double parameter %e.", res ) ;
+
+  return res ;
+
+}
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be an atom, translated to a char*.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ * Ownership of the returned string transferred to the caller (who shall use
+ * erl_free/1 to deallocate it).
+ *
+ */
+char * get_parameter_as_atom( parameter_index index, ETERM ** parameters )
+{
+
+  // Starts at zero:
+  ETERM * elem  = parameters[ index - 1 ] ;
+
+  if ( ! ERL_IS_ATOM( elem ) )
+	raise_error( "Parameter element of index %i cannot be cast to atom.",
+	  index ) ;
+
+  char * res = ERL_ATOM_PTR( elem ) ;
+
+  LOG_DEBUG( "Read atom '%s'.", res ) ;
+
+  return res ;
+
+}
+
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be a string.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ * Ownership of the returned string transferred to the caller (who shall use
+ * erl_free/1 to deallocate it).
+ *
+ */
+char * get_parameter_as_string( parameter_index index, ETERM ** parameters )
+{
+
+  // Starts at zero:
+  ETERM * elem  = parameters[ index - 1 ] ;
+
+  if ( ! ERL_IS_LIST( elem ) )
+	raise_error( "Parameter element of index %i cannot be cast to string "
+	  "(i.e. list)", index ) ;
+
+  LOG_DEBUG( "String length is %u bytes.", erl_length( elem ) ) ;
+
+  char * res = erl_iolist_to_string( elem ) ;
+
+  LOG_DEBUG( "Read string: '%s'.", res ) ;
+
+  return res ;
+
+}
+
+
 
 
 
