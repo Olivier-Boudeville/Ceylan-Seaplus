@@ -311,8 +311,21 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 			ok;
 
 		TargetPort ->
-			TargetPort ! stop,
-			process_dictionary:remove( ServiceKey )
+			trace_utils:trace( "Stopping Seaplus." ),
+			process_dictionary:remove( ServiceKey ),
+			TargetPort ! { self(), close },
+
+			receive
+
+				{ TargetPort, closed } ->
+					trace_utils:debug( "Port stopped." )
+
+			after 5000 ->
+
+					trace_utils:error_fmt( "Time-out after waiting for the "
+										   "stop of port ~w.", [ TargetPort ] )
+
+		end
 
 	end.
 
@@ -493,6 +506,10 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 	%
 	TargetPort ! { self(), { command, BinMessage } },
 
+	% In case of crash, we remove the service key so that for example any
+	% restart triggered by the corresponding exception being caught will not
+	% have its stop/0 wait for the driver time-out to expire:
+
 	receive
 
 		{ TargetPort, { data, BinAnswer } } ->
@@ -500,15 +517,18 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 		{ 'EXIT', TargetPort, _Reason=normal } ->
 
-			%trace_utils:warning_fmt( "Normal EXIT of port ~p.",
-			%						 [ TargetPort ] ),
+			process_dictionary:remove( ServiceKey ),
 
 			% Actually even when hard crashing (zero division), a 'normal'
 			% reason is thrown:
 			%
+			%trace_utils:warning_fmt( "Normal EXIT of port ~p.",
+			%						 [ TargetPort ] ),
+
 			throw( { driver_crashed, unknown_reason } );
 
 		{ 'EXIT', TargetPort, Reason } ->
+			process_dictionary:remove( ServiceKey ),
 			trace_utils:error_fmt( "Received exit failure from port ~p, "
 					"reason: ~p", [ TargetPort, Reason ] ),
 			throw( { driver_crashed, Reason } );
