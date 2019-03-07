@@ -76,7 +76,7 @@ The latest version of this documentation is to be found at the `official Seaplus
 Important Note
 ==============
 
-Seaplus is still **work in progress** - not usable yet!
+Seaplus is still **work in progress** - it is functional, yet no code generation yet!
 
 
 Overview
@@ -332,6 +332,17 @@ Based on these elements, the actual bridging code can be written, like in the fo
   }
 
 
+
+Wrapping Up
+===========
+
+We believe that, in order to make a pre-existing C/C++ library available to Erlang while not going the NIF route (typically when not wanting to jeopardise the Erlang VM for that), Seaplus offers a good option in terms of safety, low overhead and simplicity.
+
+The overall integration process is quite streamlined, and we tried to reduce as much as possible the size and complexity of the service-specific integration code that remains needed.
+
+For example one may contrast the few Foobar-specific files (`foobar.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl>`_, `foobar.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl>`_ and `foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_, i.e. the ones that shall be written by the service integrator), and the ones implementing the Seaplus generic support (namely `seaplus.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl>`_, `seaplus.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl>`_, `seaplus.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_, `seaplus.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c>`_ and `seaplus_parse_transform.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_).
+
+
 :raw-latex:`\pagebreak`
 
 
@@ -468,7 +479,7 @@ This could enable the possibility of integrating C/C++ code seamlessly as a C-No
 Issues & Planned Enhancements
 =============================
 
-- thorough testing of the C-side should be done, notably with regard to the hunt for memory leaks; so a `Valgrind-based <http://valgrind.org/>`_ runtime mode for the driver would surely be useful (note though that ``erl_eterm_statistics/2`` and ``erl_eterm_release/0`` are already used to ensure that on the C side no term is leaked)
+- thorough testing of the C-side should be done, notably with regard to the hunt for memory leaks; so a `Valgrind-based <http://valgrind.org/>`_ runtime mode for the driver would surely be useful (note though that ``erl_eterm_statistics/2`` and ``erl_eterm_release/0`` are already used at runtime, in debug mode, to ensure that on the C side no term is ever leaked)
 
 
 :raw-latex:`\pagebreak`

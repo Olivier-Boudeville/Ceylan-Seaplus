@@ -181,7 +181,6 @@ int main()
 	  // Sending of the result record:
 	  write_term( buffer, foo_data_res ) ;
 
-
 	  break ;
 
 

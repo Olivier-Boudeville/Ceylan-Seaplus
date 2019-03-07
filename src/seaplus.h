@@ -62,7 +62,7 @@ typedef unsigned int fun_id ;
 // The arity of an Erlang function (i.e. a count of parameters):
 typedef unsigned int arity ;
 
-// Index of a parameter:
+// Index of a parameter (starts at 1):
 typedef unsigned int parameter_index ;
 
 

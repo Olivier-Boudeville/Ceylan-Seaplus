@@ -247,7 +247,6 @@ void raise_error( const char * format, ... )
 byte * start_seaplus_driver()
 {
 
-
   pid_t current_pid = getpid() ;
 
   char log_filename[100] ;
@@ -393,18 +392,18 @@ void stop_seaplus_driver( byte * buffer )
 byte_count read_exact( byte *buf, byte_count len )
 {
 
-   ssize_t got = 0 ;
+  byte_count got = 0 ;
 
   do
   {
 
 	// Reading from file descriptor #0:
-	ssize_t i = read( 0, buf+got, len-got ) ;
+	byte_count i = read( 0, buf+got, len-got ) ;
 
 	if ( i <= 0 )
 	{
 
-	  // Possibly 0 bytes if the port has been closed in the meantime:
+	  // Possibly 0 byte if the port has been closed in the meantime:
 	  if ( i == 0 )
 		return 0 ;
 
@@ -419,7 +418,7 @@ byte_count read_exact( byte *buf, byte_count len )
 
   //LOG_DEBUG( "Read %i bytes.", len ) ;
 
-  return( len ) ;
+  return len ;
 
 }
 
@@ -1239,20 +1238,22 @@ void write_as_binary( byte * buffer, char * string )
 byte_count write_exact( byte *buf, byte_count len )
 {
 
-  int i, wrote = 0 ;
+  byte_count wrote = 0 ;
 
   do
   {
 
+	byte_count i = write( 1, buf+wrote, len-wrote ) ;
+
 	// Writing to file descriptor #1:
-	if ( ( i = write( 1, buf+wrote, len-wrote ) ) <= 0 )
-	  return (i) ;
+	if ( i <= 0 )
+	  return i ;
 
 	wrote += i ;
 
   } while ( wrote < len ) ;
 
-  return ( len ) ;
+  return len ;
 
 }
 
@@ -1275,11 +1276,12 @@ byte_count write_buffer( byte *buf, byte_count len )
 
 	raise_error( "Write length (%i) too high (buffer size: %i).",
 	  len, buffer_size ) ;
-	return (-1) ;
+
+	return -1 ;
 
   }
 
-  byte li;
+  byte li ;
 
   // Two bytes for command length:
   li = (len >> 8) & 0xff ;
