@@ -36,6 +36,8 @@
 
 
 % API declaration.
+%
+% Note that these functions have a spec yet have no definition in this module.
 
 
 % Detailed comment for foo/1.
@@ -87,11 +89,6 @@
 % Service utilities:
 
 
-% Better than ?MODULE:
--define( seaplus_foobar_port_dict_key, '_seaplus_port_for_service_foobar' ).
-
-
-
 % Service-specific API, delegated through the driver.
 %
 % A call is either to return a result (if any) or to throw an exception in case
@@ -115,22 +112,19 @@
 -include("seaplus.hrl").
 
 
-% Returns the key under which this service shall be referenced in the process
-% dictionary of the (creator) user process.
-%
--spec get_service_key() -> seaplus:service_key().
-get_service_key() ->
-	?seaplus_foobar_port_dict_key.
-
-
-%-define( hide_implementations, ).
+-define( hide_implementations, ).
 
 
 -ifndef( hide_implementations ).
 
 
+
+%-define( seaplus_foobar_port_dict_key, none ).
+
+
 foo( A ) ->
 	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 1, [ A ] ).
+
 
 
 bar( A, B ) ->
@@ -147,6 +141,5 @@ tur() ->
 
 frob( A ) ->
 	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 5, [ A ] ).
-
 
 -endif. % hide_implementations
