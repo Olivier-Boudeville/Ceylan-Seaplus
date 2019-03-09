@@ -20,7 +20,7 @@
 <p><span class="raw-html"><center><img src="seaplus-title.png" width="50%"></img></center></span>
 </p>
 <div class="section" id="seaplus-streamlining-a-safe-execution-of-c-c-code-from-erlang">
-<h1><a class="toc-backref" href="#id23">Seaplus: Streamlining a safe execution of C/C++ code from Erlang</a></h1>
+<h1><a class="toc-backref" href="#id21">Seaplus: Streamlining a safe execution of C/C++ code from Erlang</a></h1>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -46,36 +46,36 @@
 <div class="contents topic" id="id1">
 <span id="table-of-contents"></span><p class="topic-title first">Table of Contents</p>
 <ul class="simple">
-<li><a class="reference internal" href="#seaplus-streamlining-a-safe-execution-of-c-c-code-from-erlang" id="id23">Seaplus: Streamlining a safe execution of C/C++ code from Erlang</a><ul>
-<li><a class="reference internal" href="#overview" id="id24">Overview</a></li>
-<li><a class="reference internal" href="#usage" id="id25">Usage</a></li>
-<li><a class="reference internal" href="#wrapping-up" id="id26">Wrapping Up</a></li>
-<li><a class="reference internal" href="#licence" id="id27">Licence</a></li>
-<li><a class="reference internal" href="#current-stable-version-download" id="id28">Current Stable Version &amp; Download</a><ul>
-<li><a class="reference internal" href="#using-stable-release-archive" id="id29">Using Stable Release Archive</a></li>
-<li><a class="reference internal" href="#using-cutting-edge-git" id="id30">Using Cutting-Edge GIT</a></li>
+<li><a class="reference internal" href="#seaplus-streamlining-a-safe-execution-of-c-c-code-from-erlang" id="id21">Seaplus: Streamlining a safe execution of C/C++ code from Erlang</a><ul>
+<li><a class="reference internal" href="#overview" id="id22">Overview</a></li>
+<li><a class="reference internal" href="#usage" id="id23">Usage</a></li>
+<li><a class="reference internal" href="#wrapping-up" id="id24">Wrapping Up</a></li>
+<li><a class="reference internal" href="#licence" id="id25">Licence</a></li>
+<li><a class="reference internal" href="#current-stable-version-download" id="id26">Current Stable Version &amp; Download</a><ul>
+<li><a class="reference internal" href="#using-stable-release-archive" id="id27">Using Stable Release Archive</a></li>
+<li><a class="reference internal" href="#using-cutting-edge-git" id="id28">Using Cutting-Edge GIT</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#miscellaneous-technical-points" id="id31">Miscellaneous Technical Points</a><ul>
-<li><a class="reference internal" href="#seaplus-log-system" id="id32">Seaplus Log System</a></li>
-<li><a class="reference internal" href="#towards-a-more-general-c-c-interface" id="id33">Towards a more General C/C++ Interface</a></li>
+<li><a class="reference internal" href="#miscellaneous-technical-points" id="id29">Miscellaneous Technical Points</a><ul>
+<li><a class="reference internal" href="#seaplus-log-system" id="id30">Seaplus Log System</a></li>
+<li><a class="reference internal" href="#towards-a-more-general-c-c-interface" id="id31">Towards a more General C/C++ Interface</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#issues-planned-enhancements" id="id34">Issues &amp; Planned Enhancements</a></li>
-<li><a class="reference internal" href="#support" id="id35">Support</a></li>
-<li><a class="reference internal" href="#seaplus-inner-workings" id="id36">Seaplus Inner Workings</a></li>
-<li><a class="reference internal" href="#please-react" id="id37">Please React!</a></li>
-<li><a class="reference internal" href="#ending-word" id="id38">Ending Word</a></li>
+<li><a class="reference internal" href="#issues-planned-enhancements" id="id32">Issues &amp; Planned Enhancements</a></li>
+<li><a class="reference internal" href="#support" id="id33">Support</a></li>
+<li><a class="reference internal" href="#seaplus-inner-workings" id="id34">Seaplus Inner Workings</a></li>
+<li><a class="reference internal" href="#please-react" id="id35">Please React!</a></li>
+<li><a class="reference internal" href="#ending-word" id="id36">Ending Word</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <p></p>
 <div class="section" id="overview">
-<h2><a class="toc-backref" href="#id24">Overview</a></h2>
+<h2><a class="toc-backref" href="#id22">Overview</a></h2>
 <p>A typical use-case is <strong>having a C or C++ library of interest that we would like be able to use from Erlang</strong>, whereas, for any reason (availability of sources, complexity, size, performance or interest), recoding it (in Erlang) is not desirable.</p>
 <p>However tempting it may be to integrate tightly C/C++ code to the Erlang VM (typically through a <a class="reference external" href="http://erlang.org/doc/tutorial/nif.html">NIF</a>), one may prefer trading maximum performances for safety, and run that C/C++ code (which is often at last partly foreign, hence possibly unreliable) into a separate, isolated (operating system) process.</p>
-<p>Then the integrated code will not be able to crash the Erlang application, and for example any memory leak it would induce would only affect its own process (that, moreover, depending on the use case, may be safely restarted) - not the application one.</p>
+<p>Then the integrated code will not be able to crash the Erlang application, and for example any memory leak it would induce would only affect its own OS process (that, moreover, depending on the use case, may be safely restarted) - not the application one.</p>
 <p>Indeed, taking into account the Erlang <a class="reference external" href="http://erlang.org/doc/tutorial/users_guide.html">Interoperability Tutorial</a>, the following approaches are the most commonly considered ones when having to make C/C++ code available from Erlang:</p>
 <ul class="simple">
 <li>raw <strong>ports</strong> and <strong>linked-in drivers</strong>: they are mostly obsolete for the task at hand (superseded by better counterparts)</li>
@@ -87,13 +87,13 @@
 <p>In a nutshell, this approach consists on spawning a &quot;fake&quot; Erlang node written in C (the <tt class="docutils literal"><span class="pre">C-Node</span></tt>) and using the standard <em>Erlang external term format</em> in order to communicate with it (relying for that on the <tt class="docutils literal">Erl_Interface</tt> facility). Doing so allows a seamless communication to happen, despite language heterogeneity.</p>
 <p>C-Node and Erl_Interface help a lot, yet, as shown in <a class="reference external" href="http://erlang.org/doc/tutorial/erl_interface.html#erlang-program">this reference example</a>, quite a lot of boiler-plate/bridging code (home-made encoding and conventions) remains needed.</p>
 <p>The <strong>goal of Seaplus is to reduce that interfacing effort</strong>, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that he can define precisely the mapping interface that he prefers (ex: with regards to naming, types introduced and used, management of resource ownership, etc.).</p>
-<p>As a result, a Seaplus integration can be seen as a Erl_Interface-based C-Node on steroids.</p>
+<p>As a result, the result of a Seaplus integration can be seen as an easily obtained Erl_Interface-based C-Node on steroids.</p>
 <p><tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt> relies on various facilities offered by the <a class="reference external" href="http://myriad.esperide.org">Ceylan-Myriad</a> toolbox.</p>
 </div>
 <div class="section" id="usage">
-<h2><a class="toc-backref" href="#id25">Usage</a></h2>
+<h2><a class="toc-backref" href="#id23">Usage</a></h2>
 <p>So we would have here a (possibly third-party) service (typically a library, directly usable from C, offering a set of functions) that we want to integrate, i.e. to make available from Erlang.</p>
-<p>Let's suppose that said service is named <tt class="docutils literal">Foobar</tt>, and that the functions it provides (hence on the C side) are declared as (typically in some <tt class="docutils literal">foobar.h</tt> header file <a class="footnote-reference" href="#id3" id="id2">[1]</a>, referring to a possibly opaque <tt class="docutils literal">foobar.so</tt> library):</p>
+<p>Let's suppose that said service is named <tt class="docutils literal">Foobar</tt>, and that the functions it provides (hence on the C side) are declared as (typically in some <tt class="docutils literal">foobar.h</tt> header file <a class="footnote-reference" href="#id3" id="id2">[1]</a>, referring to a possibly opaque <tt class="docutils literal">foobar.so</tt> library - i.e. whose sources may remain unknown):</p>
 <pre class="code c literal-block">
 <span class="cp">#include</span> <span class="cpf">&lt;stdbool.h&gt;</span><span class="cp">
 </span>
@@ -160,8 +160,8 @@
 <tr><td class="label"><a class="fn-backref" href="#id6">[3]</a></td><td>Note though that, at least for some services, specific initialisation/tear-down functions may exist in the vanilla, C version of that service. In that case, they should be added among said function specifications (preferably named for example <tt class="docutils literal">init</tt>/<tt class="docutils literal">teardown</tt> or alike, in order to distinguish them from the Seaplus-reserved <tt class="docutils literal">start</tt>/<tt class="docutils literal">stop</tt> primitives), so that they are available from Erlang as well.</td></tr>
 </tbody>
 </table>
-<p>Of course such a module, as it was defined above (i.e. just a set of function specifications), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) will be available, the <tt class="docutils literal">Foobar</tt> service will become fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.</p>
-<p>More precisely, for each of the function type specification, a corresponding bridging implementation will be generated and added (unless the <tt class="docutils literal">foobar</tt> module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.</p>
+<p>Of course such a module, as it was defined above (i.e. just as a set of function specifications, with no implementation thereof), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) will be available, the <tt class="docutils literal">Foobar</tt> service will become fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.</p>
+<p>More precisely, for each of the function type specifications, on the Erlang side a corresponding bridging implementation will be generated and added (unless the <tt class="docutils literal">foobar</tt> module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.</p>
 <p>Here is a corresponding (mostly meaningless) usage example <a class="footnote-reference" href="#id9" id="id8">[4]</a> of this <tt class="docutils literal">foobar</tt> module, when executed from any given process (ex: a test one):</p>
 <pre class="code erlang literal-block">
 <span class="nn">foobar</span><span class="p">:</span><span class="nf">start</span><span class="p">(),</span>
@@ -183,11 +183,11 @@
 </tbody>
 </table>
 <p>At this point, one may think that, thanks to these function specs, the full counterpart C bridging code might have been automagically generated, in the same movement as the Erlang bridging code? Unfortunately, not exactly! At least, not yet; maybe some day (if ever possible and tractable). Currently: only <em>parts</em> of it are generated.</p>
-<p>Indeed C-side elements will have been produced by the Seaplus parse-transform (notably the function selector include, used to map functions on either sides), but the conversion (thanks to <tt class="docutils literal">Erl_Interface</tt>) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.</p>
+<p>Indeed C-side elements will have been produced by the Seaplus parse-transform (notably the function mapping include, used to map functions on either sides, and also, if not already existing, a compilable template of the C driver), but the conversion (thanks to <tt class="docutils literal">Erl_Interface</tt>) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.</p>
 <p>This work remains, yet it is also a chance to better adapt the bridging code to the interfacing contract one would like to be fulfilled, for example with regard to resource ownership. Indeed, should the C part take pointers as arguments, shall it delete them once having used them? Conversely, should a C function return a pointer to a dynamically allocated memory, who is responsible for the eventual deallocation of it?</p>
-<p>To address these questions, service-specific choices and conventions have to be applied, and this information cannot be found or deduced from the C/C++ pre-existing code generically by an algorithm (including the Seaplus one). As a result, we believe that in all cases some effort remains to be done by the service integrator.</p>
-<p>So: we saw that nothing special had to be done on the Erlang side (the <tt class="docutils literal">foobar.erl</tt> stub will suffice), and that the C side deserved some love to be complete; what kind of extra work is needed then?</p>
-<p>Seaplus generated an header file, <tt class="docutils literal">foobar_seaplus_api_mapping.h</tt> (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h">here</a> for an <em>example</em> of it), in charge of telling that C side about the actual encoding of the service functions across the bridge. In our example this generated header would contain:</p>
+<p>To address these questions, service-specific choices and conventions have to be applied, and this information cannot be generically found or deduced by an algorithm (the Seaplus one included) from the C/C++ pre-existing code. As a result, we believe that in all cases some effort remains to be done by the service integrator.</p>
+<p>So: we saw that thanks to Seaplus nothing special had to be done on the Erlang side (the <tt class="docutils literal">foobar.erl</tt> stub will suffice), and that the C side deserved some love to be complete; what kind of extra work is needed then?</p>
+<p>Seaplus generated an header file, <tt class="docutils literal">foobar_seaplus_api_mapping.h</tt> (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h">here</a> for an unedited <em>example</em> of it), in charge of telling that C side about the actual encoding of the service functions across the bridge. In our example this generated header would contain:</p>
 <pre class="code c literal-block">
 <span class="cp">#define FOO_1_ID  1
 #define BAR_2_ID  2
@@ -202,14 +202,15 @@
 <tr><td class="label"><a class="fn-backref" href="#id10">[5]</a></td><td>Of course no code should rely on that actual value, which could change from a generation to another, or as the API is updated; only the <tt class="docutils literal">BAZ_2_ID</tt> identifier shall be trusted by user code.</td></tr>
 </tbody>
 </table>
-<p>The C part of the bridge, typically defined by the service integrated in <tt class="docutils literal">foobar_seaplus_driver.c</tt> <a class="footnote-reference" href="#id13" id="id12">[6]</a>, is thus to include that <tt class="docutils literal">foobar_seaplus_api_mapping.h</tt> generated header in order to map the Erlang function identifier in a call request to its processing.</p>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id12">[6]</a></td><td>See the full, unedited version of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">foobar_seaplus_driver.c</a> driver, i.e. the core of the service-specific, C-side integration.</td></tr>
-</tbody>
-</table>
-<p>Seaplus offers moreover various helpers to facilitate the writing of this C driver; they are gathered in the Seaplus library (typically <tt class="docutils literal">libseaplus.so</tt>) and available by including the Seaplus C header file, <tt class="docutils literal">seaplus.h</tt> (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h">here</a>).</p>
+<p>The C part of the bridge (i.e., the service driver), typically defined in <tt class="docutils literal">foobar_seaplus_driver.c</tt>, is thus to include that <tt class="docutils literal">foobar_seaplus_api_mapping.h</tt> generated header in order to map the Erlang function identifier in a call request to its processing.</p>
+<p>Should no such driver implementation already exist, Seaplus will generate a template version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:</p>
+<ol class="arabic simple">
+<li>convert the received arguments (Erlang terms) into their C counterparts</li>
+<li>call the corresponding C integrated function</li>
+<li>convert its result the other way round, so that a relevant Erlang term is returned</li>
+</ol>
+<p>See the full, unedited version of the generated <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">foobar_seaplus_driver.c template</a>  corresponding to the Foobar service (one may note the placeholders in each <tt class="docutils literal">case</tt> branch of the function identifier switch).</p>
+<p>Seaplus offers moreover various helpers to facilitate the writing of this C driver (i.e. the filling of said generated template); they are gathered in the Seaplus library (typically <tt class="docutils literal">libseaplus.so</tt>) and available by including the Seaplus C header file, <tt class="docutils literal">seaplus.h</tt> (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h">here</a>).</p>
 <p>Based on these elements, the actual bridging code can be written, like in the following shortened version. The <tt class="docutils literal">FOO_1_ID</tt> case is among the simplest possible call, while the <tt class="docutils literal">BAR_2_ID</tt> one is more complex; for both calls no memory leak is involved (see the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">full source</a> of this test driver, notably for the conversion helpers used for <tt class="docutils literal">bar/2</tt>):</p>
 <pre class="code c literal-block">
 <span class="p">[...]</span>
@@ -296,16 +297,22 @@
 
 <span class="p">}</span>
 </pre>
+<p>One may finally compare the aforementioned <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">generated template</a> with - once it has been appropriately filled by the service integrator - the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">final version</a> of this driver.</p>
+<p>This version of course compiles, links and allows to run the <tt class="docutils literal">foobar_test</tt> successfully (once Seaplus is built, one may run, from the <tt class="docutils literal"><span class="pre">tests/c-test</span></tt> directory, <tt class="docutils literal">make <span class="pre">integration-test</span></tt> to run it).</p>
 </div>
 <div class="section" id="wrapping-up">
-<h2><a class="toc-backref" href="#id26">Wrapping Up</a></h2>
+<h2><a class="toc-backref" href="#id24">Wrapping Up</a></h2>
 <p>We believe that, in order to make a pre-existing C/C++ library available to Erlang while not going the NIF route (typically when not wanting to jeopardise the Erlang VM for that), Seaplus offers a good option in terms of safety, low overhead and simplicity.</p>
 <p>The overall integration process is quite streamlined, and we tried to reduce as much as possible the size and complexity of the service-specific integration code that remains needed.</p>
-<p>For example one may contrast the few Foobar-specific files (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl">foobar.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl">foobar.erl</a> and <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">foobar_seaplus_driver.c</a>, i.e. the ones that shall be written by the service integrator), and the ones implementing the Seaplus generic support (namely <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl">seaplus.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl">seaplus.erl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h">seaplus.h</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c">seaplus.c</a> and <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl">seaplus_parse_transform.erl</a>).</p>
+<p>For example one may contrast the few Foobar-specific files (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl">foobar.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl">foobar.erl</a> and the final <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">foobar_seaplus_driver.c</a> - i.e. the ones that shall be written or filled by the service integrator), with:</p>
+<ul class="simple">
+<li>the generated ones, namely the header file for function identifier mapping (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h">foobar_seaplus_api_mapping.h</a>) and the original driver template (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">foobar_seaplus_driver.c</a>)</li>
+<li>the ones implementing the Seaplus generic support, namely <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl">seaplus.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl">seaplus.erl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h">seaplus.h</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c">seaplus.c</a> and <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl">seaplus_parse_transform.erl</a></li>
+</ul>
 <p></p>
 </div>
 <div class="section" id="licence">
-<span id="free-software"></span><h2><a class="toc-backref" href="#id27">Licence</a></h2>
+<span id="free-software"></span><h2><a class="toc-backref" href="#id25">Licence</a></h2>
 <p>Seaplus is licensed by its author (Olivier Boudeville) under a disjunctive tri-license giving you the choice of one of the three following sets of free software/open source licensing terms:</p>
 <ul class="simple">
 <li><a class="reference external" href="http://www.mozilla.org/MPL/MPL-1.1.html">Mozilla Public License</a> (MPL), version 1.1 or later (very close to the former <a class="reference external" href="http://www.erlang.org/EPLICENSE">Erlang Public License</a>, except aspects regarding Ericsson and/or the Swedish law)</li>
@@ -318,13 +325,13 @@
 <p></p>
 </div>
 <div class="section" id="current-stable-version-download">
-<h2><a class="toc-backref" href="#id28">Current Stable Version &amp; Download</a></h2>
+<h2><a class="toc-backref" href="#id26">Current Stable Version &amp; Download</a></h2>
 <div class="section" id="using-stable-release-archive">
-<h3><a class="toc-backref" href="#id29">Using Stable Release Archive</a></h3>
+<h3><a class="toc-backref" href="#id27">Using Stable Release Archive</a></h3>
 <p>Currently no source archive is specifically distributed, please refer to the following section.</p>
 </div>
 <div class="section" id="using-cutting-edge-git">
-<h3><a class="toc-backref" href="#id30">Using Cutting-Edge GIT</a></h3>
+<h3><a class="toc-backref" href="#id28">Using Cutting-Edge GIT</a></h3>
 <p>We try to ensure that the main line (in the <tt class="docutils literal">master</tt> branch) always stays functional. Evolutions are to take place in feature branches.</p>
 <p>This integration layer, <tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt>, relies (only) on:</p>
 <ul class="simple">
@@ -353,13 +360,13 @@ $ make integration-test
 </div>
 </div>
 <div class="section" id="miscellaneous-technical-points">
-<h2><a class="toc-backref" href="#id31">Miscellaneous Technical Points</a></h2>
+<h2><a class="toc-backref" href="#id29">Miscellaneous Technical Points</a></h2>
 <div class="section" id="seaplus-log-system">
-<h3><a class="toc-backref" href="#id32">Seaplus Log System</a></h3>
+<h3><a class="toc-backref" href="#id30">Seaplus Log System</a></h3>
 <p>When integrating a C service, the most difficult part is ensuring the sanity of the C driver, i.e. knowing what happens within it whenever converting terms back and forth, handling pointers, allocating memory, crashing unexpectedly, etc. (a.k.a. the joys of C programming).</p>
 <p>To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done by the driver (including the user code and the Seaplus facilities that it relies on).</p>
 <p>This log system is enabled by default. To disable it (then no runtime penalty will be incurred), set <tt class="docutils literal">SEAPLUS_ENABLE_LOG</tt> to <tt class="docutils literal">0</tt> (ex: add the <tt class="docutils literal"><span class="pre">-DSEAPLUS_ENABLE_LOG=0</span></tt> option when compiling the library, see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc">GNUmakevars.inc</a> for the various build settings).</p>
-<p>So running a Seaplus-integrated service, with log system enabled, should produce a <tt class="docutils literal"><span class="pre">seaplus-driver.N.log</span></tt> timestamped text log file, where <tt class="docutils literal">N</tt> is the (operating system level) PID <a class="footnote-reference" href="#id20" id="id19">[7]</a> of the process corresponding to the driver.</p>
+<p>So running a Seaplus-integrated service, with log system enabled, should produce a <tt class="docutils literal"><span class="pre">seaplus-driver.N.log</span></tt> timestamped text log file, where <tt class="docutils literal">N</tt> is the (operating system level) PID <a class="footnote-reference" href="#id18" id="id17">[6]</a> of the process corresponding to the driver.</p>
 <p>Example content:</p>
 <pre class="literal-block">
 [2019/3/6 14:32:42][debug] Starting Seaplus session...
@@ -377,46 +384,46 @@ $ make integration-test
 [2019/3/6 14:32:42][debug] Read head as atom 'moderate_speed'.
 [2019/3/6 14:32:42][debug] Will write 47 bytes.
 </pre>
-<table class="docutils footnote" frame="void" id="id20" rules="none">
+<table class="docutils footnote" frame="void" id="id18" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id19">[7]</a></td><td>Including the PID in the filename allows notably, in case of driver restart, to ensure that the logs of the new instance do not overwrite the ones of the restarted one.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id17">[6]</a></td><td>Including the PID in the filename allows notably, in case of driver restart, to ensure that the logs of the new instance do not overwrite the ones of the restarted one.</td></tr>
 </tbody>
 </table>
 </div>
 <div class="section" id="towards-a-more-general-c-c-interface">
-<h3><a class="toc-backref" href="#id33">Towards a more General C/C++ Interface</a></h3>
+<h3><a class="toc-backref" href="#id31">Towards a more General C/C++ Interface</a></h3>
 <p>Functionally, <a class="reference external" href="http://erlang.org/doc/apps/erl_interface/">Erl_Interface</a> and the <a class="reference external" href="http://erlang.org/doc/man/erl_nif.html">Erlang NIF support</a> provide the same services, and could probably be unified under a common API (that one day Seaplus could provide).</p>
 <p>This could enable the possibility of integrating C/C++ code seamlessly as a C-Node and/or as a NIF, for a greater flexibility of use.</p>
 </div>
 </div>
 <div class="section" id="issues-planned-enhancements">
-<h2><a class="toc-backref" href="#id34">Issues &amp; Planned Enhancements</a></h2>
+<h2><a class="toc-backref" href="#id32">Issues &amp; Planned Enhancements</a></h2>
 <ul class="simple">
 <li>thorough testing of the C-side should be done, notably with regard to the hunt for memory leaks; so a <a class="reference external" href="http://valgrind.org/">Valgrind-based</a> runtime mode for the driver would surely be useful (note though that <tt class="docutils literal">erl_eterm_statistics/2</tt> and <tt class="docutils literal">erl_eterm_release/0</tt> are already used at runtime, in debug mode, to ensure that on the C side no term is ever leaked)</li>
 </ul>
 <p></p>
 </div>
 <div class="section" id="support">
-<h2><a class="toc-backref" href="#id35">Support</a></h2>
+<h2><a class="toc-backref" href="#id33">Support</a></h2>
 <p>Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent to the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">project interface</a>, or directly at the email address mentioned at the beginning of this document.</p>
 </div>
 <div class="section" id="seaplus-inner-workings">
-<h2><a class="toc-backref" href="#id36">Seaplus Inner Workings</a></h2>
+<h2><a class="toc-backref" href="#id34">Seaplus Inner Workings</a></h2>
 <p>It is mostly the one described in the <a class="reference external" href="http://erlang.org/doc/tutorial/erl_interface.html">Erl_Interface</a> tutorial, once augmented with conventions and automated by the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl">Seaplus parse transform</a> as much as realistically possible (hence a code generation that is exhaustive on the Erlang side, and partial of the C side) and adapted for increased performances (notably: no extra relay process between the user code and the port involving more messages and processing, no string-based mapping of function signatures across the bridge - direct integer identifiers used instead).</p>
 <p>The parse transform just:</p>
 <ul class="simple">
-<li>derives from the type specifications of the Erlang service API (as specified by the service integrator) the implementation of the corresponding (Erlang-side) functions (they are injected in the AST of the resulting service BEAM file)</li>
+<li>derives from the type specifications of the Erlang service API (as specified by the service integrator) the implementation of the corresponding (Erlang-side) functions (unless already available, their proper definitions are injected in the AST of the resulting service BEAM file, and they are exported)</li>
 <li>adds the facility functions to start, stop, etc. that service (they are actually directly obtained through the Seaplus include)</li>
-<li>generates the Seaplus service-specific C header file, ready to be included by the C-side service driver that is to be filled by the service integration</li>
+<li>generates the Seaplus service-specific C header file, ready to be included by the C-side service driver that is to be filled by the service integrator, based on the C template that is also generated in a proper version</li>
 </ul>
 </div>
 <div class="section" id="please-react">
-<h2><a class="toc-backref" href="#id37">Please React!</a></h2>
+<h2><a class="toc-backref" href="#id35">Please React!</a></h2>
 <p>If you have information more detailed or more recent than those presented in this document, if you noticed errors, neglects or points insufficiently discussed, drop us a line! (for that, follow the <a class="reference internal" href="#support">Support</a> guidelines).</p>
 </div>
 <div class="section" id="ending-word">
-<h2><a class="toc-backref" href="#id38">Ending Word</a></h2>
+<h2><a class="toc-backref" href="#id36">Ending Word</a></h2>
 <p>Have fun with Seaplus!</p>
 <div class="figure align-center">
 <img alt="Seaplus logo" src="seaplus-title.png" style="width: 50%;" />
