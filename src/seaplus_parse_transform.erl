@@ -87,21 +87,17 @@
 % For function_info:
 -include("ast_info.hrl").
 
-
-% For , etc.:
-%-include("seaplus_info.hrl").
-
-
+-type dict_key() :: atom().
 
 
 % Local shorthands:
 
 -type ast() :: ast_base:ast().
-%-type located_form() :: ast_info:located_form().
+-type location() :: ast_base:form_location().
 -type module_info() :: ast_info:module_info().
 -type function_info() :: ast_info:function_info().
-%-type function_table() :: ast_info:function_table().
 
+-type function_driver_id() :: seaplus:function_driver_id().
 
 -ifdef(enable_seaplus_traces).
 
@@ -262,13 +258,17 @@ apply_seaplus_transform( InputAST ) ->
 	%trace_utils:debug_fmt( "Seaplus output AST:~n~p", [ OutputAST ] ),
 
 	%OutputASTFilename = text_utils:format(
-	%           "Seaplus-output-AST-for-module-~s.txt",
+	%		   "Seaplus-output-AST-for-module-~s.txt",
 	%			[ element( 1, FinalModuleInfo#module_info.module ) ] ),
-
+	%
 	%ast_utils:write_ast_to_file( OutputAST, OutputASTFilename ),
 
+	%OutputSortedASTFilename = text_utils:format(
+	%		   "Seaplus-sorted-output-AST-for-module-~s.txt",
+	%			[ element( 1, FinalModuleInfo#module_info.module ) ] ),
+	%
 	%ast_utils:write_ast_to_file( lists:sort( OutputAST ),
-	%							 "Seaplus-output-AST-sorted.txt" ),
+	%							  OutputSortedASTFilename ),
 
 	{ OutputAST, ProcessedModuleInfo }.
 
@@ -322,7 +322,7 @@ process_module_info_from( ModuleInfo ) ->
 	SelectFunIds = [ { Name, Arity }
 			 || #function_info{ name=Name, arity=Arity } <- SelectFunInfos ],
 
-	case SelectFunIds of
+	FullModuleInfo = case SelectFunIds of
 
 		[] ->
 			trace_utils:debug( "No API function detected." );
@@ -331,13 +331,30 @@ process_module_info_from( ModuleInfo ) ->
 			trace_utils:debug_fmt( "Selected ~B functions as API elements: ~s",
 				[ length( SelectFunIds ), text_utils:strings_to_string(
 					[ ast_info:function_id_to_string( Id )
-					  || Id <- SelectFunIds ] ) ] )
+					  || Id <- SelectFunIds ] ) ] ),
+
+			% Key in the process dictionary under which the service port will be
+			% stored:
+			%
+			ServicePortDictKey = get_port_dict_key_for( ModuleInfo ),
+
+			trace_utils:debug_fmt( "Will store the service port under the "
+			   "'~s' key in the process dictionary.", [ ServicePortDictKey ] ),
+
+			MarkerTable = ModuleInfo#module_info.markers,
+
+			ExportLoc =
+				   ast_info:get_default_export_function_location( MarkerTable ),
+
+			DefLoc = table:getEntry( definition_functions_marker, MarkerTable ),
+
+			WithClausesFunInfos = implement_api_functions( SelectFunInfos,
+									   ServicePortDictKey, ExportLoc, DefLoc ),
+
+			reinject_fun_infos( WithClausesFunInfos, ModuleInfo )
 
 	end,
 
-	WithClausesFunInfos = implement_api_functions( SelectFunInfos ),
-
-	FullModuleInfo = reinject_fun_infos( WithClausesFunInfos, ModuleInfo ),
 
 	% At the very least, we want types like void() to be transformed:
 	{ MyriadModuleInfo, _MyriadTransforms } =
@@ -373,7 +390,6 @@ identify_api_functions( #module_info{ functions=FunctionTable } ) ->
 	lists:keysort( _Index=7, TargetFunInfos ).
 
 
-
 % (helper)
 get_clauseless_specs( _AllFunInfos=[], Acc ) ->
 	Acc;
@@ -383,42 +399,88 @@ get_clauseless_specs( [ FInfo=#function_info{ clauses=[], spec=S } | T ], Acc )
 	get_clauseless_specs( T, [ FInfo | Acc ] );
 
 get_clauseless_specs( [ _FInfo | T ], Acc ) ->
+%get_clauseless_specs( [ #function_info{ clauses=C } | T ], Acc ) ->
+	%trace_utils:debug_fmt( "Read clauses: ~p", [ C ] ),
 	get_clauseless_specs( T, Acc ).
 
+
+% Returns the (atom) key under which the corresponding port will be stored:
+%
+% (must agree with seaplus:get_service_port_key_for/1; not called directly here
+% as we prefer have this parse transform and the seaplus module not depending on
+% each other)
+%
+-spec get_port_dict_key_for( module_info() ) -> dict_key().
+get_port_dict_key_for( #module_info{ module={ ModName, _Loc } } ) ->
+	KeyString = text_utils:format( "_seaplus_port_for_service_~s",
+								   [ ModName ] ),
+	text_utils:string_to_atom( KeyString ).
 
 
 % Generates the relevant implementation for specified functions (supposed API
 % ones with a spec and no clause).
 %
--spec implement_api_functions( [ function_info() ] ) -> [ function_info() ].
-implement_api_functions( ClauselessFunctions ) ->
-	implement_api_functions( ClauselessFunctions, _Count=1, _Acc=[] ).
+-spec implement_api_functions( [ function_info() ], dict_key(), location(),
+							   location() ) -> [ function_info() ].
+implement_api_functions( ClauselessFunctions, PortDictKey, ExportLoc, DefLoc ) ->
+
+	implement_api_functions( ClauselessFunctions, PortDictKey, ExportLoc,
+							 DefLoc, _Count=1, _Acc=[] ).
 
 
 % Implements (generates clauses for) specified spec.
-implement_api_functions( _ClauselessFunctions=[], _Count, Acc ) ->
+implement_api_functions( _ClauselessFunctions=[], _PortDictKey, _ExportLoc,
+						 _DefLoc, _Count, Acc ) ->
 	Acc;
 
-implement_api_functions( [ FunctionInfo=#function_info{
-										   name=Name,
-										   arity=Arity } | T ],
-						 Count, Acc ) ->
+implement_api_functions( [ FunctionInfo=#function_info{ %name=Name,
+														arity=Arity,
+														clauses=[] } | T ],
+						 PortDictKey, ExportLoc, DefLoc, Count, Acc ) ->
 
 	Id = Count,
-	trace_utils:debug_fmt( "Assigning ID #~B to ~s/~B ",
-						   [ Id, Name, Arity ] ),
 
-	Clauses = generate_clauses_for( Id, Arity ),
+	%trace_utils:debug_fmt( "Assigning ID #~B to ~s/~B.",
+	%					   [ Id, Name, Arity ] ),
 
-	NewFunctionInfo = FunctionInfo#function_info{ clauses=Clauses },
+	Clauses = generate_clauses_for( Id, Arity, PortDictKey ),
 
-	implement_api_functions( T, Count+1, [ NewFunctionInfo | Acc ] ).
+	%trace_utils:debug_fmt( "Generated clauses: ~p", [ Clauses ] ),
+
+	NewFunctionInfo = FunctionInfo#function_info{
+						% Otherwise 'undefined', ending up at the beginning of
+						% the AST, prior to defines for example:
+						location=DefLoc,
+						% Otherwise 'undefined', rejected by the linter:
+						line=0,
+						clauses=Clauses,
+						exported=[ ExportLoc ] },
+
+	implement_api_functions( T, PortDictKey, ExportLoc, DefLoc, Count+1,
+							 [ NewFunctionInfo | Acc ] ).
 
 
 
+% Generates the clauses for specified function, like for:
+%
+% bar( A, B ) ->
+%	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 5, [ A, B ] ).
+%
 % (helper)
-generate_clauses_for( _Id, _Arity ) ->
-	[].
+%
+-spec generate_clauses_for( function_driver_id(), arity(), dict_key() ) ->
+								  [ meta_utils:clause_def() ].
+generate_clauses_for( Id, Arity, PortDictKey ) ->
+
+	Line = 0,
+
+	[ { clause, Line,
+		ast_generation:get_header_params( Arity ), _Guards=[],
+		[ { call, Line,
+			{ remote, Line, {atom,Line,seaplus}, {atom,Line,call_port_for} },
+			[{atom,Line,PortDictKey},
+			 {integer,Line,Id},
+			 ast_generation:enumerated_variables_to_form( Arity ) ] } ] } ].
 
 
 
