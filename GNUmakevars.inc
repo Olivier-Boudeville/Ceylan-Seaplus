@@ -217,15 +217,15 @@ ifndef COMPILER_OPT_FOR_SEAPLUS_CLASSES
 endif
 
 
-ifndef ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES
+#ifndef ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES
 
 	   # Standard (non-class) modules in Seaplus shall not be compiled with the
 	   #  Seaplus parse-transform, but with the Myriad one:
 	   #
 	   ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES = \
-				$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MYRIAD)
+				$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
 
-endif
+#endif
 
 
 # Conditionally defined so that upper layer may update these settings (ex:

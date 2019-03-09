@@ -87,6 +87,7 @@
 % For function_info:
 -include("ast_info.hrl").
 
+
 % For , etc.:
 %-include("seaplus_info.hrl").
 
@@ -98,7 +99,7 @@
 -type ast() :: ast_base:ast().
 %-type located_form() :: ast_info:located_form().
 -type module_info() :: ast_info:module_info().
-%-type function_info() :: ast_info:function_info().
+-type function_info() :: ast_info:function_info().
 %-type function_table() :: ast_info:function_table().
 
 
@@ -224,26 +225,45 @@ apply_seaplus_transform( InputAST ) ->
 	%				"from Myriad (untransformed): ~s",
 	%				[ ast_info:module_info_to_string( InputModuleInfo ) ] ),
 
-	% Then promote this Myriad-level information into a Seaplus one:
-	% (here is the real Seaplus magic)
+	% The Seaplus augmentations must be applied only to modules corresponding to
+	% services to be integrated (not to all modules):
 	%
-	ProcessedModuleInfo = process_module_info_from( InputModuleInfo ),
+	ProcessedModuleInfo = case is_integration_module( InputModuleInfo ) of
+
+		false ->
+			% Then Seaplus does nothing specific:
+			InputModuleInfo;
+
+		ShrunkModuleInfo ->
+			% Then promote this Myriad-level information into a Seaplus one:
+			% (here is the real Seaplus magic, if any)
+			%
+			process_module_info_from( ShrunkModuleInfo )
+
+	end,
+
+	% In all cases, Myriad transformation shall happen (ex: at the very least,
+	% we want types like void() to be transformed):
+	%
+	{ FinalModuleInfo, _MyriadTransforms } =
+		myriad_parse_transform:transform_module_info( ProcessedModuleInfo ),
+
 
 	%trace_utils:debug_fmt(
-	%  "Module information after Seaplus transformation: ~s",
-	%  [ ast_info:module_info_to_string( ProcessedModuleInfo ) ] ),
+	%  "Module information after Seaplus: ~s",
+	%  [ ast_info:module_info_to_string( FinalModuleInfo ) ] ),
 
 	?display_trace( "Module information processed, "
 					"recomposing corresponding AST." ),
 
 	OutputAST = ast_info:recompose_ast_from_module_info(
-				  ProcessedModuleInfo ),
+				  FinalModuleInfo ),
 
 	%trace_utils:debug_fmt( "Seaplus output AST:~n~p", [ OutputAST ] ),
 
 	%OutputASTFilename = text_utils:format(
 	%           "Seaplus-output-AST-for-module-~s.txt",
-	%			[ element( 1, TransformedModuleInfo#module_info.module ) ] ),
+	%			[ element( 1, FinalModuleInfo#module_info.module ) ] ),
 
 	%ast_utils:write_ast_to_file( OutputAST, OutputASTFilename ),
 
@@ -255,7 +275,169 @@ apply_seaplus_transform( InputAST ) ->
 
 
 
+% Determines whether specified module info corresponds to a service-integration
+% module, i.e. a module that Seaplus shall augment based on the unimplemented
+% specs found.
+%
+-spec is_integration_module( module_info() ) -> 'false' | module_info().
+is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
+
+	MarkerFunId = { activate_seaplus, 1 },
+
+	% A module will be a service-integration one iff activate_seaplus/1 has been
+	% defined (probably automatically, by including seaplus.hrl), in which case
+	% it will be removed:
+	%
+	case table:extractEntryIfExisting( MarkerFunId, FunctionTable ) of
+
+		false ->
+			%trace_utils:debug(
+			%  "(not detected as a service-integration module)" ),
+			false;
+
+		{ #function_info{ exported=ExportLocs }, ShrunkFunctionTable } ->
+
+			%trace_utils:debug( "(detected as a service-integration module)" ),
+
+			% It must also be un-exported:
+
+			FunExportTable = ModuleInfo#module_info.function_exports,
+
+			ShrunkFunExportTable = ast_info:ensure_function_not_exported(
+					MarkerFunId, ExportLocs, FunExportTable ),
+
+			ModuleInfo#module_info{
+			  function_exports=ShrunkFunExportTable,
+			  functions=ShrunkFunctionTable }
+
+	end.
+
+
 % Applies the actual Seaplus transformations.
 -spec process_module_info_from( module_info() ) -> module_info().
 process_module_info_from( ModuleInfo ) ->
-	ModuleInfo.
+
+	SelectFunInfos = identify_api_functions( ModuleInfo ),
+
+	SelectFunIds = [ { Name, Arity }
+			 || #function_info{ name=Name, arity=Arity } <- SelectFunInfos ],
+
+	case SelectFunIds of
+
+		[] ->
+			trace_utils:debug( "No API function detected." );
+
+		_ ->
+			trace_utils:debug_fmt( "Selected ~B functions as API elements: ~s",
+				[ length( SelectFunIds ), text_utils:strings_to_string(
+					[ ast_info:function_id_to_string( Id )
+					  || Id <- SelectFunIds ] ) ] )
+
+	end,
+
+	WithClausesFunInfos = implement_api_functions( SelectFunInfos ),
+
+	FullModuleInfo = reinject_fun_infos( WithClausesFunInfos, ModuleInfo ),
+
+	% At the very least, we want types like void() to be transformed:
+	{ MyriadModuleInfo, _MyriadTransforms } =
+		myriad_parse_transform:transform_module_info( FullModuleInfo ),
+
+	MyriadModuleInfo.
+
+
+
+% Identifies the API functions.
+-spec identify_api_functions( module_info() ) -> [ function_info() ].
+identify_api_functions( #module_info{ functions=FunctionTable } ) ->
+
+	% By convention, these functions are exactly the ones with a spec yet no
+	% definition:
+	%
+	% (as a result, allows an automatic override of the default implementation)
+	AllFunInfos = table:values( FunctionTable ),
+
+	% Failed to write a proper list comprehension for that, like:
+	% [ FI || FI <- AllFunInfos, FI=#function_info{ clauses=[], spec=S }
+	%    andalso/when ( S =/= undefined ) ]
+	%
+	TargetFunInfos = get_clauseless_specs( AllFunInfos, _Acc=[] ),
+
+	% We order the returned function_info based on their location (so that their
+	% IDs correspond to their in-source order):
+	%
+	% (we rely on the fact that a function_info is a record whose 6th (i.e. 7-1
+	% for the record tag) field is the located spec, which is a pair whose order
+	% is determined first by its first element - which is the spec location)
+	%
+	lists:keysort( _Index=7, TargetFunInfos ).
+
+
+
+% (helper)
+get_clauseless_specs( _AllFunInfos=[], Acc ) ->
+	Acc;
+
+get_clauseless_specs( [ FInfo=#function_info{ clauses=[], spec=S } | T ], Acc )
+  when S =/= undefined ->
+	get_clauseless_specs( T, [ FInfo | Acc ] );
+
+get_clauseless_specs( [ _FInfo | T ], Acc ) ->
+	get_clauseless_specs( T, Acc ).
+
+
+
+% Generates the relevant implementation for specified functions (supposed API
+% ones with a spec and no clause).
+%
+-spec implement_api_functions( [ function_info() ] ) -> [ function_info() ].
+implement_api_functions( ClauselessFunctions ) ->
+	implement_api_functions( ClauselessFunctions, _Count=1, _Acc=[] ).
+
+
+% Implements (generates clauses for) specified spec.
+implement_api_functions( _ClauselessFunctions=[], _Count, Acc ) ->
+	Acc;
+
+implement_api_functions( [ FunctionInfo=#function_info{
+										   name=Name,
+										   arity=Arity } | T ],
+						 Count, Acc ) ->
+
+	Id = Count,
+	trace_utils:debug_fmt( "Assigning ID #~B to ~s/~B ",
+						   [ Id, Name, Arity ] ),
+
+	Clauses = generate_clauses_for( Id, Arity ),
+
+	NewFunctionInfo = FunctionInfo#function_info{ clauses=Clauses },
+
+	implement_api_functions( T, Count+1, [ NewFunctionInfo | Acc ] ).
+
+
+
+% (helper)
+generate_clauses_for( _Id, _Arity ) ->
+	[].
+
+
+
+% Reinjects specified function infos into specified module info.
+-spec reinject_fun_infos( [ function_info() ], module_info() ) -> module_info().
+reinject_fun_infos( FunInfos,
+					ModuleInfo=#module_info{ functions=FunctionTable } ) ->
+	FullFunctionTable = inject_fun_infos( FunInfos, FunctionTable ),
+	ModuleInfo#module_info{ functions=FullFunctionTable }.
+
+
+
+% (helper)
+inject_fun_infos( _FunInfos=[], FunctionTable ) ->
+	FunctionTable;
+
+inject_fun_infos( [ FunInfo=#function_info{ name=Name, arity=Arity } | T ],
+				  FunctionTable ) ->
+	% An already-existing (clauseless) entry is expected:
+	NewFunctionTable = table:updateEntry( _Id={Name,Arity}, FunInfo,
+										  FunctionTable ),
+	inject_fun_infos( T, NewFunctionTable ).

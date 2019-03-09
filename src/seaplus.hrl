@@ -96,7 +96,8 @@ stop() ->
 
 
 % Simply defining that function allows to activate the Seaplus transformations
-% for the current module.
+% for the current module (acts as a AST marker, and will be detected and removed
+% by the Seaplus parse transform).
 %
 -spec activate_seaplus( [ seaplus_option() ] ) -> void().
 activate_seaplus( Options ) ->

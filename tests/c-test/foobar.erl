@@ -123,8 +123,10 @@ get_service_key() ->
 	?seaplus_foobar_port_dict_key.
 
 
+%-define( hide_implementations, ).
 
 
+-ifndef( hide_implementations ).
 
 
 foo( A ) ->
@@ -145,3 +147,6 @@ tur() ->
 
 frob( A ) ->
 	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 5, [ A ] ).
+
+
+-endif. % hide_implementations
