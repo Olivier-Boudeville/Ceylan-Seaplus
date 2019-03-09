@@ -231,7 +231,7 @@ This indicates that for example the ``baz/2`` Erlang function, as hinted by its 
 
 .. [#] Of course no code should rely on that actual value, which could change from a generation to another, or as the API is updated; only the ``BAZ_2_ID`` identifier shall be trusted by user code.
 
-The C part of the bridge (i.e., the service driver), typically defined in ``foobar_seaplus_driver.c`` [#]_, is thus to include that ``foobar_seaplus_api_mapping.h`` generated header in order to map the Erlang function identifier in a call request to its processing.
+The C part of the bridge (i.e., the service driver), typically defined in ``foobar_seaplus_driver.c``, is thus to include that ``foobar_seaplus_api_mapping.h`` generated header in order to map the Erlang function identifier in a call request to its processing.
 
 Should no such driver implementation already exist, Seaplus will generate a template version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:
 
@@ -349,7 +349,7 @@ The overall integration process is quite streamlined, and we tried to reduce as 
 
 For example one may contrast the few Foobar-specific files (`foobar.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl>`_, `foobar.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl>`_ and the final `foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ - i.e. the ones that shall be written or filled by the service integrator), with:
 
-- the generated ones, namely the header file for function identifier mapping (`foobar_seaplus_api_mapping <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h>`_) and the original driver template (`foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_)
+- the generated ones, namely the header file for function identifier mapping (`foobar_seaplus_api_mapping.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h>`_) and the original driver template (`foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_)
 - the ones implementing the Seaplus generic support, namely `seaplus.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl>`_, `seaplus.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl>`_, `seaplus.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_, `seaplus.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c>`_ and `seaplus_parse_transform.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_
 
 
@@ -510,9 +510,9 @@ It is mostly the one described in the `Erl_Interface <http://erlang.org/doc/tuto
 
 The parse transform just:
 
-- derives from the type specifications of the Erlang service API (as specified by the service integrator) the implementation of the corresponding (Erlang-side) functions (they are injected in the AST of the resulting service BEAM file)
+- derives from the type specifications of the Erlang service API (as specified by the service integrator) the implementation of the corresponding (Erlang-side) functions (unless already available, their proper definitions are injected in the AST of the resulting service BEAM file, and they are exported)
 - adds the facility functions to start, stop, etc. that service (they are actually directly obtained through the Seaplus include)
-- generates the Seaplus service-specific C header file, ready to be included by the C-side service driver that is to be filled by the service integration
+- generates the Seaplus service-specific C header file, ready to be included by the C-side service driver that is to be filled by the service integrator, based on the C template that is also generated in a proper version
 
 
 
