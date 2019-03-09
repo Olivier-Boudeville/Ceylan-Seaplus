@@ -80,7 +80,7 @@
 
 
 -export([ run_standalone/1, run_standalone/2,
-		  parse_transform/2, apply_seaplus_transform/1 ]).
+		  parse_transform/2, apply_seaplus_transform/2 ]).
 
 
 
@@ -163,8 +163,11 @@ run_standalone( FileToTransform, PreprocessorOptions ) ->
 
 	InputAST = ast_utils:erl_to_ast( FileToTransform, PreprocessorOptions ),
 
+	% Necessary to fetch resources:
+	SeaplusRootDir = get_seaplus_root( PreprocessorOptions ),
+
 	% Returns { SeaplusAST, ModuleInfo }:
-	apply_seaplus_transform( InputAST ).
+	apply_seaplus_transform( InputAST, SeaplusRootDir ).
 
 
 
@@ -173,18 +176,22 @@ run_standalone( FileToTransform, PreprocessorOptions ) ->
 % Format code.
 %
 -spec parse_transform( ast(), list() ) -> ast().
-parse_transform( InputAST, _Options ) ->
+parse_transform( InputAST, Options ) ->
 
 	%trace_utils:trace_fmt( "Seaplus input AST:~n~p~n", [ InputAST ] ),
 
 	%trace_utils:trace_fmt( "Seaplus options:~n~p~n", [ Options ] ),
+
+	% Necessary to fetch resources:
+	SeaplusRootDir = get_seaplus_root( Options ),
 
 	%ast_utils:write_ast_to_file( InputAST, "Seaplus-input-AST.txt" ),
 
 	% In the context of this direct parse transform, the module_info is of no
 	% use afterwards and thus can be dropped:
 	%
-	{ SeaplusAST, _ModuleInfo } = apply_seaplus_transform( InputAST ),
+	{ SeaplusAST, _ModuleInfo } =
+		apply_seaplus_transform( InputAST, SeaplusRootDir ),
 
 	%trace_utils:trace_fmt( "Seaplus output AST:~n~p~n", [ SeaplusAST ] ),
 
@@ -193,10 +200,47 @@ parse_transform( InputAST, _Options ) ->
 	SeaplusAST.
 
 
+% Returns the root directory of Seaplus.
+get_seaplus_root( Options ) ->
+
+	case [ RootDir || { d, 'SEAPLUS_ROOT', RootDir } <- Options ] of
+
+		[ RootDirectory ] ->
+
+			case file_utils:is_existing_directory( RootDirectory ) of
+
+				true ->
+					%trace_utils:debug_fmt( "Seaplus directory is '~s'.",
+					%					   [ RootDirectory ] ),
+					RootDirectory;
+
+				false ->
+					trace_utils:error_fmt(
+					  "Seaplus directory '~s' does not exist.",
+					  [ RootDirectory ] ),
+					throw( { seaplus_directory_not_found, RootDirectory } )
+
+			end;
+
+		[] ->
+			trace_utils:error( "Seaplus directory not set in build." ),
+			throw( seaplus_directory_not_set );
+
+		Others ->
+			trace_utils:error( "Multiple Seaplus directories set: ~p.",
+							   [ Others ] ),
+			throw( multiple_seaplus_directories )
+
+	end.
+
+
+
+
 
 % Transforms specified AST for Seaplus.
--spec apply_seaplus_transform( ast() ) -> { ast(), module_info() }.
-apply_seaplus_transform( InputAST ) ->
+-spec apply_seaplus_transform( ast(), file_utils:directory_path() ) ->
+									 { ast(), module_info() }.
+apply_seaplus_transform( InputAST, SeaplusRootDir ) ->
 
 	%trace_utils:debug_fmt( "  (applying parse transform '~p')", [ ?MODULE ] ),
 
@@ -234,7 +278,7 @@ apply_seaplus_transform( InputAST ) ->
 			% Then promote this Myriad-level information into a Seaplus one:
 			% (here is the real Seaplus magic, if any)
 			%
-			process_module_info_from( ShrunkModuleInfo )
+			process_module_info_from( ShrunkModuleInfo, SeaplusRootDir )
 
 	end,
 
@@ -314,9 +358,10 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 
 
 % Applies the actual Seaplus transformations.
--spec process_module_info_from( module_info() ) -> module_info().
+-spec process_module_info_from( module_info(), file_utils:directory_name() ) ->
+									  module_info().
 process_module_info_from(
-  ModuleInfo=#module_info{ module={ ModName, _Loc } } ) ->
+  ModuleInfo=#module_info{ module={ ModName, _Loc } }, SeaplusRootDir ) ->
 
 	SelectFunInfos = identify_api_functions( ModuleInfo ),
 
@@ -336,15 +381,18 @@ process_module_info_from(
 					  || Id <- SelectFunIds ] ) ] ),
 
 			% Generating the header for the driver:
-			generate_driver_header( ModName, SelectFunIds ),
+			HeaderFilename = generate_driver_header( ModName, SelectFunIds ),
+
+			manage_driver_implementation( ModName, SelectFunIds,
+										  HeaderFilename, SeaplusRootDir ),
 
 			% Key in the process dictionary under which the service port will be
 			% stored:
 			%
 			ServicePortDictKey = get_port_dict_key_for( ModuleInfo ),
 
-			trace_utils:debug_fmt( "Will store the service port under the "
-			   "'~s' key in the process dictionary.", [ ServicePortDictKey ] ),
+			%trace_utils:debug_fmt( "Will store the service port under the "
+			%   "'~s' key in the process dictionary.", [ ServicePortDictKey ] ),
 
 			MarkerTable = ModuleInfo#module_info.markers,
 
@@ -406,7 +454,9 @@ generate_driver_header( ServiceModuleName, FunIds ) ->
 
 	file_utils:write( HeaderFile, "~n#endif // ~s~n", [ IncGuard ] ),
 
-	file_utils:close( HeaderFile ).
+	file_utils:close( HeaderFile ),
+
+	HeaderFilename.
 
 
 % (helper)
@@ -415,13 +465,133 @@ write_mapping( _HeaderFile, _FunIds=[], _Count ) ->
 
 write_mapping( HeaderFile, _FunIds=[ { FunName, Arity } | T ], Count ) ->
 
-	FunString = text_utils:to_uppercase( text_utils:atom_to_string( FunName ) ),
-
-	FunSymbol = text_utils:format( "~s_~B_ID", [ FunString, Arity ] ),
+	FunSymbol = get_driver_id_for( FunName, Arity ),
 
 	file_utils:write( HeaderFile, "#define ~s ~B~n", [ FunSymbol, Count ] ),
 
 	write_mapping( HeaderFile, T, Count+1 ).
+
+
+
+% Returns the C driver identifier for specified function.
+get_driver_id_for( FunName, Arity ) ->
+
+	FunString = text_utils:to_uppercase( text_utils:atom_to_string( FunName ) ),
+
+	text_utils:format( "~s_~B_ID", [ FunString, Arity ] ).
+
+
+% Creates an implementation stub for the driver, if no such file exists.
+manage_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
+							  SeaplusRootDir ) ->
+
+	SourceFilename = text_utils:format( "~s_seaplus_driver.c",
+										[ ServiceModuleName ] ),
+
+	case file_utils:is_existing_file_or_link( SourceFilename ) of
+
+		true ->
+			trace_utils:info_fmt( "Driver implementation ('~s') already "
+								  "existing, not generating it.",
+								  [ SourceFilename ] );
+
+		false ->
+			trace_utils:info_fmt( "No driver implementation ('~s') found, "
+								  "generating it.",
+								  [ SourceFilename ] ),
+			generate_driver_implementation( ServiceModuleName, FunIds,
+						HeaderFilename, SourceFilename, SeaplusRootDir )
+
+	end.
+
+
+
+% Generates the implementation stub for the driver, overwriting it if needed.
+generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
+								SourceFilename, SeaplusRootDir ) ->
+
+	TemplateBaseDir = file_utils:join( SeaplusRootDir, "src" ),
+
+	DriverHeaderFilename = file_utils:join( TemplateBaseDir,
+											"seaplus_driver_header.c" ),
+
+	case file_utils:is_existing_file( DriverHeaderFilename ) of
+
+		true ->
+			ok;
+
+		false ->
+			throw( { driver_header_not_found, DriverHeaderFilename } )
+
+	end,
+
+	HeaderContent = file_utils:read_whole( DriverHeaderFilename ),
+
+	%trace_utils:debug_fmt( "Read content:~n~s",
+	%					   [ HeaderContent ] ),
+
+	HHeaderContent = string:replace(  HeaderContent,
+	   "##SEAPLUS_SERVICE_HEADER_FILE##", HeaderFilename, all ),
+
+	trace_utils:debug_fmt( "New content:~n~s",
+						   [ HHeaderContent ] ),
+
+	StringServiceModuleName = text_utils:atom_to_string( ServiceModuleName ),
+
+	NHeaderContent = string:replace( HHeaderContent,
+				   "##SEAPLUS_SERVICE_NAME##", StringServiceModuleName, all ),
+
+
+	trace_utils:debug_fmt( "Generated driver header:~n~s",
+						   [ NHeaderContent ] ),
+
+	DriverFooterFilename = file_utils:join( TemplateBaseDir,
+											"seaplus_driver_footer.c" ),
+
+	case file_utils:is_existing_file( DriverFooterFilename ) of
+
+		true ->
+			ok;
+
+		false ->
+			throw( { driver_footer_not_found, DriverFooterFilename } )
+
+	end,
+
+	FooterContent = file_utils:read_whole( DriverFooterFilename ),
+
+	SourceFile = file_utils:open( SourceFilename, _Opts=[ write, raw ] ),
+
+	file_utils:write( SourceFile, NHeaderContent ),
+
+	write_cases( SourceFile, FunIds ),
+
+	file_utils:write( SourceFile, FooterContent ),
+
+	file_utils:close( SourceFile ).
+
+
+write_cases( _SourceFile, _FunIds=[] ) ->
+	ok;
+
+write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
+
+	DriverId = get_driver_id_for( FunName, Arity ),
+
+	Snippet = text_utils:format(
+		"    case ~s:~n~n"
+		"        LOG_DEBUG( \"Executing ~s/~B.\" ) ;~n"
+		"        check_arity_is( ~B, param_count, ~s ) ;~n~n"
+		"        // Add an Erlang term -> C conversion here for each "
+				"parameter of interest.~n"
+		"        // Add call to the C counterpart of ~s/~B.~n"
+		"        // Write the returned result to buffer.~n~n"
+		"        break ;~n",
+		[ DriverId, FunName, Arity, Arity, DriverId, FunName, Arity ] ),
+
+	file_utils:write( SourceFile, "~n~s~n", [ Snippet ] ),
+
+	write_cases( SourceFile, T ).
 
 
 % Identifies the API functions.

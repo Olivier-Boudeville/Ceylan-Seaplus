@@ -266,6 +266,7 @@ ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MYRIAD)
 #
 ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS =                \
 					$(OVERALL_PZ_OPT)                            \
+					-DSEAPLUS_ROOT=\"$(SEAPLUS_TOP)\"            \
 					-pz $(SEAPLUS_TOP)/src                       \
 					'+{parse_transform,seaplus_parse_transform}'
 

@@ -80,7 +80,7 @@ A typical use-case is **having a C or C++ library of interest that we would like
 
 However tempting it may be to integrate tightly C/C++ code to the Erlang VM (typically through a `NIF <http://erlang.org/doc/tutorial/nif.html>`_), one may prefer trading maximum performances for safety, and run that C/C++ code (which is often at last partly foreign, hence possibly unreliable) into a separate, isolated (operating system) process.
 
-Then the integrated code will not be able to crash the Erlang application, and for example any memory leak it would induce would only affect its own process (that, moreover, depending on the use case, may be safely restarted) - not the application one.
+Then the integrated code will not be able to crash the Erlang application, and for example any memory leak it would induce would only affect its own OS process (that, moreover, depending on the use case, may be safely restarted) - not the application one.
 
 Indeed, taking into account the Erlang `Interoperability Tutorial <http://erlang.org/doc/tutorial/users_guide.html>`_, the following approaches are the most commonly considered ones when having to make C/C++ code available from Erlang:
 
@@ -96,7 +96,7 @@ C-Node and Erl_Interface help a lot, yet, as shown in `this reference example <h
 
 The **goal of Seaplus is to reduce that interfacing effort**, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that he can define precisely the mapping interface that he prefers (ex: with regards to naming, types introduced and used, management of resource ownership, etc.).
 
-As a result, a Seaplus integration can be seen as a Erl_Interface-based C-Node on steroids.
+As a result, the result of a Seaplus integration can be seen as an easily obtained Erl_Interface-based C-Node on steroids.
 
 ``Ceylan-Seaplus`` relies on various facilities offered by the `Ceylan-Myriad <http://myriad.esperide.org>`_ toolbox.
 
@@ -107,7 +107,7 @@ Usage
 
 So we would have here a (possibly third-party) service (typically a library, directly usable from C, offering a set of functions) that we want to integrate, i.e. to make available from Erlang.
 
-Let's suppose that said service is named ``Foobar``, and that the functions it provides (hence on the C side) are declared as (typically in some ``foobar.h`` header file [#]_, referring to a possibly opaque ``foobar.so`` library):
+Let's suppose that said service is named ``Foobar``, and that the functions it provides (hence on the C side) are declared as (typically in some ``foobar.h`` header file [#]_, referring to a possibly opaque ``foobar.so`` library - i.e. whose sources may remain unknown):
 
 .. code:: c
 
@@ -183,9 +183,9 @@ These service-level built-in functions automatically defined by Seaplus of user 
 .. [#] Note though that, at least for some services, specific initialisation/tear-down functions may exist in the vanilla, C version of that service. In that case, they should be added among said function specifications (preferably named for example ``init``/``teardown`` or alike, in order to distinguish them from the Seaplus-reserved ``start``/``stop`` primitives), so that they are available from Erlang as well.
 
 
-Of course such a module, as it was defined above (i.e. just a set of function specifications), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) will be available, the ``Foobar`` service will become fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.
+Of course such a module, as it was defined above (i.e. just as a set of function specifications, with no implementation thereof), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) will be available, the ``Foobar`` service will become fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.
 
-More precisely, for each of the function type specification, a corresponding bridging implementation will be generated and added (unless the ``foobar`` module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.
+More precisely, for each of the function type specifications, on the Erlang side a corresponding bridging implementation will be generated and added (unless the ``foobar`` module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.
 
 Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar`` module, when executed from any given process (ex: a test one):
 
@@ -209,15 +209,15 @@ Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar
 
 At this point, one may think that, thanks to these function specs, the full counterpart C bridging code might have been automagically generated, in the same movement as the Erlang bridging code? Unfortunately, not exactly! At least, not yet; maybe some day (if ever possible and tractable). Currently: only *parts* of it are generated.
 
-Indeed C-side elements will have been produced by the Seaplus parse-transform (notably the function selector include, used to map functions on either sides), but the conversion (thanks to ``Erl_Interface``) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.
+Indeed C-side elements will have been produced by the Seaplus parse-transform (notably the function mapping include, used to map functions on either sides, and also, if not already existing, a compilable template of the C driver), but the conversion (thanks to ``Erl_Interface``) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.
 
 This work remains, yet it is also a chance to better adapt the bridging code to the interfacing contract one would like to be fulfilled, for example with regard to resource ownership. Indeed, should the C part take pointers as arguments, shall it delete them once having used them? Conversely, should a C function return a pointer to a dynamically allocated memory, who is responsible for the eventual deallocation of it?
 
-To address these questions, service-specific choices and conventions have to be applied, and this information cannot be found or deduced from the C/C++ pre-existing code generically by an algorithm (including the Seaplus one). As a result, we believe that in all cases some effort remains to be done by the service integrator.
+To address these questions, service-specific choices and conventions have to be applied, and this information cannot be generically found or deduced by an algorithm (the Seaplus one included) from the C/C++ pre-existing code. As a result, we believe that in all cases some effort remains to be done by the service integrator.
 
-So: we saw that nothing special had to be done on the Erlang side (the ``foobar.erl`` stub will suffice), and that the C side deserved some love to be complete; what kind of extra work is needed then?
+So: we saw that thanks to Seaplus nothing special had to be done on the Erlang side (the ``foobar.erl`` stub will suffice), and that the C side deserved some love to be complete; what kind of extra work is needed then?
 
-Seaplus generated an header file, ``foobar_seaplus_api_mapping.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h>`_ for an *example* of it), in charge of telling that C side about the actual encoding of the service functions across the bridge. In our example this generated header would contain:
+Seaplus generated an header file, ``foobar_seaplus_api_mapping.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h>`_ for an unedited *example* of it), in charge of telling that C side about the actual encoding of the service functions across the bridge. In our example this generated header would contain:
 
 .. code:: c
 
@@ -231,13 +231,18 @@ This indicates that for example the ``baz/2`` Erlang function, as hinted by its 
 
 .. [#] Of course no code should rely on that actual value, which could change from a generation to another, or as the API is updated; only the ``BAZ_2_ID`` identifier shall be trusted by user code.
 
-The C part of the bridge, typically defined by the service integrated in ``foobar_seaplus_driver.c`` [#]_, is thus to include that ``foobar_seaplus_api_mapping.h`` generated header in order to map the Erlang function identifier in a call request to its processing.
+The C part of the bridge (i.e., the service driver), typically defined in ``foobar_seaplus_driver.c`` [#]_, is thus to include that ``foobar_seaplus_api_mapping.h`` generated header in order to map the Erlang function identifier in a call request to its processing.
 
-.. [#] See the full, unedited version of the `foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ driver, i.e. the core of the service-specific, C-side integration.
+Should no such driver implementation already exist, Seaplus will generate a template version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:
+
+1. convert the received arguments (Erlang terms) into their C counterparts
+2. call the corresponding C integrated function
+3. convert its result the other way round, so that a relevant Erlang term is returned
+
+See the full, unedited version of the generated `foobar_seaplus_driver.c template <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_  corresponding to the Foobar service (one may note the placeholders in each ``case`` branch of the function identifier switch).
 
 
-
-Seaplus offers moreover various helpers to facilitate the writing of this C driver; they are gathered in the Seaplus library (typically ``libseaplus.so``) and available by including the Seaplus C header file, ``seaplus.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_).
+Seaplus offers moreover various helpers to facilitate the writing of this C driver (i.e. the filling of said generated template); they are gathered in the Seaplus library (typically ``libseaplus.so``) and available by including the Seaplus C header file, ``seaplus.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_).
 
 Based on these elements, the actual bridging code can be written, like in the following shortened version. The ``FOO_1_ID`` case is among the simplest possible call, while the ``BAR_2_ID`` one is more complex; for both calls no memory leak is involved (see the `full source <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ of this test driver, notably for the conversion helpers used for ``bar/2``):
 
@@ -329,6 +334,12 @@ Based on these elements, the actual bridging code can be written, like in the fo
 
 
 
+One may finally compare the aforementioned `generated template <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_ with - once it has been appropriately filled by the service integrator - the `final version <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ of this driver.
+
+This version of course compiles, links and allows to run the ``foobar_test`` successfully (once Seaplus is built, one may run, from the ``tests/c-test`` directory, ``make integration-test`` to run it).
+
+
+
 Wrapping Up
 ===========
 
@@ -336,7 +347,10 @@ We believe that, in order to make a pre-existing C/C++ library available to Erla
 
 The overall integration process is quite streamlined, and we tried to reduce as much as possible the size and complexity of the service-specific integration code that remains needed.
 
-For example one may contrast the few Foobar-specific files (`foobar.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl>`_, `foobar.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl>`_ and `foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_, i.e. the ones that shall be written by the service integrator), and the ones implementing the Seaplus generic support (namely `seaplus.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl>`_, `seaplus.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl>`_, `seaplus.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_, `seaplus.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c>`_ and `seaplus_parse_transform.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_).
+For example one may contrast the few Foobar-specific files (`foobar.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl>`_, `foobar.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl>`_ and the final `foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ - i.e. the ones that shall be written or filled by the service integrator), with:
+
+- the generated ones, namely the header file for function identifier mapping (`foobar_seaplus_api_mapping <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h>`_) and the original driver template (`foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_)
+- the ones implementing the Seaplus generic support, namely `seaplus.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl>`_, `seaplus.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl>`_, `seaplus.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_, `seaplus.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c>`_ and `seaplus_parse_transform.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_
 
 
 :raw-latex:`\pagebreak`
