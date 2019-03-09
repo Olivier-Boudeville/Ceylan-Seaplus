@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2019 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Wednesday, March 6, 2019
+:Lastly updated: Saturday, March 9, 2019
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -73,12 +73,6 @@ The latest version of this documentation is to be found at the `official Seaplus
 :raw-latex:`\pagebreak`
 
 
-Important Note
-==============
-
-Seaplus is still **work in progress** - it is functional, yet no code generation yet!
-
-
 Overview
 ========
 
@@ -86,7 +80,7 @@ A typical use-case is **having a C or C++ library of interest that we would like
 
 However tempting it may be to integrate tightly C/C++ code to the Erlang VM (typically through a `NIF <http://erlang.org/doc/tutorial/nif.html>`_), one may prefer trading maximum performances for safety, and run that C/C++ code (which is often at last partly foreign, hence possibly unreliable) into a separate, isolated (operating system) process.
 
-Then the integrated code will not be able to crash the Erlang application, and for example any memory leak it would induce would only affect its own process (that, morevoer, depending on the use case, may be safely restarted) - not the application one.
+Then the integrated code will not be able to crash the Erlang application, and for example any memory leak it would induce would only affect its own process (that, moreover, depending on the use case, may be safely restarted) - not the application one.
 
 Indeed, taking into account the Erlang `Interoperability Tutorial <http://erlang.org/doc/tutorial/users_guide.html>`_, the following approaches are the most commonly considered ones when having to make C/C++ code available from Erlang:
 
@@ -101,6 +95,8 @@ In a nutshell, this approach consists on spawning a "fake" Erlang node written i
 C-Node and Erl_Interface help a lot, yet, as shown in `this reference example <http://erlang.org/doc/tutorial/erl_interface.html#erlang-program>`_, quite a lot of boiler-plate/bridging code (home-made encoding and conventions) remains needed.
 
 The **goal of Seaplus is to reduce that interfacing effort**, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that he can define precisely the mapping interface that he prefers (ex: with regards to naming, types introduced and used, management of resource ownership, etc.).
+
+As a result, a Seaplus integration can be seen as a Erl_Interface-based C-Node on steroids.
 
 ``Ceylan-Seaplus`` relies on various facilities offered by the `Ceylan-Myriad <http://myriad.esperide.org>`_ toolbox.
 
@@ -184,7 +180,7 @@ These service-level built-in functions automatically defined by Seaplus of user 
 - ``stop/0``: stops the service
 
 
-.. [#] Note though that, at least for some services, specific initialisation/tear-down functions may exist in the vanilla, C version of that service. In that case, they should be added among said function specifications (preferably named for example ``init``/``teardown`` or alike, in order to distinguish from the Seaplus-reserved ``start``/``stop`` primitives), so that they are available from Erlang as well.
+.. [#] Note though that, at least for some services, specific initialisation/tear-down functions may exist in the vanilla, C version of that service. In that case, they should be added among said function specifications (preferably named for example ``init``/``teardown`` or alike, in order to distinguish them from the Seaplus-reserved ``start``/``stop`` primitives), so that they are available from Erlang as well.
 
 
 Of course such a module, as it was defined above (i.e. just a set of function specifications), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) will be available, the ``Foobar`` service will become fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.

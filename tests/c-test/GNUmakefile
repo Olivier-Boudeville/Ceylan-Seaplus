@@ -64,8 +64,6 @@ $(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB_PATH)
 	 $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT) -L$(FOOBAR_LIB_DIR) -lfoobar
 
 
-#FOOBAR_LIBRARY = $(FOOBAR_LIB_DIR)/libfoobar.so
-
 run-driver: $(TARGET_DRIVER_EXEC) $(FOOBAR_LIB_PATH)
 	@cd foobar && $(MAKE) -s link-foobar-lib
 	@echo "   Running foobar driver, which will use $(FOOBAR_LIBRARY)"
@@ -84,7 +82,7 @@ clean: clean-local
 
 clean-local: clean-log
 	-@/bin/rm -f $(TARGET_SERVICE_TESTER_EXEC) $(TARGET_SERVICE_LIBRARY) \
-$(TARGET_DRIVER) $(TARGET_DRIVER_OBJ)
+$(TARGET_DRIVER) $(TARGET_DRIVER_OBJ) *_seaplus_api_mapping.h
 
 
 clean-log:
