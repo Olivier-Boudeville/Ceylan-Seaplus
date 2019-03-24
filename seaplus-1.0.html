@@ -31,7 +31,7 @@
 </tr>
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, December 23, 2018</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Saturday, March 9, 2019</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Sunday, March 24, 2019</td>
 </tr>
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Seaplus</tt> bridge, version 1.0.</td>
 </tr>
@@ -205,9 +205,9 @@
 <p>The C part of the bridge (i.e., the service driver), typically defined in <tt class="docutils literal">foobar_seaplus_driver.c</tt>, is thus to include that <tt class="docutils literal">foobar_seaplus_api_mapping.h</tt> generated header in order to map the Erlang function identifier in a call request to its processing.</p>
 <p>Should no such driver implementation already exist, Seaplus will generate a template version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:</p>
 <ol class="arabic simple">
-<li>convert the received arguments (Erlang terms) into their C counterparts</li>
+<li>convert the received arguments (Erlang terms) into their C counterparts (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_getters.h">seaplus_getters.h</a> for that, typically the <tt class="docutils literal">get_parameter_as_*</tt> functions)</li>
 <li>call the corresponding C integrated function</li>
-<li>convert its result the other way round, so that a relevant Erlang term is returned</li>
+<li>convert its result the other way round, so that a relevant Erlang term is returned (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_setters.h">seaplus_setters.h</a> for that, typically the <tt class="docutils literal">write_as_*</tt> functions)</li>
 </ol>
 <p>See the full, unedited version of the generated <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">foobar_seaplus_driver.c template</a>  corresponding to the Foobar service (one may note the placeholders in each <tt class="docutils literal">case</tt> branch of the function identifier switch).</p>
 <p>Seaplus offers moreover various helpers to facilitate the writing of this C driver (i.e. the filling of said generated template); they are gathered in the Seaplus library (typically <tt class="docutils literal">libseaplus.so</tt>) and available by including the Seaplus C header file, <tt class="docutils literal">seaplus.h</tt> (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h">here</a>).</p>
@@ -309,6 +309,7 @@
 <li>the generated ones, namely the header file for function identifier mapping (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h">foobar_seaplus_api_mapping.h</a>) and the original driver template (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">foobar_seaplus_driver.c</a>)</li>
 <li>the ones implementing the Seaplus generic support, namely <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl">seaplus.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl">seaplus.erl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h">seaplus.h</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c">seaplus.c</a> and <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl">seaplus_parse_transform.erl</a></li>
 </ul>
+<p>Beside the Seaplus-included <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/tree/master/tests/c-test">Foobar example</a>, one may refer to the <a class="reference external" href="http://mobile.esperide.org">Ceylan-Mobile</a> project for a complete, standalone use of Seaplus.</p>
 <p></p>
 </div>
 <div class="section" id="licence">
