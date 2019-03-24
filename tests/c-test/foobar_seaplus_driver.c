@@ -102,7 +102,7 @@ int main()
 	  // Sending of the result:
 	  write_as_int( buffer, foo_result ) ;
 
-		break ;
+	  break ;
 
 
 	case BAR_2_ID:
@@ -125,6 +125,8 @@ int main()
 	  // Converting said atom for the C API:
 	  enum foo_status bar_status_param = get_foo_status_from_atom( atom_name ) ;
 
+	  erl_free( atom_name ) ;
+
 	  // Actual call:
 	  struct foo_data * struct_res = bar( bar_double_param, bar_status_param ) ;
 
@@ -137,7 +139,7 @@ int main()
 	  // Sending of the result record:
 	  write_term( buffer, foo_data_res ) ;
 
-		break ;
+	  break ;
 
 
 	case BAZ_2_ID:
@@ -165,7 +167,7 @@ int main()
 	  // Sending of the result atom:
 	  write_term( buffer, tur_status_res ) ;
 
-		break ;
+	  break ;
 
 
 	case TUR_0_ID:
@@ -182,7 +184,7 @@ int main()
 	  // Sending of the result atom:
 	  write_as_bool( buffer, res ) ;
 
-		break ;
+	  break ;
 
 
 	case FROB_1_ID:
@@ -204,7 +206,7 @@ int main()
 
 	  write_as_string( buffer, string_res ) ;
 
-		break ;
+	  break ;
 
 
 	default:

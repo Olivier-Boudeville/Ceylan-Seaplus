@@ -2,10 +2,10 @@
 
 /*
  * C Seaplus driver in charge of converting, for each function exposed by the
- * ##SEAPLUS_SERVICE_NAME## service API, the Erlang parameters received from the
- * port into C variables that can be passed to the service functions, and to
- * perform the reciprocal operation on their results, so that they can be sent
- * back to the Erlang calling side.
+ * '##SEAPLUS_SERVICE_NAME##' service API, the Erlang parameters received from the port into
+ * C variables that can be passed to the service functions, and to perform the
+ * reciprocal operation on their results, so that they can be sent back to the
+ * Erlang calling side.
  *
  */
 

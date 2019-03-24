@@ -235,9 +235,9 @@ The C part of the bridge (i.e., the service driver), typically defined in ``foob
 
 Should no such driver implementation already exist, Seaplus will generate a template version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:
 
-1. convert the received arguments (Erlang terms) into their C counterparts
+1. convert the received arguments (Erlang terms) into their C counterparts (see `seaplus-getters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus-getters.h>`_ for that, typically the ``get_parameter_as_*`` functions)
 2. call the corresponding C integrated function
-3. convert its result the other way round, so that a relevant Erlang term is returned
+3. convert its result the other way round, so that a relevant Erlang term is returned (see ``seaplus-setters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus-setters.h>`_ for that, typically the ``write_as_*`` functions)
 
 See the full, unedited version of the generated `foobar_seaplus_driver.c template <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_  corresponding to the Foobar service (one may note the placeholders in each ``case`` branch of the function identifier switch).
 

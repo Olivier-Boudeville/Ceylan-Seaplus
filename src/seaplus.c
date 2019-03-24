@@ -987,8 +987,8 @@ double get_parameter_as_double( parameter_index index, ETERM ** parameters )
  * Returns the element at specified index of specified array of parameters,
  * supposed to be an atom, translated to a char*.
  *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
+ * Note: the corresponding term is not freed, as the parameter array is expected
+ * to be deallocated as a whole (recursively) afterwards.
  *
  * Ownership of the returned string transferred to the caller (who shall use
  * erl_free/1 to deallocate it).
@@ -1164,6 +1164,24 @@ void write_as_unsigned_int( byte * buffer, unsigned int u )
 	raise_error( "Erlang unsigned integer creation failed." ) ;
 
   write_term( buffer, uint_term ) ;
+
+}
+
+
+/**
+ * Writes in specified return buffer the specified double result.
+ *
+ */
+void write_as_double( byte * buffer, double d )
+{
+
+  // Constructing the ETERM struct that represents the unsigned integer result:
+  ETERM * float_term = erl_mk_float( d ) ;
+
+  if ( float_term == NULL )
+	raise_error( "Erlang float creation failed." ) ;
+
+  write_term( buffer, float_term ) ;
 
 }
 

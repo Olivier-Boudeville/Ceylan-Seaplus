@@ -4,6 +4,9 @@ SEAPLUS_TOP = ..
 .PHONY: all build-seaplus clean clean-local info info-bin
 
 
+# Note: libtool is not used anymore (not worth the trouble).
+
+
 # List of the object files comprised in the library:
 #SEAPLUS_OBJ := seaplus.lo
 SEAPLUS_OBJ := seaplus.o
@@ -71,7 +74,7 @@ run-test: build-test
 clean: clean-local
 
 
-# Apparently libtool systematically compiles a .lo and a .o:
+# Apparently libtool (not used anymore) systematically compiled a .lo and a .o:
 clean-local:
 	-@/bin/rm -rf .libs
 	-@/bin/rm -f *.lo $(SEAPLUS_OBJ) $(SEAPLUS_LIB) seaplus_test \

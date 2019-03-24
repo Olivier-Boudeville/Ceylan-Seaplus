@@ -78,8 +78,9 @@ endif
 # So that they can be fetched from outside
 # (see the 'list-beam-dirs' target)
 #
-SEAPLUS_BEAM_DIRS = $(SEAPLUS_TOP)/src      \
-					$(SEAPLUS_TOP)/examples
+# ($(SEAPLUS_TOP)/examples not included here anymore)
+#
+SEAPLUS_BEAM_DIRS = $(SEAPLUS_TOP)/src
 
 
 # We rely on Myriad as well:
@@ -148,10 +149,12 @@ endif
 # Build section.
 
 
-LIBTOOL = $(shell which libtool)
+# libtool not used anymore, was making the build degenerate in a mess:
+
+#LIBTOOL = $(shell which libtool)
 
 # This is a C-based (not C++) example:
-LIBTOOL_C_OPT += --tag=CC --verbose
+#LIBTOOL_C_OPT += --tag=CC --verbose
 
 
 # Compiler section.
@@ -172,10 +175,18 @@ C_COMPILER := $(shell which gcc)
 C_INC = $(ERL_INTERFACE_INC) -I.
 C_LIB = $(ERL_INTERFACE_LIB)
 
-C_COMPILER_OPT = $(C_INC) $(SEAPLUS_DEBUG_OPT) -Wall -Werror -g
+ifndef C_COMPILER_OPT
 
-C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT) -fPIC
+	C_COMPILER_OPT = $(C_INC) $(SEAPLUS_DEBUG_OPT) -Wall -Werror -g
 
+endif
+
+
+ifndef C_COMPILER_OPT_FOR_OBJ
+
+	C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT) -fPIC
+
+endif
 
 
 

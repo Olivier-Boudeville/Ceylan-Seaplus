@@ -375,7 +375,7 @@ process_module_info_from(
 
 		_ ->
 
-			trace_utils:debug_fmt( "Selected ~B functions as API elements: ~s",
+			trace_utils:debug_fmt( "Selected ~B function(s) for API: ~s",
 				[ length( SelectFunIds ), text_utils:strings_to_string(
 					[ ast_info:function_id_to_string( Id )
 					  || Id <- SelectFunIds ] ) ] ),
@@ -444,10 +444,11 @@ generate_driver_header( ServiceModuleName, FunIds ) ->
 		  [ StringModName, time_utils:get_textual_timestamp() ] ),
 
 	file_utils:write( HeaderFile,
-					  "/* For each of the exposed functions of the API, ~n"
-					  " * a Seaplus identifier is generated to ensure that ~n"
-					  " * the C code of the driver can stay in sync with the ~n"
-					  " * Erlang view on said API, regardless of its changes.~n"
+					  "/* For each of the exposed functions of the API, "
+					  "a Seaplus identifier is~n"
+					  " * generated to ensure that the C code of the driver "
+					  "can stay in sync with~n"
+					  " * the Erlang view on said API, regardless of its changes.~n"
 					  " */~n~n", [] ),
 
 	write_mapping( HeaderFile, FunIds, _Count=1 ),
@@ -533,8 +534,7 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 	HHeaderContent = string:replace(  HeaderContent,
 	   "##SEAPLUS_SERVICE_HEADER_FILE##", HeaderFilename, all ),
 
-	trace_utils:debug_fmt( "New content:~n~s",
-						   [ HHeaderContent ] ),
+	%trace_utils:debug_fmt( "New content:~n~s", [ HHeaderContent ] ),
 
 	StringServiceModuleName = text_utils:atom_to_string( ServiceModuleName ),
 
@@ -542,8 +542,8 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 				   "##SEAPLUS_SERVICE_NAME##", StringServiceModuleName, all ),
 
 
-	trace_utils:debug_fmt( "Generated driver header:~n~s",
-						   [ NHeaderContent ] ),
+	%trace_utils:debug_fmt( "Generated driver header:~n~s",
+	%                      [ NHeaderContent ] ),
 
 	DriverFooterFilename = file_utils:join( TemplateBaseDir,
 											"seaplus_driver_footer.c" ),
@@ -583,9 +583,15 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 		"        LOG_DEBUG( \"Executing ~s/~B.\" ) ;~n"
 		"        check_arity_is( ~B, param_count, ~s ) ;~n~n"
 		"        // Add an Erlang term -> C conversion here for each "
-				"parameter of interest.~n"
-		"        // Add call to the C counterpart of ~s/~B.~n"
-		"        // Write the returned result to buffer.~n~n"
+				"parameter of interest:~n"
+		"        // Ex (supposing int): int i = get_parameter_as_int( "
+		"1, parameters ) ;~n~n"
+
+		"        // Add call to the C counterpart of ~s/~B:~n"
+		"        // Ex: float f = some_service_function( i ) ;~n~n"
+		"        // Write the returned result to buffer:~n"
+		"        // Ex: write_as_double( buffer, (double) f ) ;~n~n"
+		"        // Do not forget to deallocate any relevant memory!~n~n"
 		"        break ;~n",
 		[ DriverId, FunName, Arity, Arity, DriverId, FunName, Arity ] ),
 
