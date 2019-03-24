@@ -79,7 +79,7 @@ void write_as_double( byte * buffer, double d ) ;
  * Note: not taking ownership of the input string.
  *
  */
-void write_as_string( byte * buffer, char * string ) ;
+void write_as_string( byte * buffer, const char * string ) ;
 
 
 /**
@@ -88,7 +88,7 @@ void write_as_string( byte * buffer, char * string ) ;
  * Note: not taking ownership of the input string.
  *
  */
-void write_as_binary( byte * buffer, char * string ) ;
+void write_as_binary( byte * buffer, const char * string ) ;
 
 
 

@@ -120,10 +120,6 @@
 
 
 
-% For debugging:
--export([]).
-
-
 
 
 % Implementation notes:
@@ -371,7 +367,9 @@ process_module_info_from(
 	FullModuleInfo = case SelectFunIds of
 
 		[] ->
-			trace_utils:debug( "No API function detected." );
+			% We nevertheless may want a (empty) header file to be produced:
+			trace_utils:debug( "No API function detected." ),
+			ModuleInfo;
 
 		_ ->
 
@@ -584,12 +582,14 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 		"        check_arity_is( ~B, param_count, ~s ) ;~n~n"
 		"        // Add an Erlang term -> C conversion here for each "
 				"parameter of interest:~n"
+		"        // (refer to seaplus_getters.h for the conversion functions)~n"
 		"        // Ex (supposing int): int i = get_parameter_as_int( "
 		"1, parameters ) ;~n~n"
 
 		"        // Add call to the C counterpart of ~s/~B:~n"
 		"        // Ex: float f = some_service_function( i ) ;~n~n"
 		"        // Write the returned result to buffer:~n"
+		"        // (refer to seaplus_setters.h for the conversion functions)~n"
 		"        // Ex: write_as_double( buffer, (double) f ) ;~n~n"
 		"        // Do not forget to deallocate any relevant memory!~n~n"
 		"        break ;~n",
@@ -608,6 +608,7 @@ identify_api_functions( #module_info{ functions=FunctionTable } ) ->
 	% definition:
 	%
 	% (as a result, allows an automatic override of the default implementation)
+	%
 	AllFunInfos = table:values( FunctionTable ),
 
 	% Failed to write a proper list comprehension for that, like:
@@ -714,9 +715,9 @@ generate_clauses_for( Id, Arity, PortDictKey ) ->
 		ast_generation:get_header_params( Arity ), _Guards=[],
 		[ { call, Line,
 			{ remote, Line, {atom,Line,seaplus}, {atom,Line,call_port_for} },
-			[{atom,Line,PortDictKey},
-			 {integer,Line,Id},
-			 ast_generation:enumerated_variables_to_form( Arity ) ] } ] } ].
+			[ {atom,Line,PortDictKey},
+			  {integer,Line,Id},
+			  ast_generation:enumerated_variables_to_form( Arity ) ] } ] } ].
 
 
 

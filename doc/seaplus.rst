@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2019 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Saturday, March 9, 2019
+:Lastly updated: Sunday, March 24, 2019
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -235,9 +235,9 @@ The C part of the bridge (i.e., the service driver), typically defined in ``foob
 
 Should no such driver implementation already exist, Seaplus will generate a template version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:
 
-1. convert the received arguments (Erlang terms) into their C counterparts (see `seaplus-getters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus-getters.h>`_ for that, typically the ``get_parameter_as_*`` functions)
+1. convert the received arguments (Erlang terms) into their C counterparts (see `seaplus_getters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_getters.h>`_ for that, typically the ``get_parameter_as_*`` functions)
 2. call the corresponding C integrated function
-3. convert its result the other way round, so that a relevant Erlang term is returned (see ``seaplus-setters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus-setters.h>`_ for that, typically the ``write_as_*`` functions)
+3. convert its result the other way round, so that a relevant Erlang term is returned (see `seaplus_setters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_setters.h>`_ for that, typically the ``write_as_*`` functions)
 
 See the full, unedited version of the generated `foobar_seaplus_driver.c template <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_  corresponding to the Foobar service (one may note the placeholders in each ``case`` branch of the function identifier switch).
 
@@ -352,6 +352,8 @@ For example one may contrast the few Foobar-specific files (`foobar.hrl <https:/
 - the generated ones, namely the header file for function identifier mapping (`foobar_seaplus_api_mapping.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h>`_) and the original driver template (`foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_)
 - the ones implementing the Seaplus generic support, namely `seaplus.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl>`_, `seaplus.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl>`_, `seaplus.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_, `seaplus.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c>`_ and `seaplus_parse_transform.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_
 
+
+Beside the Seaplus-included `Foobar example <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/tree/master/tests/c-test>`_, one may refer to the `Ceylan-Mobile <http://mobile.esperide.org>`_ project for a complete, standalone use of Seaplus.
 
 :raw-latex:`\pagebreak`
 

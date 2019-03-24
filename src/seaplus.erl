@@ -303,14 +303,15 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 			ok;
 
 		TargetPort ->
-			trace_utils:trace( "Stopping Seaplus." ),
+			%trace_utils:trace( "Stopping Seaplus." ),
 			process_dictionary:remove( ServiceKey ),
 			TargetPort ! { self(), close },
 
 			receive
 
 				{ TargetPort, closed } ->
-					trace_utils:debug( "Port stopped." )
+					%trace_utils:debug( "Port stopped." )
+					ok
 
 			after 5000 ->
 
@@ -359,8 +360,8 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 
 	end,
 
-	trace_utils:debug_fmt( "Initializing service '~s', using executable '~s'.",
-						   [ ServiceName, ExecPath ] ),
+	%trace_utils:debug_fmt( "Initializing service '~s', using executable '~s'.",
+	%					   [ ServiceName, ExecPath ] ),
 
 	ExecPath.
 
@@ -403,8 +404,8 @@ launch_link( ServiceName, DriverExecPath ) ->
 %
 init_driver( ServiceName, DriverExecPath ) ->
 
-	trace_utils:debug_fmt( "For service '~s', launching driver '~s'.",
-						   [ ServiceName, DriverExecPath ] ),
+	%trace_utils:debug_fmt( "For service '~s', launching driver '~s'.",
+	%					   [ ServiceName, DriverExecPath ] ),
 
 	% Used to intercept driver crashes, when was a spawned process:
 	%process_flag( trap_exit, true ),
@@ -438,9 +439,9 @@ init_driver( ServiceName, DriverExecPath ) ->
 	% Respect the erl_interface conventions:
 	Port = open_port( { spawn, DriverExecPath }, [ { packet, 2 }, binary ] ),
 
-	trace_utils:debug_fmt( "Storing port ~w under the service key '~s' in the "
-						   "process dictionary of ~p.",
-						   [ Port, ServiceKey, self() ] ),
+	%trace_utils:debug_fmt( "Storing port ~w under the service key '~s' in the "
+	%					   "process dictionary of ~p.",
+	%					   [ Port, ServiceKey, self() ] ),
 
 	process_dictionary:put( ServiceKey, Port ).
 
@@ -483,9 +484,9 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 	BinMessage = term_to_binary( Message ),
 
-	trace_utils:debug_fmt( "Sending command message '~p' (size: ~B bytes) "
-						   "to port ~w.",
-						   [ Message, size( BinMessage ), TargetPort ] ),
+	%trace_utils:debug_fmt( "Sending command message '~p' (size: ~B bytes) "
+	%					   "to port ~w.",
+	%					   [ Message, size( BinMessage ), TargetPort ] ),
 
 	% To be handled by the (C-based) driver:
 	%

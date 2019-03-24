@@ -52,6 +52,7 @@
 % As a result, the user code may catch this exception and react accordingly (ex:
 % by restaring the driver).
 %
+-spec start() -> void().
 start() ->
 	% Allows to register and identify target executable:
 	seaplus:start( ?service_module_name ).
@@ -66,6 +67,7 @@ start() ->
 %
 % Note that start/0 is the generally preferred form.
 %
+-spec start_link() -> void().
 start_link() ->
 	% Allows to register and identify target executable:
 	seaplus:start_link( ?service_module_name ).
@@ -81,6 +83,7 @@ restart() ->
 
 
 % Stops the service.
+-spec stop() -> void().
 stop() ->
 	seaplus:stop( ?service_module_name ).
 
