@@ -57,8 +57,8 @@
 
 const char * default_log_base_filename = "seaplus-driver" ;
 
-
 const byte_count buffer_size = 4096*8 ;
+
 
 // Actual file used for logging:
 FILE * log_file = NULL ;
