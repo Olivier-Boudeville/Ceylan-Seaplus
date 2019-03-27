@@ -76,8 +76,6 @@
 % Seaplus stub.
 
 
--export_type([  ]).
-
 
 -export([ run_standalone/1, run_standalone/2,
 		  parse_transform/2, apply_seaplus_transform/2 ]).
@@ -87,17 +85,24 @@
 % For function_info:
 -include("ast_info.hrl").
 
+
+% For ast_transforms undefined record:
+-include("ast_transform.hrl").
+
 -type dict_key() :: atom().
 
 
 % Local shorthands:
 
 -type ast() :: ast_base:ast().
--type location() :: ast_base:form_location().
+%-type location() :: ast_base:form_location().
 -type module_info() :: ast_info:module_info().
 -type function_info() :: ast_info:function_info().
+-type ast_transforms() :: ast_transform:ast_transforms().
 
 -type function_driver_id() :: seaplus:function_driver_id().
+
+
 
 -ifdef(enable_seaplus_traces).
 
@@ -359,10 +364,10 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 process_module_info_from(
   ModuleInfo=#module_info{ module={ ModName, _Loc } }, SeaplusRootDir ) ->
 
-	SelectFunInfos = identify_api_functions( ModuleInfo ),
+	ReadyFunInfos = prepare_api_functions( ModuleInfo ),
 
 	SelectFunIds = [ { Name, Arity }
-			 || #function_info{ name=Name, arity=Arity } <- SelectFunInfos ],
+			 || #function_info{ name=Name, arity=Arity } <- ReadyFunInfos ],
 
 	FullModuleInfo = case SelectFunIds of
 
@@ -372,7 +377,6 @@ process_module_info_from(
 			ModuleInfo;
 
 		_ ->
-
 			trace_utils:debug_fmt( "Selected ~B function(s) for API: ~s",
 				[ length( SelectFunIds ), text_utils:strings_to_string(
 					[ ast_info:function_id_to_string( Id )
@@ -384,28 +388,9 @@ process_module_info_from(
 			manage_driver_implementation( ModName, SelectFunIds,
 										  HeaderFilename, SeaplusRootDir ),
 
-			% Key in the process dictionary under which the service port will be
-			% stored:
-			%
-			ServicePortDictKey = get_port_dict_key_for( ModuleInfo ),
-
-			%trace_utils:debug_fmt( "Will store the service port under the "
-			%   "'~s' key in the process dictionary.", [ ServicePortDictKey ] ),
-
-			MarkerTable = ModuleInfo#module_info.markers,
-
-			ExportLoc =
-				   ast_info:get_default_export_function_location( MarkerTable ),
-
-			DefLoc = table:getEntry( definition_functions_marker, MarkerTable ),
-
-			WithClausesFunInfos = implement_api_functions( SelectFunInfos,
-									   ServicePortDictKey, ExportLoc, DefLoc ),
-
-			reinject_fun_infos( WithClausesFunInfos, ModuleInfo )
+			reinject_fun_infos( ReadyFunInfos, ModuleInfo )
 
 	end,
-
 
 	% At the very least, we want types like void() to be transformed:
 	{ MyriadModuleInfo, _MyriadTransforms } =
@@ -600,45 +585,270 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 	write_cases( SourceFile, T ).
 
 
-% Identifies the API functions.
--spec identify_api_functions( module_info() ) -> [ function_info() ].
-identify_api_functions( #module_info{ functions=FunctionTable } ) ->
 
-	% By convention, these functions are exactly the ones with a spec yet no
-	% definition:
+% Identifies the API functions, processes and sorts them.
+-spec prepare_api_functions( module_info() ) -> [ function_info() ].
+prepare_api_functions( ModuleInfo=#module_info{ functions=FunctionTable,
+												markers=MarkerTable } ) ->
+
+	% By convention, the API functions are exactly the ones:
 	%
-	% (as a result, allows an automatic override of the default implementation)
+	% - not defined by Seaplus (as including seaplus.hrl results, as a side
+	% effect, in defining start/0 and others)
 	%
+	% - and with a spec (so that the user still can opt out a function by not
+	% defining a spec for it; then this function will not be part of the Seaplus
+	% binding)
+	%
+	% Such selected functions may or may not be defined; then, respectively,
+	% either Seaplus will re-use the already provided implementation once
+	% transformed, or generate one from scratch for them.
+
+	% All collected module-level function information:
 	AllFunInfos = table:values( FunctionTable ),
 
-	% Failed to write a proper list comprehension for that, like:
-	% [ FI || FI <- AllFunInfos, FI=#function_info{ clauses=[], spec=S }
-	%    andalso/when ( S =/= undefined ) ]
-	%
-	TargetFunInfos = get_clauseless_specs( AllFunInfos, _Acc=[] ),
+	% Seaplus additions (are included in AllFunInfos):
+	SeaplusFunIds = get_seaplus_function_ids(),
 
-	% We order the returned function_info based on their location (so that their
-	% IDs correspond to their in-source order):
+	% All the functions selected to form the binding API:
+	SelectedFunInfos = select_for_binding( AllFunInfos, SeaplusFunIds, _Acc=[] ),
+
+	% We then order the returned function_info records based on the location of
+	% their spec (so that their IDs correspond to their in-source order):
 	%
-	% (we rely on the fact that a function_info is a record whose 6th (i.e. 7-1
-	% for the record tag) field is the located spec, which is a pair whose order
-	% is determined first by its first element - which is the spec location)
+	% (we rely on the fact that a function_info is a record whose 6th (i.e. 7
+	% minus 1 for the record tag) field is the located spec, which is a pair
+	% whose order is by rule determined first by its first element - which is
+	% the spec location)
 	%
-	lists:keysort( _Index=7, TargetFunInfos ).
+	OrderedSelected = lists:keysort( _Index=7, SelectedFunInfos ),
+
+	% Key in the process dictionary under which the service port will be stored:
+	PortDictKey = get_port_dict_key_for( ModuleInfo ),
+
+	%trace_utils:debug_fmt( "Will store the service port under the "
+	%   "'~s' key in the process dictionary.", [ PortDictKey ] ),
+
+	MarkerTable = ModuleInfo#module_info.markers,
+
+	ExportLoc = ast_info:get_default_export_function_location( MarkerTable ),
+
+	DefLoc = table:getEntry( definition_functions_marker, MarkerTable ),
+
+	% Now that the order is known, we can generate or transform these API
+	% functions:
+	%
+	post_process_fun_infos( OrderedSelected, PortDictKey, ExportLoc, DefLoc ).
+
+
+
+% Selects the functions to be included in the binding.
+%
+% Too early to determine whether they should be generated or transformed
+% (i.e. to look at their clauses), we need to number them first.
+%
+% (helper)
+%
+select_for_binding( _AllFunInfos=[], _SeaplusFunIds, Acc ) ->
+	Acc;
+
+% No spec, hence not selected:
+%select_for_binding( [ _FInfo | T ], SeaplusFunIds, Acc ) ->
+select_for_binding( [ #function_info{ %name=Name,
+									  %arity=Arity,
+									  spec=undefined } | T ],
+					SeaplusFunIds, Acc ) ->
+
+	%trace_utils:debug_fmt( "~s/~B skipped for binding (no spec).",
+	%					   [ Name, Arity ] ),
+
+	select_for_binding( T, SeaplusFunIds, Acc );
+
+
+% A spec is available here:
+select_for_binding( [ FInfo=#function_info{ name=Name,
+											arity=Arity } | T ],
+					SeaplusFunIds, Acc ) ->
+
+	FunId = { Name, Arity },
+
+	case lists:member( FunId, SeaplusFunIds ) of
+
+		true ->
+			%trace_utils:debug_fmt(
+			%  "Seaplus-defined ~s/~B not selected in binding.",
+			%  [ Name, Arity ] ),
+			select_for_binding( T, SeaplusFunIds, Acc );
+
+		false ->
+			%trace_utils:debug_fmt( "~s/~B selected in binding.",
+			%					   [ Name, Arity ] ),
+			select_for_binding( T, SeaplusFunIds, [ FInfo | Acc ] )
+
+	end.
+
+
+
+
+% Either generate (if no clause defined) or transform (otherwise) the listed API
+% functions.
+%
+post_process_fun_infos( FunInfos, PortDictKey, ExportLoc, DefLoc ) ->
+
+	% Prepare for the transformation of any user-implemented function:
+
+	TransformTable = table:new( [ { 'call', fun call_transformer/4 } ] ),
+
+	% A template record used to transform each already-implemented API function:
+	Transform = #ast_transforms{ transform_table=TransformTable },
+
+	post_process_fun_infos( FunInfos, PortDictKey, ExportLoc, DefLoc,
+							Transform, _Acc=[], _Count=1 ).
 
 
 % (helper)
-get_clauseless_specs( _AllFunInfos=[], Acc ) ->
-	Acc;
+post_process_fun_infos( _FunInfos=[], _PortDictKey, _ExportLoc, _DefLoc,
+						_Transform, Acc, _Count ) ->
+	lists:reverse( Acc );
 
-get_clauseless_specs( [ FInfo=#function_info{ clauses=[], spec=S } | T ], Acc )
-  when S =/= undefined ->
-	get_clauseless_specs( T, [ FInfo | Acc ] );
 
-get_clauseless_specs( [ _FInfo | T ], Acc ) ->
-%get_clauseless_specs( [ #function_info{ clauses=C } | T ], Acc ) ->
-	%trace_utils:debug_fmt( "Read clauses: ~p", [ C ] ),
-	get_clauseless_specs( T, Acc ).
+% No clause here, hence shall be generated:
+post_process_fun_infos( [ FInfo=#function_info{ %name=Name,
+												arity=Arity,
+												clauses=[] } | T ],
+						PortDictKey, ExportLoc, DefLoc, Transform, Acc,
+						Count ) ->
+
+	FunDriverId = Count,
+
+	%trace_utils:debug_fmt( "Assigning Driver ID #~B to ~s/~B.",
+	%					   [ FunDriverId, Name, Arity ] ),
+
+	Clauses = generate_clauses_for( FunDriverId, Arity, PortDictKey ),
+
+	%trace_utils:debug_fmt( "Generated clauses:~n~p", [ Clauses ] ),
+
+	NewFInfo = FInfo#function_info{
+
+		% Otherwise 'undefined', ending up at the beginning of the AST, prior to
+		% defines for example:
+		%
+		location=DefLoc,
+
+		% Otherwise 'undefined', rejected by the linter:
+		line=0,
+
+		clauses=Clauses,
+		exported=[ ExportLoc ] },
+
+	post_process_fun_infos( T, PortDictKey, ExportLoc, DefLoc, Transform,
+							[ NewFInfo | Acc ], Count + 1 );
+
+
+% Here, clauses are available; they have to be transformed, as the user is not
+% supposed to guess:
+%
+% - the port key (as such a key can be statically determined, it is better to
+% hardcode it with its right immediate value here at compilation time, rather
+% than trigger an avoidable function call at runtime); so the pseudo-call to
+% seaplus:get_service_port_key/0 is to be replaced by the right, service
+% specific, key
+%
+% - the function driver identifier; so the pseudo-call to
+% seaplus:get_function_driver_id/0 is to be replaced by the right id
+%
+post_process_fun_infos( [ FInfo=#function_info{ name=Name,
+												arity=Arity,
+												clauses=Clauses } | T ],
+						PortDictKey, ExportLoc, DefLoc, Transform, Acc,
+						Count ) ->
+
+	FunId = { Name, Arity },
+
+	FunDriverId = Count,
+
+	% Just update the right fields of the record template:
+	ThisTransform = Transform#ast_transforms{
+					  transformed_function_identifier=FunId,
+					  transformation_state={ PortDictKey, FunDriverId } },
+
+	% And apply that Seaplus transform:
+	{ NewClauses, _NewTransform } =
+		ast_clause:transform_function_clauses( Clauses, ThisTransform ),
+
+	NewFInfo = FInfo#function_info{
+
+				 clauses=NewClauses,
+
+				 % The user is not expected to export the functions he defined:
+				 exported=[ ExportLoc ] },
+
+	post_process_fun_infos( T, PortDictKey, ExportLoc, DefLoc, Transform,
+							[ NewFInfo | Acc ], Count + 1 ).
+
+
+
+% Performs the AST substitutions in the user-provided clauses.
+%
+% (anonymous mute variables correspond to line numbers)
+%
+-spec call_transformer( ast_base:line(),
+				ast_expression:function_ref_expression(),
+				ast_expression:params_expression(), ast_transforms() ) ->
+					  { [ ast_expression:ast_expression() ], ast_transforms() }.
+% Replacing here seaplus:get_service_port_key() with PortDictKey value:
+call_transformer( _LineCall, _FunctionRef={ remote, _, {atom,_,seaplus},
+											{atom,Line,get_service_port_key} },
+				  _Params=[],
+				  Transforms=#ast_transforms{
+					transformation_state={ PortDictKey, _FunDriverId } } ) ->
+
+	% (no possible extra/inner recursive transformation)
+
+	NewExpr = { atom, Line, PortDictKey },
+
+	{ [ NewExpr ], Transforms };
+
+
+% Replacing here seaplus:get_function_driver_id() with FunDriverId value:
+call_transformer( _LineCall,
+				  _FunctionRef={ remote, _, {atom,_,seaplus},
+								 {atom,Line,get_function_driver_id} },
+				  _Params=[],
+				  Transforms=#ast_transforms{
+					transformation_state={ _PortDictKey, FunDriverId } } ) ->
+
+	% (no possible extra/inner recursive transformation)
+
+	NewExpr = { atom, Line, FunDriverId },
+
+	{ [ NewExpr ], Transforms };
+
+
+% Other elements left as are (but recursed into):
+call_transformer( LineCall, FunctionRef, Params, Transforms ) ->
+
+	{ NewParams, _ParamsTransforms } =
+		ast_expression:transform_expressions( Params, Transforms ),
+
+	NewExpr = { 'call', LineCall, FunctionRef, NewParams },
+
+	{ [ NewExpr ], Transforms }.
+
+
+
+% Returns the identifiers of the function introduced by Seaplus in a service
+% module.
+%
+get_seaplus_function_ids() ->
+
+	% Only coming from seaplus.hrl, none added by the Seaplus parse transform:
+	%
+	% (note that no explicit filtering is done based on whether or not they are
+	% for example exported)
+	%
+	[ {start,0}, {start_link,0}, {restart,0}, {stop,0}, {activate_seaplus,1} ].
+
 
 
 % Returns the (atom) key under which the corresponding port will be stored:
@@ -652,49 +862,6 @@ get_port_dict_key_for( #module_info{ module={ ModName, _Loc } } ) ->
 	KeyString = text_utils:format( "_seaplus_port_for_service_~s",
 								   [ ModName ] ),
 	text_utils:string_to_atom( KeyString ).
-
-
-% Generates the relevant implementation for specified functions (supposed API
-% ones with a spec and no clause).
-%
--spec implement_api_functions( [ function_info() ], dict_key(), location(),
-							   location() ) -> [ function_info() ].
-implement_api_functions( ClauselessFunctions, PortDictKey, ExportLoc, DefLoc ) ->
-
-	implement_api_functions( ClauselessFunctions, PortDictKey, ExportLoc,
-							 DefLoc, _Count=1, _Acc=[] ).
-
-
-% Implements (generates clauses for) specified spec.
-implement_api_functions( _ClauselessFunctions=[], _PortDictKey, _ExportLoc,
-						 _DefLoc, _Count, Acc ) ->
-	Acc;
-
-implement_api_functions( [ FunctionInfo=#function_info{ %name=Name,
-														arity=Arity,
-														clauses=[] } | T ],
-						 PortDictKey, ExportLoc, DefLoc, Count, Acc ) ->
-
-	Id = Count,
-
-	%trace_utils:debug_fmt( "Assigning ID #~B to ~s/~B.",
-	%					   [ Id, Name, Arity ] ),
-
-	Clauses = generate_clauses_for( Id, Arity, PortDictKey ),
-
-	%trace_utils:debug_fmt( "Generated clauses: ~p", [ Clauses ] ),
-
-	NewFunctionInfo = FunctionInfo#function_info{
-						% Otherwise 'undefined', ending up at the beginning of
-						% the AST, prior to defines for example:
-						location=DefLoc,
-						% Otherwise 'undefined', rejected by the linter:
-						line=0,
-						clauses=Clauses,
-						exported=[ ExportLoc ] },
-
-	implement_api_functions( T, PortDictKey, ExportLoc, DefLoc, Count+1,
-							 [ NewFunctionInfo | Acc ] ).
 
 
 
