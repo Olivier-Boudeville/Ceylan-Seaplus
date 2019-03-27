@@ -107,7 +107,7 @@ int main()
 
 	case BAR_2_ID:
 
-  LOG_DEBUG( "Executing bar/2." ) ;
+	  LOG_DEBUG( "Executing bar/2." ) ;
 
 	  /* -spec bar( float(), foo_status() ) -> foo_data() vs
 	   * struct foo * bar( double a, enum foo_status status )
@@ -136,6 +136,8 @@ int main()
 	   */
 	  ETERM * foo_data_res = get_foo_data_record_from_struct( struct_res ) ;
 
+	  free( struct_res ) ;
+
 	  // Sending of the result record:
 	  write_term( buffer, foo_data_res ) ;
 
@@ -161,6 +163,8 @@ int main()
 
 	  // Actual call:
 	  enum tur_status enum_res = baz( baz_int_param, baz_string_param ) ;
+
+	  erl_free( baz_string_param ) ;
 
 	  ETERM * tur_status_res = get_tur_status_atom_from_enum( enum_res ) ;
 
