@@ -1311,3 +1311,21 @@ byte_count write_buffer( byte *buf, byte_count len )
   return write_exact( buf, len ) ;
 
 }
+
+
+
+/**
+ * Returns a binary string for specified (NULL-terminated) C string.
+ *
+ * Does not take ownership of the specified C string.
+ *
+ * (lacking in a direct form in
+ * http://erlang.org/doc/man/erl_eterm.html#erl_mk_binary)
+ *
+ */
+ETERM * make_bin_string( const char * c_string )
+{
+
+  return erl_mk_binary( c_string, strlen( c_string ) ) ;
+
+}
