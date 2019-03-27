@@ -141,7 +141,7 @@ We believe that, in order to rely on a convenient Erlang-side API for this servi
 
 So such a service-specific API shall be devised by the service integrator (i.e. the developer in charge of the integration of the C/C++ code to Erlang). But how?
 
-At the very least, what will be offered on the Erlang side by our ``foobar`` module shall be somehow specified. A very appropriate way of doing so is to list the `type specifications <http://erlang.org/doc/reference_manual/typespec.html>`_ of the targeted counterpart functions meant to be ultimately available (defined and exported) from Erlang, like in [#]_:
+At the very least, what will be offered on the Erlang side by our ``foobar`` module shall be somehow specified. A very appropriate way of doing so is to list (only) the `type specifications <http://erlang.org/doc/reference_manual/typespec.html>`_ of the targeted counterpart functions meant to be ultimately available (defined and exported) from Erlang, like in [#]_:
 
 .. code:: erlang
 
@@ -169,8 +169,7 @@ The Seaplus include allows notably to mark this ``foobar`` module as a service s
 
 Comments (description, usage, examples) are also expected to be joined to these specs, they are omitted in this documentation for brevity.
 
-
-Other facility functions that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (ex: to start/stop this service from Erlang), will also certainly be needed. However listing these facility functions in our ``foobar`` module would offer little interest (as they are the same for all integrated services), so these extra functions are to remain implicit here [#]_.
+Facility functions that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (ex: to start/stop this service from Erlang), will also certainly be needed. However listing these facility functions in our ``foobar`` module would offer little interest (as they are the same for all integrated services), so these extra functions are to remain implicit here [#]_.
 
 These service-level built-in functions automatically defined by Seaplus of user interest are, notably:
 
@@ -185,7 +184,7 @@ These service-level built-in functions automatically defined by Seaplus of user 
 
 Of course such a module, as it was defined above (i.e. just as a set of function specifications, with no implementation thereof), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) will be available, the ``Foobar`` service will become fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.
 
-More precisely, for each of the function type specifications, on the Erlang side a corresponding bridging implementation will be generated and added (unless the ``foobar`` module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.
+More precisely, for each of the function type specifications defined by the user in that module, a corresponding bridging implementation will be generated on the Erlang side and added (unless the ``foobar`` module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.
 
 Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar`` module, when executed from any given process (ex: a test one):
 
@@ -211,11 +210,11 @@ At this point, one may think that, thanks to these function specs, the full coun
 
 Indeed C-side elements will have been produced by the Seaplus parse-transform (notably the function mapping include, used to map functions on either sides, and also, if not already existing, a compilable template of the C driver), but the conversion (thanks to ``Erl_Interface``) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.
 
-This work remains, yet it is also a chance to better adapt the bridging code to the interfacing contract one would like to be fulfilled, for example with regard to resource ownership. Indeed, should the C part take pointers as arguments, shall it delete them once having used them? Conversely, should a C function return a pointer to a dynamically allocated memory, who is responsible for the eventual deallocation of it?
+This work remains, yet it is also a chance to better adapt the bridging code to the interfacing contract one would like to be fulfilled, for example with regard to resource ownership. Indeed, should the C part take pointers as arguments, shall it delete them once having used them? Conversely, should a C function return a pointer to a dynamically allocated memory, who is responsible for the eventual deallocation of it? How the C implementation can maintain a state of its own between calls?
 
 To address these questions, service-specific choices and conventions have to be applied, and this information cannot be generically found or deduced by an algorithm (the Seaplus one included) from the C/C++ pre-existing code. As a result, we believe that in all cases some effort remains to be done by the service integrator.
 
-So: we saw that thanks to Seaplus nothing special had to be done on the Erlang side (the ``foobar.erl`` stub will suffice), and that the C side deserved some love to be complete; what kind of extra work is needed then?
+So: we saw that thanks to Seaplus nothing special had to be done on the Erlang side (the ``foobar.erl`` stub will suffice; refer to the `Customising Function Bindings on the Erlang Side`_ section in order to address more specific/advanced needs), and that the C side deserved some love to be complete; what kind of extra work is needed then?
 
 Seaplus generated an header file, ``foobar_seaplus_api_mapping.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h>`_ for an unedited *example* of it), in charge of telling that C side about the actual encoding of the service functions across the bridge. In our example this generated header would contain:
 
@@ -229,7 +228,7 @@ Seaplus generated an header file, ``foobar_seaplus_api_mapping.h`` (see `here <h
 
 This indicates that for example the ``baz/2`` Erlang function, as hinted by its type specification in ``foobar.erl``, has been associated by Seaplus to the ``BAZ_2_ID`` (namely, of course: ``${FUNCTION_NAME}_${ARITY}_ID``) identifier (whose value happens to be ``3`` here [#]_).
 
-.. [#] Of course no code should rely on that actual value, which could change from a generation to another, or as the API is updated; only the ``BAZ_2_ID`` identifier shall be trusted by user code.
+.. [#] Of course no code should rely on that actual value, which could change from a generation to another, or as the API is updated; only the (stable by design) ``BAZ_2_ID`` identifier shall be trusted by user code.
 
 The C part of the bridge (i.e., the service driver), typically defined in ``foobar_seaplus_driver.c``, is thus to include that ``foobar_seaplus_api_mapping.h`` generated header in order to map the Erlang function identifier in a call request to its processing.
 
@@ -475,6 +474,73 @@ Example content::
 
 
 .. [#] Including the PID in the filename allows notably, in case of driver restart, to ensure that the logs of the new instance do not overwrite the ones of the restarted one.
+
+
+
+Customising Function Bindings on the Erlang Side
+------------------------------------------------
+
+We saw that, by default, no specific implementation is to be provided by the user in order to include a set of Erlang-level functions into a binding - this implementation is generated by Seaplus, and the required conversions are to be done in the driver, i.e. on the C side.
+
+However, in some cases, it may be convenient to perform transformations as well on the Erlang side, before and/or after that bridge.
+
+Taking `this service <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile.erl>`_ as an example, we can see that the ``get_backend_information/0`` function is to return a version number that would be ideally a triplet (ex: ``{1,40,0}``) so that we can compare versions easily. However the C-side happens to obtain that version from the original service as a string (ex: ``"1.40.0"``).
+
+The parsing/conversion of that string into a relevant version triplet could be done in C (by building by steps a corresponding term), but it may be more convenient to do so in Erlang (we may already have the right logic for that).
+
+This implies having the ability to **override**, on a per-function basis, the default implementation that would be generated by Seaplus by a user-defined one - preferably in a simple manner.
+
+Fortunately, Seaplus offers a good support for that: should a user-provided *definition* of a function to bind be found in the service module (thus: in addition to its mere spec), it will be used (and a bit transformed automatically), instead of relying on the implementation that would be generated by default.
+
+For that, Seaplus provides facilities to build one's custom implementation, notably the ``seaplus:call_port_for/3`` function that allows to automatically trigger a call on the C driver side.
+
+So the following code will trigger a call through the port and the driver, and return its result:
+
+.. code:: erlang
+
+  get_backend_information() ->
+	  PortKey = seaplus:get_service_port_key(),
+	  FunctionDriverId = seaplus:get_function_driver_id(),
+	  {Backend,VersionString} =
+		  seaplus:call_port_for(PortKey,FunctionDriverId,_Args=[])
+	  [...]
+
+
+Of course, should we have instead of::
+
+  -spec get_backend_information() -> {backend_type(), backend_version()}.
+
+
+a function like::
+
+  -spec compute_sum(integer(), float()) -> float().
+
+
+we could override the default Seaplus implementation with a one-liner that would perform exactly the same, such as:
+
+.. code:: erlang
+
+  compute_sum(MyInt,MyFloat) ->
+	  seaplus:call_port_for(seaplus:get_service_port_key(),
+							seaplus:get_function_driver_id(),
+							_Args=[MyInt,MyFloat]).
+
+
+A user-defined implementation just has to know:
+
+- what (service-specific) port key is to be used for that (needed by the binding)
+- what is the function driver identifier that was allocated to that function by Seaplus
+
+These two information can respectively by obtained thanks to ``seaplus:get_service_port_key/0`` and ``seaplus:get_function_driver_id()`` [#]_.
+
+.. [#] These are pseudo-functions that will be appropriately replaced at compilation-time with immediate values (thanks to the Seaplus parse transform). As a result, a rather optimal implementation will be obtained.
+
+We can see then how one can insert any (Erlang) code of interest *prior to* and/or *after* the call to the binding bridge.
+
+Not to mention that, on the C side, thanks to the service-specific driver, the same freedom exists as well: a call to the integrated library may be wrapped between any kind of pre/post transformations.
+
+As a result, if needed, any mix of Erlang and C can be used to wrap any call to a library function made available through the binding.
+
 
 
 
