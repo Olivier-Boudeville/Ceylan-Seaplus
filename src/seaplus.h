@@ -48,7 +48,7 @@ typedef ssize_t byte_count ;
 // Designates an index in a buffer:
 typedef int buffer_index ;
 
-// Designates the index of an element in a tuple (start at 1):
+// Designates the index of an element in a tuple (starts at 1):
 typedef unsigned int tuple_index ;
 
 
