@@ -214,7 +214,7 @@ char * get_parameter_as_atom( parameter_index index, ETERM ** parameters ) ;
 
 /**
  * Returns the element at specified index of specified array of parameters,
- * supposed to be a string.
+ * supposed to be a (plain) string.
  *
  * Note: the corresponding terms is not freed, as the parameter array is
  * expected to be deallocated as a whole (recursively) afterwards.
@@ -224,6 +224,20 @@ char * get_parameter_as_atom( parameter_index index, ETERM ** parameters ) ;
  *
  */
 char * get_parameter_as_string( parameter_index index, ETERM ** parameters ) ;
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be a binary.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ * Ownership of the returned string transferred to the caller (who shall use
+ * erl_free/1 to deallocate it).
+ *
+ */
+char * get_parameter_as_binary( parameter_index index, ETERM ** parameters ) ;
 
 
 
