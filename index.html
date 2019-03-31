@@ -20,7 +20,7 @@
 <p><span class="raw-html"><center><img src="seaplus-title.png" width="50%"></img></center></span>
 </p>
 <div class="section" id="seaplus-streamlining-a-safe-execution-of-c-c-code-from-erlang">
-<h1><a class="toc-backref" href="#id23">Seaplus: Streamlining a safe execution of C/C++ code from Erlang</a></h1>
+<h1><a class="toc-backref" href="#id25">Seaplus: Streamlining a safe execution of C/C++ code from Erlang</a></h1>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -31,7 +31,7 @@
 </tr>
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, December 23, 2018</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Sunday, March 24, 2019</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Sunday, March 31, 2019</td>
 </tr>
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Seaplus</tt> bridge, version 1.0.</td>
 </tr>
@@ -46,34 +46,35 @@
 <div class="contents topic" id="id1">
 <span id="table-of-contents"></span><p class="topic-title first">Table of Contents</p>
 <ul class="simple">
-<li><a class="reference internal" href="#seaplus-streamlining-a-safe-execution-of-c-c-code-from-erlang" id="id23">Seaplus: Streamlining a safe execution of C/C++ code from Erlang</a><ul>
-<li><a class="reference internal" href="#overview" id="id24">Overview</a></li>
-<li><a class="reference internal" href="#usage" id="id25">Usage</a></li>
-<li><a class="reference internal" href="#wrapping-up" id="id26">Wrapping Up</a></li>
-<li><a class="reference internal" href="#licence" id="id27">Licence</a></li>
-<li><a class="reference internal" href="#current-stable-version-download" id="id28">Current Stable Version &amp; Download</a><ul>
-<li><a class="reference internal" href="#using-stable-release-archive" id="id29">Using Stable Release Archive</a></li>
-<li><a class="reference internal" href="#using-cutting-edge-git" id="id30">Using Cutting-Edge GIT</a></li>
+<li><a class="reference internal" href="#seaplus-streamlining-a-safe-execution-of-c-c-code-from-erlang" id="id25">Seaplus: Streamlining a safe execution of C/C++ code from Erlang</a><ul>
+<li><a class="reference internal" href="#overview" id="id26">Overview</a></li>
+<li><a class="reference internal" href="#usage" id="id27">Usage</a></li>
+<li><a class="reference internal" href="#wrapping-up" id="id28">Wrapping Up</a></li>
+<li><a class="reference internal" href="#licence" id="id29">Licence</a></li>
+<li><a class="reference internal" href="#current-stable-version-download" id="id30">Current Stable Version &amp; Download</a><ul>
+<li><a class="reference internal" href="#using-stable-release-archive" id="id31">Using Stable Release Archive</a></li>
+<li><a class="reference internal" href="#using-cutting-edge-git" id="id32">Using Cutting-Edge GIT</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#miscellaneous-technical-points" id="id31">Miscellaneous Technical Points</a><ul>
-<li><a class="reference internal" href="#seaplus-log-system" id="id32">Seaplus Log System</a></li>
-<li><a class="reference internal" href="#customising-function-bindings-on-the-erlang-side" id="id33">Customising Function Bindings on the Erlang Side</a></li>
-<li><a class="reference internal" href="#towards-a-more-general-c-c-interface" id="id34">Towards a more General C/C++ Interface</a></li>
+<li><a class="reference internal" href="#miscellaneous-technical-points" id="id33">Miscellaneous Technical Points</a><ul>
+<li><a class="reference internal" href="#seaplus-log-system" id="id34">Seaplus Log System</a></li>
+<li><a class="reference internal" href="#customising-function-bindings-on-the-erlang-side" id="id35">Customising Function Bindings on the Erlang Side</a></li>
+<li><a class="reference internal" href="#debugging-a-seaplus-based-driver" id="id36">Debugging a Seaplus-based Driver</a></li>
+<li><a class="reference internal" href="#towards-a-more-general-c-c-interface" id="id37">Towards a more General C/C++ Interface</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#issues-planned-enhancements" id="id35">Issues &amp; Planned Enhancements</a></li>
-<li><a class="reference internal" href="#support" id="id36">Support</a></li>
-<li><a class="reference internal" href="#seaplus-inner-workings" id="id37">Seaplus Inner Workings</a></li>
-<li><a class="reference internal" href="#please-react" id="id38">Please React!</a></li>
-<li><a class="reference internal" href="#ending-word" id="id39">Ending Word</a></li>
+<li><a class="reference internal" href="#issues-planned-enhancements" id="id38">Issues &amp; Planned Enhancements</a></li>
+<li><a class="reference internal" href="#support" id="id39">Support</a></li>
+<li><a class="reference internal" href="#seaplus-inner-workings" id="id40">Seaplus Inner Workings</a></li>
+<li><a class="reference internal" href="#please-react" id="id41">Please React!</a></li>
+<li><a class="reference internal" href="#ending-word" id="id42">Ending Word</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <p></p>
 <div class="section" id="overview">
-<h2><a class="toc-backref" href="#id24">Overview</a></h2>
+<h2><a class="toc-backref" href="#id26">Overview</a></h2>
 <p>A typical use-case is <strong>having a C or C++ library of interest that we would like be able to use from Erlang</strong>, whereas, for any reason (availability of sources, complexity, size, performance or interest), recoding it (in Erlang) is not desirable.</p>
 <p>However tempting it may be to integrate tightly C/C++ code to the Erlang VM (typically through a <a class="reference external" href="http://erlang.org/doc/tutorial/nif.html">NIF</a>), one may prefer trading maximum performances for safety, and run that C/C++ code (which is often at last partly foreign, hence possibly unreliable) into a separate, isolated (operating system) process.</p>
 <p>Then the integrated code will not be able to crash the Erlang application, and for example any memory leak it would induce would only affect its own OS process (that, moreover, depending on the use case, may be safely restarted) - not the application one.</p>
@@ -92,7 +93,7 @@
 <p><tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt> relies on various facilities offered by the <a class="reference external" href="http://myriad.esperide.org">Ceylan-Myriad</a> toolbox.</p>
 </div>
 <div class="section" id="usage">
-<h2><a class="toc-backref" href="#id25">Usage</a></h2>
+<h2><a class="toc-backref" href="#id27">Usage</a></h2>
 <p>So we would have here a (possibly third-party) service (typically a library, directly usable from C, offering a set of functions) that we want to integrate, i.e. to make available from Erlang.</p>
 <p>Let's suppose that said service is named <tt class="docutils literal">Foobar</tt>, and that the functions it provides (hence on the C side) are declared as (typically in some <tt class="docutils literal">foobar.h</tt> header file <a class="footnote-reference" href="#id3" id="id2">[1]</a>, referring to a possibly opaque <tt class="docutils literal">foobar.so</tt> library - i.e. whose sources may remain unknown):</p>
 <pre class="code c literal-block">
@@ -300,9 +301,10 @@
 </pre>
 <p>One may finally compare the aforementioned <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">generated template</a> with - once it has been appropriately filled by the service integrator - the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">final version</a> of this driver.</p>
 <p>This version of course compiles, links and allows to run the <tt class="docutils literal">foobar_test</tt> successfully (once Seaplus is built, one may run, from the <tt class="docutils literal"><span class="pre">tests/c-test</span></tt> directory, <tt class="docutils literal">make <span class="pre">integration-test</span></tt> to run it).</p>
+<p>If wanting to see, beyond this test, what could be an actual, more involved driver, one may refer to the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile_seaplus_driver.c">Ceylan-Mobile driver</a>.</p>
 </div>
 <div class="section" id="wrapping-up">
-<h2><a class="toc-backref" href="#id26">Wrapping Up</a></h2>
+<h2><a class="toc-backref" href="#id28">Wrapping Up</a></h2>
 <p>We believe that, in order to make a pre-existing C/C++ library available to Erlang while not going the NIF route (typically when not wanting to jeopardise the Erlang VM for that), Seaplus offers a good option in terms of safety, low overhead and simplicity.</p>
 <p>The overall integration process is quite streamlined, and we tried to reduce as much as possible the size and complexity of the service-specific integration code that remains needed.</p>
 <p>For example one may contrast the few Foobar-specific files (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl">foobar.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl">foobar.erl</a> and the final <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">foobar_seaplus_driver.c</a> - i.e. the ones that shall be written or filled by the service integrator), with:</p>
@@ -314,7 +316,7 @@
 <p></p>
 </div>
 <div class="section" id="licence">
-<span id="free-software"></span><h2><a class="toc-backref" href="#id27">Licence</a></h2>
+<span id="free-software"></span><h2><a class="toc-backref" href="#id29">Licence</a></h2>
 <p>Seaplus is licensed by its author (Olivier Boudeville) under a disjunctive tri-license giving you the choice of one of the three following sets of free software/open source licensing terms:</p>
 <ul class="simple">
 <li><a class="reference external" href="http://www.mozilla.org/MPL/MPL-1.1.html">Mozilla Public License</a> (MPL), version 1.1 or later (very close to the former <a class="reference external" href="http://www.erlang.org/EPLICENSE">Erlang Public License</a>, except aspects regarding Ericsson and/or the Swedish law)</li>
@@ -327,13 +329,13 @@
 <p></p>
 </div>
 <div class="section" id="current-stable-version-download">
-<h2><a class="toc-backref" href="#id28">Current Stable Version &amp; Download</a></h2>
+<h2><a class="toc-backref" href="#id30">Current Stable Version &amp; Download</a></h2>
 <div class="section" id="using-stable-release-archive">
-<h3><a class="toc-backref" href="#id29">Using Stable Release Archive</a></h3>
+<h3><a class="toc-backref" href="#id31">Using Stable Release Archive</a></h3>
 <p>Currently no source archive is specifically distributed, please refer to the following section.</p>
 </div>
 <div class="section" id="using-cutting-edge-git">
-<h3><a class="toc-backref" href="#id30">Using Cutting-Edge GIT</a></h3>
+<h3><a class="toc-backref" href="#id32">Using Cutting-Edge GIT</a></h3>
 <p>We try to ensure that the main line (in the <tt class="docutils literal">master</tt> branch) always stays functional. Evolutions are to take place in feature branches.</p>
 <p>This integration layer, <tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt>, relies (only) on:</p>
 <ul class="simple">
@@ -362,9 +364,9 @@ $ make integration-test
 </div>
 </div>
 <div class="section" id="miscellaneous-technical-points">
-<h2><a class="toc-backref" href="#id31">Miscellaneous Technical Points</a></h2>
+<h2><a class="toc-backref" href="#id33">Miscellaneous Technical Points</a></h2>
 <div class="section" id="seaplus-log-system">
-<h3><a class="toc-backref" href="#id32">Seaplus Log System</a></h3>
+<h3><a class="toc-backref" href="#id34">Seaplus Log System</a></h3>
 <p>When integrating a C service, the most difficult part is ensuring the sanity of the C driver, i.e. knowing what happens within it whenever converting terms back and forth, handling pointers, allocating memory, crashing unexpectedly, etc. (a.k.a. the joys of C programming).</p>
 <p>To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done by the driver (including the user code and the Seaplus facilities that it relies on).</p>
 <p>This log system is enabled by default. To disable it (then no runtime penalty will be incurred), set <tt class="docutils literal">SEAPLUS_ENABLE_LOG</tt> to <tt class="docutils literal">0</tt> (ex: add the <tt class="docutils literal"><span class="pre">-DSEAPLUS_ENABLE_LOG=0</span></tt> option when compiling the library, see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc">GNUmakevars.inc</a> for the various build settings).</p>
@@ -394,7 +396,7 @@ $ make integration-test
 </table>
 </div>
 <div class="section" id="customising-function-bindings-on-the-erlang-side">
-<h3><a class="toc-backref" href="#id33">Customising Function Bindings on the Erlang Side</a></h3>
+<h3><a class="toc-backref" href="#id35">Customising Function Bindings on the Erlang Side</a></h3>
 <p>We saw that, by default, no specific implementation is to be provided by the user in order to include a set of Erlang-level functions into a binding - this implementation is generated by Seaplus, and the required conversions are to be done in the driver, i.e. on the C side.</p>
 <p>However, in some cases, it may be convenient to perform transformations as well on the Erlang side, before and/or after that bridge.</p>
 <p>Taking <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile.erl">this service</a> as an example, we can see that the <tt class="docutils literal">get_backend_information/0</tt> function is to return a version number that would be ideally a triplet (ex: <tt class="docutils literal">{1,40,0}</tt>) so that we can compare versions easily. However the C-side happens to obtain that version from the original service as a string (ex: <tt class="docutils literal">&quot;1.40.0&quot;</tt>).</p>
@@ -442,25 +444,121 @@ $ make integration-test
 <p>Not to mention that, on the C side, thanks to the service-specific driver, the same freedom exists as well: a call to the integrated library may be wrapped between any kind of pre/post transformations.</p>
 <p>As a result, if needed, any mix of Erlang and C can be used to wrap any call to a library function made available through the binding.</p>
 </div>
+<div class="section" id="debugging-a-seaplus-based-driver">
+<h3><a class="toc-backref" href="#id36">Debugging a Seaplus-based Driver</a></h3>
+<p>Integrating C code is not so easy; more often than not, a SEGV will be encountered, and the fun begins in order to know whom should we blame, typically your integration code (possible), Seaplus (possible as well) or the integrated library itself (often less likely).</p>
+<p>The situation is never hopeless, though; we will take the integration of the <a class="reference external" href="https://wammu.eu/libgammu/">libgammu</a> library done by <a class="reference external" href="http://mobile.esperide.org">Ceylan-Mobile</a> on Arch Linux as a mini-tutorial.</p>
+<p>The type of errors that we want to track down are reported as such (real-life example of the execution of <tt class="docutils literal">mobile_test</tt> while the Seaplus driver-level facilities was incorrectly dealing, memory-wise, with the parameters that were binary strings):</p>
+<pre class="literal-block">
+Sent first SMS whose report is: {success,255}.
+
+&lt;----------------
+[error] Crash of the driver port (#Port&lt;0.7&gt;) reported.
+----------------&gt;
+
+{&quot;init terminating in do_boot&quot;,{{nocatch,{driver_crashed,unknown_reason}},[{seaplus,call_port_for,3,...
+</pre>
+<p>So the driver crashed, we do not know why, and often, with such problems, nothing very relevant can be found in the Seaplus log (i.e. in <tt class="docutils literal"><span class="pre">seaplus-driver.*.log</span></tt>), except which API function was called when the crash happened (should you have left the corresponding <tt class="docutils literal">LOG_DEBUG</tt> calls in your driver of course).</p>
+<p>A first difficulty is that generally a (Linux) distribution will, at least by default, only include prebuilt binary packages whose libraries are stripped. For example:</p>
+<pre class="literal-block">
+$ file /usr/lib/libGammu.so.8.1.40.0
+/usr/lib/libGammu.so.8.1.40.0: ELF 64-bit LSB shared object, x86-64, \
+version 1 (SYSV), dynamically linked, BuildID[sha1]=[...], stripped
+</pre>
+<p>We <em>need</em> the debug symbols, otherwise we will lack much crucial information. Either your distribution provides a way of having unstripped, debug/development versions of libraries, or you find it simpler and less system-jeopardizing to recompile your own unstripped versions, directly in your user account.</p>
+<p>We go for the latter, for example with:</p>
+<pre class="literal-block">
+$ mkdir ~/Software/libgammu
+$ cd ~/Software/libgammu
+$ git clone https://github.com/gammu/gammu.git
+$ ./configure --enable-shared --enable-debug --enable-protection \
+   --prefix=~/Software/libgammu
+$ make all install
+$ file lib/libGammu.so.8.1.40.0
+lib/libGammu.so.8.1.40.0: ELF 64-bit LSB shared object, x86-64, \
+version 1 (SYSV), dynamically linked, BuildID[sha1]=[...], with \
+debug_info, not stripped
+</pre>
+<p>Same version number - yet much better for debugging!</p>
+<p>Now, provided that the Seaplus driver points to the right library, we should benefit from debug symbols.</p>
+<p>A first option would be to run the driver through <a class="reference external" href="https://www.gnu.org/software/gdb/">gdb</a> (ex: <tt class="docutils literal">gdb <span class="pre">-batch</span> <span class="pre">-ex</span> run mobile_seaplus_driver</tt>) when triggered by the application, yet we had not much luck with that approach.</p>
+<p>Examining instead the core dump corresponding to the driver crash may offer relevant insights; provided that we find it and manage to study it.</p>
+<p>In our case we used (as a one-liner), from the test directory, once a crash had been triggered, the following commands:</p>
+<pre class="literal-block">
+$ rm -f mobile_seaplus.core*
+$ cp /var/lib/systemd/coredump/core.mobile_seaplus* mobile_seaplus.core.lz4
+$ lz4 mobile_seaplus.core.lz4
+$ gdb mobile_seaplus_driver
+</pre>
+<p>Following gdb command would then bring new information:</p>
+<pre class="literal-block">
+(gdb) core mobile_seaplus.core
+warning: core file may not match specified executable file.
+[New LWP 11607]
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library &quot;/usr/lib/libthread_db.so.1&quot;.
+Core was generated by `./mobile_seaplus_driver'.
+Program terminated with signal SIGSEGV, Segmentation fault.
+#0  0x00007f894b2a5a26 in malloc () from /usr/lib/libc.so.6
+
+(gdb) bt full
+#0  0x00007f894b2a5a26 in malloc () from /usr/lib/libc.so.6
+No symbol table info available.
+#1  0x00007f894b432742 in GSM_PackSemiOctetNumber (Number=Number&#64;entry=0x55822a55d68c &lt;sms+172&gt; &quot;&quot;, Output=Output&#64;entry=0x7ffe3a9f20f2 &quot;&quot;,
+  semioctet=semioctet&#64;entry=1) at [...]/libgammu/misc/coding/coding.c:1168
+      format = &lt;optimized out&gt;
+      length = 12
+      i = &lt;optimized out&gt;
+      skip = 0
+[...]
+
+(gdb) frame 2
+#2  0x00007f7189618329 in GSM_EncodeSMSFrame () from /usr/lib/libGammu.so.8
+(gdb) bt
+#0  0x00007f7189305a26 in malloc () from /usr/lib/libc.so.6
+[...]
+</pre>
+<p>While often useful, the debugger just tells us here that the SIGSEGV happened in a malloc that looks perfectly legit, and done by the inner workings of Gammu. We suspect that this library is not involved, but that we managed somehow to smash the heap in previous operations. Definitively not a good news!</p>
+<p>So now it is time to use use <a class="reference external" href="http://valgrind.org/">Valgrind</a> in order to investigate this possible error in memory management.</p>
+<p>One should then have a look to the <tt class="docutils literal">init_driver/2</tt> function of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl">seaplus.erl</a> module, to uncomment the <tt class="docutils literal">DriverCommand</tt> variation involving Valgrind.</p>
+<p>Once using a Valgrind-based driver command and an updated environment (to select your debug library rather than the system's one), when looking at the specified log file (<tt class="docutils literal"><span class="pre">/tmp/seaplus-valgrind.log</span></tt>) you should end up with a report like:</p>
+<pre class="literal-block">
+==12257== Invalid read of size 1
+==12257==    at 0x483AC74: strlen (vg_replace_strmem.c:460)
+==12257==    by 0x10ACBE: main (mobile_seaplus_driver.c:438)
+==12257==  Address 0x51b186c is 0 bytes after a block of size 12 alloc'd
+==12257==    at 0x483777F: malloc (vg_replace_malloc.c:299)
+==12257==    by 0x484DD28: erl_malloc (erl_malloc.c:234)
+==12257==    by 0x484EF9A: erl_decode_it (erl_marshal.c:1041)
+==12257==    by 0x484F19A: erl_decode_it (erl_marshal.c:959)
+==12257==    by 0x484EE88: erl_decode_it (erl_marshal.c:1018)
+==12257==    by 0x485042C: erl_decode (erl_marshal.c:1111)
+==12257==    by 0x484B406: get_function_information (seaplus.c:498)
+==12257==    by 0x10A7D1: main (mobile_seaplus_driver.c:245)
+</pre>
+<p>We were reading the content of a binary like if it was a zero-terminated char * (and moreover we used to wrongly take ownership of that buffer).</p>
+<p>So neither the Ceylan-Mobile integration nor Gammu were the culprits, it was a Seaplus bug (of course fixed since then)!</p>
+<p>Hopefully with this example one will be less afraid to hack around shared libraries (especially if they are open source): for each problem there are surely means of investigation - no rocket science involved.</p>
+</div>
 <div class="section" id="towards-a-more-general-c-c-interface">
-<h3><a class="toc-backref" href="#id34">Towards a more General C/C++ Interface</a></h3>
+<h3><a class="toc-backref" href="#id37">Towards a more General C/C++ Interface</a></h3>
 <p>Functionally, <a class="reference external" href="http://erlang.org/doc/apps/erl_interface/">Erl_Interface</a> and the <a class="reference external" href="http://erlang.org/doc/man/erl_nif.html">Erlang NIF support</a> provide the same services, and could probably be unified under a common API (that one day Seaplus could provide).</p>
 <p>This could enable the possibility of integrating C/C++ code seamlessly as a C-Node and/or as a NIF, for a greater flexibility of use.</p>
 </div>
 </div>
 <div class="section" id="issues-planned-enhancements">
-<h2><a class="toc-backref" href="#id35">Issues &amp; Planned Enhancements</a></h2>
+<h2><a class="toc-backref" href="#id38">Issues &amp; Planned Enhancements</a></h2>
 <ul class="simple">
 <li>thorough testing of the C-side should be done, notably with regard to the hunt for memory leaks; so a <a class="reference external" href="http://valgrind.org/">Valgrind-based</a> runtime mode for the driver would surely be useful (note though that <tt class="docutils literal">erl_eterm_statistics/2</tt> and <tt class="docutils literal">erl_eterm_release/0</tt> are already used at runtime, in debug mode, to ensure that on the C side no term is ever leaked)</li>
 </ul>
 <p></p>
 </div>
 <div class="section" id="support">
-<h2><a class="toc-backref" href="#id36">Support</a></h2>
+<h2><a class="toc-backref" href="#id39">Support</a></h2>
 <p>Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent to the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">project interface</a>, or directly at the email address mentioned at the beginning of this document.</p>
 </div>
 <div class="section" id="seaplus-inner-workings">
-<h2><a class="toc-backref" href="#id37">Seaplus Inner Workings</a></h2>
+<h2><a class="toc-backref" href="#id40">Seaplus Inner Workings</a></h2>
 <p>It is mostly the one described in the <a class="reference external" href="http://erlang.org/doc/tutorial/erl_interface.html">Erl_Interface</a> tutorial, once augmented with conventions and automated by the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl">Seaplus parse transform</a> as much as realistically possible (hence a code generation that is exhaustive on the Erlang side, and partial of the C side) and adapted for increased performances (notably: no extra relay process between the user code and the port involving more messages and processing, no string-based mapping of function signatures across the bridge - direct integer identifiers used instead).</p>
 <p>The parse transform just:</p>
 <ul class="simple">
@@ -470,11 +568,11 @@ $ make integration-test
 </ul>
 </div>
 <div class="section" id="please-react">
-<h2><a class="toc-backref" href="#id38">Please React!</a></h2>
+<h2><a class="toc-backref" href="#id41">Please React!</a></h2>
 <p>If you have information more detailed or more recent than those presented in this document, if you noticed errors, neglects or points insufficiently discussed, drop us a line! (for that, follow the <a class="reference internal" href="#support">Support</a> guidelines).</p>
 </div>
 <div class="section" id="ending-word">
-<h2><a class="toc-backref" href="#id39">Ending Word</a></h2>
+<h2><a class="toc-backref" href="#id42">Ending Word</a></h2>
 <p>Have fun with Seaplus!</p>
 <div class="figure align-center">
 <img alt="Seaplus logo" src="seaplus-title.png" style="width: 50%;" />
