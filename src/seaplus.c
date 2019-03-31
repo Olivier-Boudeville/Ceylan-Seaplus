@@ -713,17 +713,6 @@ char * get_element_as_string( tuple_index i, ETERM *tuple_term )
 
   //LOG_DEBUG( "Read string: '%s'.", res ) ;
 
-  // Expected to be null-terminated:
-  //char * stringContent = (char *) ERL_BIN_PTR( elem ) ;
-
-  //int size = ERL_BIN_SIZE( elem ) ;
-
-  // Bug somewhere...
-
-  //char * res = (char *) malloc( size * sizeof(char) ) ;
-
-  //strncpy( res, stringContent, size ) ;
-
   erl_free_term( elem ) ;
 
   return res ;
@@ -1016,7 +1005,7 @@ char * get_parameter_as_atom( parameter_index index, ETERM ** parameters )
 
 /**
  * Returns the element at specified index of specified array of parameters,
- * supposed to be a string.
+ * supposed to be a (plain) string.
  *
  * Note: the corresponding terms is not freed, as the parameter array is
  * expected to be deallocated as a whole (recursively) afterwards.
@@ -1032,14 +1021,55 @@ char * get_parameter_as_string( parameter_index index, ETERM ** parameters )
   ETERM * elem  = parameters[ index - 1 ] ;
 
   if ( ! ERL_IS_LIST( elem ) )
-	raise_error( "Parameter element of index %i cannot be cast to string "
-	  "(i.e. list)", index ) ;
+	raise_error( "Parameter element of index %i is not a list, hence cannot "
+	  "be cast to a string", index ) ;
 
   //LOG_DEBUG( "String length is %u bytes.", erl_length( elem ) ) ;
 
   char * res = erl_iolist_to_string( elem ) ;
 
-  //LOG_DEBUG( "Read string: '%s'.", res ) ;
+  //LOG_DEBUG( "Read (plain) string: '%s'.", res ) ;
+
+  return res ;
+
+}
+
+
+
+/**
+ * Returns the element at specified index of specified array of parameters,
+ * supposed to be a binary.
+ *
+ * Note: the corresponding terms is not freed, as the parameter array is
+ * expected to be deallocated as a whole (recursively) afterwards.
+ *
+ * Ownership of the returned string transferred to the caller (who shall use
+ * erl_free/1 to deallocate it).
+ *
+ */
+char * get_parameter_as_binary( parameter_index index, ETERM ** parameters )
+{
+
+  // Starts at zero:
+  ETERM * elem  = parameters[ index - 1 ] ;
+
+  if ( ! ERL_IS_BINARY( elem ) )
+	raise_error( "Parameter element of index %i is not a binary, hence cannot "
+	  "be cast to a string", index ) ;
+
+  // Wrong, as it is an internal field (hence not owned), not zero-terminated:
+  //char * res = (char *) ERL_BIN_PTR( elem ) ;
+
+  int bin_length = ERL_BIN_SIZE( elem ) ;
+
+  // As shall be zero-terminated:
+  char * res = malloc( ( bin_length + 1 ) * sizeof( char ) ) ;
+
+  strncpy( res, (char *) ERL_BIN_PTR( elem ), bin_length ) ;
+
+  res[ bin_length ] = 0 ;
+
+  //LOG_DEBUG( "Read (binary) string: '%s'.", res ) ;
 
   return res ;
 
