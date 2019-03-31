@@ -436,8 +436,38 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	end,
 
+	% Uncomment if wanting to force the selection of, typically, a library you
+	% specifically built with debug symbols, like for example:
+	% LibDebugPath = "/home/stallone/Software/libgammu/lib",
+
+	%LibPath = "LD_LIBRARY_PATH",
+	%BaseEnv = system_utils:get_environment_variable( LibPath ),
+
+	%NewEnv = text_utils:format( "~s:~s", [ LibDebugPath, BaseEnv ] ),
+	%EnvOpt = { env, [ { LibPath, NewEnv } ] },
+
+	%trace_utils:debug_fmt( "EnvOpt: ~p", [ EnvOpt ] ),
+
+	%PortOptions = [ { packet, 2 }, binary, EnvOpt ]
+	PortOptions = [ { packet, 2 }, binary ],
+
+
+	% If wanting a direct execution of the driver:
+	DriverCommand = DriverExecPath,
+
+	% If wanting to run the driver through Valgrind instead:
+	%DriverCommand = text_utils:format(
+	%				  "valgrind --log-file=/tmp/seaplus-valgrind.log ~s",
+	%				  [ DriverExecPath ] ),
+
+	%trace_utils:debug_fmt( "DriverCommand: ~s", [ DriverCommand ] ),
+
+
 	% Respect the erl_interface conventions:
-	Port = open_port( { spawn, DriverExecPath }, [ { packet, 2 }, binary ] ),
+	%
+	% (running '"gdb -batch -ex run " ++ DriverExecPath' will not help):
+	%
+	Port = open_port( { spawn, DriverCommand }, PortOptions ),
 
 	%trace_utils:debug_fmt( "Storing port ~w under the service key '~s' in the "
 	%					   "process dictionary of ~p.",
