@@ -318,7 +318,7 @@ C_LINKER := $(C_COMPILER)
 # -shared probably unwelcome with libtool:
 C_LINKER_OPT := -g
 
-C_LINKER_LIBS := $(ERL_INTERFACE_LIB) -lerl_interface -lei -lpthread
+C_LINKER_LIBS = $(ERL_INTERFACE_LIB) -lerl_interface -lei -lpthread
 
 
 

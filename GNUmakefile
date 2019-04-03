@@ -151,6 +151,10 @@ info-c-compile:
 	@echo "C_COMPILER_OPT = $(C_COMPILER_OPT)"
 	@echo "C_LINKER_OPT = $(C_LINKER_OPT)"
 	@echo "ERL_COMPILER  = $(ERL_COMPILER)"
+	@echo "ERL_BASE = $(ERL_BASE)"
+	@echo "ERL_INTERFACE = $(ERL_INTERFACE)"
+	@echo "ERL_INTERFACE_LIB = $(ERL_INTERFACE_LIB)"
+	@echo "C_LINKER_LIBS = $(C_LINKER_LIBS)"
 
 
 info-parse-transform:
