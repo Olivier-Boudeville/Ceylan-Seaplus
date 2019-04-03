@@ -97,6 +97,7 @@ release-xz: prepare-release
 
 # The '-L' option with cp is used so that symbolic links are replaced by their
 # actual target file, otherwise tar would include dead links in releases.
+#
 prepare-release: clean clean-release
 	@echo "     Preparing release archive for Seaplus $(SEAPLUS_VERSION)"
 	@cd .. && mkdir -p $(SEAPLUS_RELEASE_BASE) && /bin/cp -L -r myriad seaplus $(SEAPLUS_RELEASE_BASE)
@@ -157,6 +158,12 @@ info-parse-transform:
 	@echo "ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_OPT_FOR_PT)"
 	@echo "META_BEAM_FILES = $(META_BEAM_FILES)"
 	@echo "ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT)"
+
+all: all-check
+
+
+all-check:
+	@if [ ! -d "$(ERL_BASE)" ]; then echo "Error, the base Erlang installation (needed to locate the Erl_Interface headers) could not be determined (was searched as '$(ERL_BASE)'). Please update the ERL_BASE make variable, in GNUmakevars.inc." 1>&2 ; exit 5 ; fi
 
 
 include $(SEAPLUS_TOP)/GNUmakesettings.inc
