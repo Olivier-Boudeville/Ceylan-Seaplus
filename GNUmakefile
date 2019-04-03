@@ -163,7 +163,7 @@ all: all-check
 
 
 all-check:
-	@if [ ! -d "$(ERL_BASE)" ]; then echo "Error, the base Erlang installation (needed to locate the Erl_Interface headers) could not be determined (was searched as '$(ERL_BASE)'). Please update the ERL_BASE make variable, in GNUmakevars.inc." 1>&2 ; exit 5 ; fi
+	@if [ ! -d "$(ERL_BASE_CONTENT)" ]; then echo "Error, the base Erlang installation (needed to locate the Erl_Interface headers) could not be determined (searched for its '$(ERL_BASE_CONTENT)' subdirectory). Please update the ERL_BASE make variable, in GNUmakevars.inc." 1>&2 ; exit 5 ; fi
 
 
 include $(SEAPLUS_TOP)/GNUmakesettings.inc
