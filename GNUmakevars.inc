@@ -193,12 +193,18 @@ endif
 # Erlang subsection.
 
 
-# Based installation either hardcoded or guessed:
+# Base Erlang installation either hardcoded or deduced from selected interpreter:
 #
 #ERL_BASE := $(HOME)/Software/Erlang/Erlang-current-install
-ERL_BASE := $(ERLANG_INTERPRETER)/../..
+ERL_BASE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/..
 
+# Are version numbers are in the way:
 ERL_INTERFACE = $(shell /bin/ls -d $(ERL_BASE)/lib/erlang/lib/erl_interface-* 2>/dev/null)
+
+# Allows to ensure that we have a proper base installation (and not for example
+# an empty directory due to a failed filtering):
+#
+ERL_BASE_CONTENT = $(ERL_BASE)/lib/erlang
 
 
 # Modules needed for the bootstrapping for others (hence to be built first, and
