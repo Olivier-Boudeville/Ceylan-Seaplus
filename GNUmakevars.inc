@@ -192,9 +192,14 @@ endif
 
 # Erlang subsection.
 
-ERL_BASE := $(HOME)/Software/Erlang/Erlang-current-install
 
-ERL_INTERFACE = $(shell /bin/ls -d $(ERL_BASE)/lib/erlang/lib/erl_interface-*)
+# Based installation either hardcoded or guessed:
+#
+#ERL_BASE := $(HOME)/Software/Erlang/Erlang-current-install
+ERL_BASE := $(ERLANG_INTERPRETER)/../..
+
+ERL_INTERFACE = $(shell /bin/ls -d $(ERL_BASE)/lib/erlang/lib/erl_interface-* 2>/dev/null)
+
 
 # Modules needed for the bootstrapping for others (hence to be built first, and
 # not parse-transformed; typically *used* by parse-transforms, or being a
