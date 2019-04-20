@@ -39,8 +39,18 @@
 
 
 -export([ % Base service behaviour:
-		  start/0, start_link/0, restart/0, stop/0, activate_seaplus/1 ]).
 
+		  % Auto-exported by the Seaplus parse transform:
+		  % start/0, start_link/0, stop/0,
+
+		  restart/0,
+		  activate_seaplus/1 ]).
+
+
+
+% The following start/0, start_link/0 and stop/0 functions are commented-out, as
+% they are automatically defined appropriately by the Seaplus parse transform
+% now.
 
 
 % Starts the service.
@@ -52,10 +62,10 @@
 % As a result, the user code may catch this exception and react accordingly (ex:
 % by restaring the driver).
 %
--spec start() -> void().
-start() ->
+%-spec start() -> void().
+%start() ->
 	% Allows to register and identify target executable:
-	seaplus:start( ?service_module_name ).
+%	seaplus:start( ?service_module_name ).
 
 
 
@@ -67,25 +77,30 @@ start() ->
 %
 % Note that start/0 is the generally preferred form.
 %
--spec start_link() -> void().
-start_link() ->
+%-spec start_link() -> void().
+%start_link() ->
 	% Allows to register and identify target executable:
-	seaplus:start_link( ?service_module_name ).
+%	seaplus:start_link( ?service_module_name ).
+
 
 
 % Restarts the support of this foobar service (ex: to overcome a detected crash
 % thereof).
 %
+% Note: performs a start/0, not a start_link/0.
+%
 -spec restart() -> void().
 restart() ->
-	seaplus:restart( ?MODULE ).
+	% So that user-code (not Seaplus one only) is triggered as well:
+	stop(),
+	start().
 
 
 
 % Stops the service.
--spec stop() -> void().
-stop() ->
-	seaplus:stop( ?service_module_name ).
+%-spec stop() -> void().
+%stop() ->
+%	seaplus:stop( ?service_module_name ).
 
 
 
