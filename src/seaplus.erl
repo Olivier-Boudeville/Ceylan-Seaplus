@@ -287,9 +287,10 @@ restart( ServiceName, DriverExecutableName ) ->
 
 
 % Stops the specific service support.
-%
 -spec stop( service_name() ) -> void().
 stop( ServiceName ) when is_atom( ServiceName ) ->
+
+	%trace_utils:trace_fmt( "Stopping the '~s' service.", [ ServiceName ] ),
 
 	ServiceKey = get_service_port_key_for( ServiceName ),
 
