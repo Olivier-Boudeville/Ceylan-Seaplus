@@ -41,7 +41,9 @@
 
 % API declaration.
 %
-% Note that the functions below have a spec, yet are not even defined here.
+% Note that:
+%  - the functions below have a spec, yet are not even defined here
+%  - no service-specific start/stop functions have been introduced here
 
 
 % Detailed comment for foo/1.
