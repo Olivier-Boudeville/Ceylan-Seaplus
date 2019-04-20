@@ -81,6 +81,7 @@ run() ->
 
 	% Throwing an exception is better than returning { error, FailReason }:
 	FooCrashed = try
+
 		% Expected to crash:
 		foobar:foo( 0 ),
 		false
@@ -113,6 +114,9 @@ run() ->
 	foobar:restart(),
 
 
+	test_facilities:display( "Performing extra operations on this newly "
+							 "restarted service instance." ),
+
 	#foo_data{ count=4, value = -20.0 } = foobar:bar( 2.0, moderate_speed ),
 
 	tur_value = foobar:baz( 10, "cat" ),
@@ -126,6 +130,7 @@ run() ->
 	% Add a test with a returned binary string:
 	%<<"My beautiful binary">> = foobar:frob( "beautiful" ),
 
+	test_facilities:display( "Finally stopping the tested service." ),
 
 	foobar:stop(),
 
