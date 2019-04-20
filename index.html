@@ -31,7 +31,7 @@
 </tr>
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, December 23, 2018</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Wednesday, April 3, 2019</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Saturday, April 20, 2019</td>
 </tr>
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Seaplus</tt> bridge, version 1.0.</td>
 </tr>
@@ -148,7 +148,8 @@
 </table>
 <p>The Seaplus include allows notably to mark this <tt class="docutils literal">foobar</tt> module as a service stub.</p>
 <p>Comments (description, usage, examples) are also expected to be joined to these specs, they are omitted in this documentation for brevity.</p>
-<p>Facility functions that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (ex: to start/stop this service from Erlang), will also certainly be needed. However listing these facility functions in our <tt class="docutils literal">foobar</tt> module would offer little interest (as they are the same for all integrated services), so these extra functions are to remain implicit here <a class="footnote-reference" href="#id7" id="id6">[3]</a>.</p>
+<p>Facility functions that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (ex: to start/stop this service from Erlang), will also certainly be needed.</p>
+<p>However listing these facility functions in our <tt class="docutils literal">foobar</tt> module would offer little interest should they have no service-specific part, so these extra functions are to remain implicit here <a class="footnote-reference" href="#id7" id="id6">[3]</a>.</p>
 <p>These service-level built-in functions automatically defined by Seaplus of user interest are, notably:</p>
 <ul class="simple">
 <li><tt class="docutils literal">start/0</tt>: starts said service, a <tt class="docutils literal">{driver_crashed,ErrorReason}</tt> exception being thrown should the driver or the integrated library crash (ex: SEGV)</li>
@@ -159,7 +160,10 @@
 <table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[3]</a></td><td>Note though that, at least for some services, specific initialisation/tear-down functions may exist in the vanilla, C version of that service. In that case, they should be added among said function specifications (preferably named for example <tt class="docutils literal">init</tt>/<tt class="docutils literal">teardown</tt> or alike, in order to distinguish them from the Seaplus-reserved <tt class="docutils literal">start</tt>/<tt class="docutils literal">stop</tt> primitives), so that they are available from Erlang as well.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id6">[3]</a></td><td><p class="first">Note though that, at least for some services, specific initialisation/tear-down functions may exist in the vanilla, C version of that service. In that case, they should be triggered by the Seaplus-exposed <tt class="docutils literal">start</tt>/<tt class="docutils literal">stop</tt> service primitives.</p>
+<p>So, for each facility function <tt class="docutils literal">start/0</tt>, <tt class="docutils literal">start_link/0</tt> and <tt class="docutils literal">stop/0</tt>, the Seaplus parse transform determines whether it is already defined in the service at hand (i.e., for example, whether the user defined specifically a <tt class="docutils literal">foobar:start/0</tt> function). If yes, then Seaplus enriches automatically that code with the one needed for its own initialisation (Seaplus'one taking place <em>before</em> the service's initialisation). If no, then Seaplus defines a brand new <tt class="docutils literal">start/0</tt> that is limited to its own needs.</p>
+<p class="last">As a result, from the point of view of the service user, in all cases the service can be started or stopped with a single call (possibly taking care under the hood of both Seaplus and the service itself).</p>
+</td></tr>
 </tbody>
 </table>
 <p>Of course such a module, as it was defined above (i.e. just as a set of function specifications, with no implementation thereof), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) will be available, the <tt class="docutils literal">Foobar</tt> service will become fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.</p>
