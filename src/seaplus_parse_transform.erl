@@ -364,7 +364,13 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 process_module_info_from(
   ModuleInfo=#module_info{ module={ ModName, _Loc } }, SeaplusRootDir ) ->
 
-	ReadyFunInfos = prepare_api_functions( ModuleInfo ),
+	% Should start, stop, etc. be specifically defined by the integration module:
+	ControleModuleInfo = handle_control_functions( ModuleInfo ),
+
+	trace_utils:debug_fmt( "Control-augmented module: ~s",
+			   [ ast_info:module_info_to_string( ControleModuleInfo ) ] ),
+
+	ReadyFunInfos = prepare_api_functions( ControleModuleInfo ),
 
 	SelectFunIds = [ { Name, Arity }
 			 || #function_info{ name=Name, arity=Arity } <- ReadyFunInfos ],
@@ -374,7 +380,7 @@ process_module_info_from(
 		[] ->
 			% We nevertheless may want a (empty) header file to be produced:
 			trace_utils:debug( "No API function detected." ),
-			ModuleInfo;
+			ControleModuleInfo;
 
 		_ ->
 			trace_utils:debug_fmt( "Selected ~B function(s) for API: ~s",
@@ -388,7 +394,7 @@ process_module_info_from(
 			manage_driver_implementation( ModName, SelectFunIds,
 										  HeaderFilename, SeaplusRootDir ),
 
-			reinject_fun_infos( ReadyFunInfos, ModuleInfo )
+			reinject_fun_infos( ReadyFunInfos, ControleModuleInfo )
 
 	end,
 
@@ -397,6 +403,271 @@ process_module_info_from(
 		myriad_parse_transform:transform_module_info( FullModuleInfo ),
 
 	MyriadModuleInfo.
+
+
+
+% Manages any user-defined control function (ex: start, stop).
+-spec handle_control_functions( module_info() ) -> module_info().
+handle_control_functions( ModuleInfo ) ->
+
+	StartModInfo = handle_start_function( ModuleInfo ),
+	StartLinkModInfo = handle_start_link_function( StartModInfo ),
+
+	StopModInfo = handle_stop_function( StartLinkModInfo ),
+
+	StopModInfo.
+
+
+
+% Ensures that the start/0 function starts Seaplus as well.
+handle_start_function( ModuleInfo=#module_info{
+									 module={ ModName, _LocForm },
+									 functions=FunctionTable } ) ->
+
+	StartFunId = { start, 0 },
+
+	Line = 0,
+
+	% This call shall be made in all cases:
+	SeaplusStartCall = { call, Line, { remote, Line, {atom,Line,seaplus},
+								{atom,Line,start} }, [ {atom,Line,ModName} ] },
+
+	%trace_utils:debug_fmt( "Start call: '~p'.", [ SeaplusStartCall ] ),
+
+	case table:extractEntryIfExisting( StartFunId, FunctionTable ) of
+
+		% Here, start/0 is (surprisingly) exported, but not defined by the
+		% user:
+		%
+		{ #function_info{ clauses=[] }, ShrunkTable } ->
+
+			trace_utils:debug( "No user-defined start/0 found "
+							   "(yet was exported), generating it." ),
+
+			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
+					   [ SeaplusStartCall ] },
+
+			% Auto-exports:
+			meta_utils:add_function( StartFunId, _Clauses=[ Clause ],
+					 ModuleInfo#module_info{ functions=ShrunkTable } );
+
+
+		% Mostly the same:
+		false ->
+			trace_utils:debug( "No user-defined start/0 found, "
+							   "generating it." ),
+
+			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
+					   [ SeaplusStartCall ] },
+
+			% Auto-exports:
+			meta_utils:add_function( StartFunId, _Clauses=[ Clause ],
+									 ModuleInfo );
+
+
+		% User-defined start/0 available here:
+		{ FunInfo=#function_info{ clauses=Clauses,
+								  exported=Exports }, ShrunkTable } ->
+
+			trace_utils:debug( "User-defined start/0 found, enriching it." ),
+
+			% We just ensure that (all clauses of) this function call first
+			% seaplus:start( ?MODULE ), and then continue with the pre-existing
+			% user code:
+			%
+			NewClauses = [ { clause, L, HSeq, GSeq,
+							 [ SeaplusStartCall | Body ] }
+						   || { clause, L, HSeq, GSeq, Body } <- Clauses ],
+
+			% Ensures exported exactly once:
+			NewExports = case Exports of
+
+				[] ->
+					[ ast_info:get_default_export_function_location() ];
+
+				_ ->
+					Exports
+
+			end,
+
+			NewFunInfo = FunInfo#function_info{ clauses=NewClauses,
+												exported=NewExports },
+
+			NewFunctionTable =
+				table:addEntry( StartFunId, NewFunInfo, ShrunkTable ),
+
+			ModuleInfo#module_info{ functions=NewFunctionTable }
+
+	end.
+
+
+
+% Ensures that the start_link/0 function starts Seaplus as well.
+handle_start_link_function( ModuleInfo=#module_info{
+										  module={ ModName, _LocForm },
+										  functions=FunctionTable } ) ->
+
+	StartLinkFunId = { start_link, 0 },
+
+	Line = 0,
+
+	% This call shall be made in all cases:
+	SeaplusStartLinkCall = { call, Line, { remote, Line, {atom,Line,seaplus},
+						   {atom,Line,start_link} }, [ {atom,Line,ModName} ] },
+
+	%trace_utils:debug_fmt( "Start link call: '~p'.",
+	%						[ SeaplusStartLinkCall ] ),
+
+	case table:extractEntryIfExisting( StartLinkFunId, FunctionTable ) of
+
+		% Here, start_link/0 is (surprisingly) exported, but not defined by the
+		% user:
+		%
+		{ #function_info{ clauses=[] }, ShrunkTable } ->
+
+			trace_utils:debug( "No user-defined start_link/0 found "
+							   "(yet was exported), generating it." ),
+
+			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
+					   [ SeaplusStartLinkCall ] },
+
+			% Auto-exports:
+			meta_utils:add_function( StartLinkFunId, _Clauses=[ Clause ],
+					 ModuleInfo#module_info{ functions=ShrunkTable } );
+
+
+		% Mostly the same:
+		false ->
+			trace_utils:debug( "No user-defined start_link/0 found, "
+							   "generating it." ),
+
+			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
+					   [ SeaplusStartLinkCall ] },
+
+			% Auto-exports:
+			meta_utils:add_function( StartLinkFunId, _Clauses=[ Clause ],
+									 ModuleInfo );
+
+
+		% User-defined start_link/0 available here:
+		{ FunInfo=#function_info{ clauses=Clauses,
+								  exported=Exports }, ShrunkTable } ->
+
+			trace_utils:debug( "User-defined start_link/0 found, "
+							   "enriching it." ),
+
+			% We just ensure that (all clauses of) this function call first
+			% seaplus:start_link( ?MODULE ), and then continue with the
+			% pre-existing user code:
+			%
+			NewClauses = [ { clause, L, HSeq, GSeq,
+							 [ SeaplusStartLinkCall | Body ] }
+						   || { clause, L, HSeq, GSeq, Body } <- Clauses ],
+
+			% Ensures exported exactly once:
+			NewExports = case Exports of
+
+				[] ->
+					[ ast_info:get_default_export_function_location() ];
+
+				_ ->
+					Exports
+
+			end,
+
+			NewFunInfo = FunInfo#function_info{ clauses=NewClauses,
+												exported=NewExports },
+
+			NewFunctionTable =
+				table:addEntry( StartLinkFunId, NewFunInfo, ShrunkTable ),
+
+			ModuleInfo#module_info{ functions=NewFunctionTable }
+
+	end.
+
+
+
+% Ensures that the stop/0 function stops Seaplus as well.
+handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
+											   functions=FunctionTable } ) ->
+
+	StopFunId = { stop, 0 },
+
+	Line = 0,
+
+	% This call shall be made in all cases:
+	SeaplusStopCall = { call, Line, { remote, Line, {atom,Line,seaplus},
+								  {atom,Line,stop} }, [ {atom,Line,ModName} ] },
+
+	%trace_utils:debug_fmt( "Stop call: ~p", [ SeaplusStopCall ] ),
+
+	case table:extractEntryIfExisting( StopFunId, FunctionTable ) of
+
+		% Here, stop/0 is (surprisingly) exported, but not defined by the
+		% user:
+		%
+		{ #function_info{ clauses=[] }, ShrunkTable } ->
+
+		trace_utils:debug( "No user-defined stop/0 found "
+						   "(yet was exported), generating it." ),
+
+			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
+					   [ SeaplusStopCall ] },
+
+			% Auto-exports:
+			meta_utils:add_function( StopFunId, _Clauses=[ Clause ],
+					 ModuleInfo#module_info{ functions=ShrunkTable } );
+
+
+		% Mostly the same:
+		false ->
+
+			trace_utils:debug(
+			  "No user-defined stop/0 found, generating it." ),
+
+			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
+					   [ SeaplusStopCall ] },
+
+			% Auto-exports:
+			meta_utils:add_function( StopFunId, _Clauses=[ Clause ],
+									 ModuleInfo );
+
+
+		% User-defined stop/0 available here:
+		{ FunInfo=#function_info{ clauses=Clauses,
+								  exported=Exports }, ShrunkTable } ->
+
+			trace_utils:debug( "User-defined stop/0 found, enriching it." ),
+
+			% We just ensure that (all clauses of) this function starts with the
+			% pre-existing user code and then finishes with a call to
+			% seaplus:stop().
+			%
+			NewClauses = [ { clause, L, HSeq, GSeq,
+				list_utils:append_at_end( SeaplusStopCall, Body ) }
+				|| { clause, L, HSeq, GSeq, Body } <- Clauses ],
+
+			% Ensures exported exactly once:
+			NewExports = case Exports of
+
+				[] ->
+					[ ast_info:get_default_export_function_location() ];
+
+				_ ->
+					Exports
+
+			end,
+
+			NewFunInfo = FunInfo#function_info{ clauses=NewClauses,
+												exported=NewExports },
+
+			NewFunctionTable =
+				table:addEntry( StopFunId, NewFunInfo, ShrunkTable ),
+
+			ModuleInfo#module_info{ functions=NewFunctionTable }
+
+	end.
+
 
 
 % Generates the relevant C header file for the service driver.
@@ -431,8 +702,8 @@ generate_driver_header( ServiceModuleName, FunIds ) ->
 					  "a Seaplus identifier is~n"
 					  " * generated to ensure that the C code of the driver "
 					  "can stay in sync with~n"
-					  " * the Erlang view on said API, regardless of its changes.~n"
-					  " */~n~n", [] ),
+					  " * the Erlang view on said API, regardless of its "
+					  "changes.~n */~n~n", [] ),
 
 	write_mapping( HeaderFile, FunIds, _Count=1 ),
 
@@ -633,7 +904,7 @@ prepare_api_functions( ModuleInfo=#module_info{ functions=FunctionTable,
 
 	ExportLoc = ast_info:get_default_export_function_location( MarkerTable ),
 
-	DefLoc = table:getEntry( definition_functions_marker, MarkerTable ),
+	DefLoc = table:getValue( definition_functions_marker, MarkerTable ),
 
 	% Now that the order is known, we can generate or transform these API
 	% functions:
