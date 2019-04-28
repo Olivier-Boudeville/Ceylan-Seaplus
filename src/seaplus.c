@@ -487,6 +487,8 @@ ETERM * get_function_information( byte * buffer, fun_id * current_fun_id,
   arity * param_count, ETERM *** parameters )
 {
 
+	//LOG_TRACE( "Getting function information." ) ;
+
 	/*
 	 * Reads a { FunId, FunParams } pair thanks to Erl_Interface:
 	 *
@@ -563,6 +565,8 @@ ETERM * get_function_information( byte * buffer, fun_id * current_fun_id,
 	}
 
 	*parameters = fun_params ;
+
+	//LOG_TRACE( "Function information obtained." ) ;
 
 	// Returned to be deallocated as a whole afterwards:
 	return read_pair ;
