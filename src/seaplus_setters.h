@@ -37,40 +37,41 @@
 
 
 /**
- * Writes specified term into specified buffer.
- *
- * Takes ownership, and deallocates, specified term.
- *
- */
-void write_term( byte * buffer, ETERM * term ) ;
-
-
-/**
  * Writes in specified return buffer the specified boolean result.
  *
  */
-void write_as_bool( byte * buffer, bool b ) ;
+void write_bool_result( smart_buffer * sm_buff, bool b ) ;
 
 
 /**
  * Writes in specified return buffer the specified (signed) integer result.
  *
  */
-void write_as_int( byte * buffer, int i ) ;
+void write_int_result( smart_buffer * sm_buff, int i ) ;
 
 
 /**
  * Writes in specified return buffer the specified unsigned integer result.
  *
  */
-void write_as_unsigned_int( byte * buffer, unsigned int u ) ;
+void write_unsigned_int_result( smart_buffer * sm_buff, unsigned int u ) ;
 
 
 /**
  * Writes in specified return buffer the specified double result.
  *
  */
-void write_as_double( byte * buffer, double d ) ;
+void write_double_result( smart_buffer * sm_buff, double d ) ;
+
+
+/**
+ * Writes in specified return buffer the specified atom result, based on
+ * specified (NULL-terminated) string.
+ *
+ * Note: not taking ownership of the input string.
+ *
+ */
+void write_atom_result( smart_buffer * sm_buff, const char * atom_name ) ;
 
 
 /**
@@ -79,7 +80,7 @@ void write_as_double( byte * buffer, double d ) ;
  * Note: not taking ownership of the input string.
  *
  */
-void write_as_string( byte * buffer, const char * string ) ;
+void write_string_result( smart_buffer * sm_buff, const char * string ) ;
 
 
 /**
@@ -88,8 +89,18 @@ void write_as_string( byte * buffer, const char * string ) ;
  * Note: not taking ownership of the input string.
  *
  */
-void write_as_binary( byte * buffer, const char * string ) ;
+void write_binary_result( smart_buffer * sm_buff, const void * content,
+  byte_count size ) ;
 
+
+/**
+ * Writes in specified return buffer the specified tuple header result.
+ *
+ * For a tuple declared of size N (hence having N elements), the N next writes
+ * will correspond to the expected terms to form said tuple.
+ *
+ */
+void write_tuple_header_result( smart_buffer * sm_buf, tuple_size size ) ;
 
 
 /**
@@ -99,7 +110,7 @@ void write_as_binary( byte * buffer, const char * string ) ;
  * Returns the number of bytes written.
  *
  */
-byte_count write_buffer( byte *buf, byte_count len ) ;
+byte_count write_buffer( smart_buffer * buf ) ;
 
 
 #endif // _SEAPLUS_SETTERS_H_

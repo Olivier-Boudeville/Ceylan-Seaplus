@@ -31,14 +31,29 @@
 #ifndef _SEAPLUS_H_
 #define _SEAPLUS_H_
 
+
 // For ssize_t:
 #include <unistd.h>
 
 
+// For ei_x_buff and encoding/decoding functions:
+#include "ei.h"
+
+
 // Seaplus-defined types:
 
-// To address the message buffer:
-typedef unsigned char byte;
+
+/**
+ * To address the message buffer:
+ * (signed, to accommodate ei):
+ *
+ */
+//typedef unsigned char byte;
+typedef char byte;
+
+
+// A smart buffer for encoding:
+typedef ei_x_buff smart_buffer ;
 
 
 // As a number of bytes (negative values meaning errors):
@@ -57,10 +72,10 @@ extern const byte_count buffer_size ;
 
 
 // Seaplus reference onto an Erlang API function:
-typedef unsigned int fun_id ;
+typedef long int fun_id ;
 
 // The arity of an Erlang function (i.e. a count of parameters):
-typedef unsigned int arity ;
+typedef int arity ;
 
 // Index of a parameter (starts at 1):
 typedef unsigned int parameter_index ;
@@ -70,8 +85,11 @@ typedef unsigned int list_size ;
 
 typedef unsigned int string_len ;
 
-typedef unsigned int tuple_size ;
+// To accommodate ei:
+//typedef unsigned int tuple_size ;
+typedef int tuple_size ;
 
+typedef int ei_error ;
 
 // For bool:
 #include <stdbool.h>
@@ -79,14 +97,6 @@ typedef unsigned int tuple_size ;
 
 // Seaplus-provided functions (roughly listed in their expected order of use)
 
-
-// No forward declaration seems possible:
-//struct ETERM ;
-
-// So:
-
-// For ETERM and all:
-#include "erl_interface.h"
 
 
 // By default, enable logging:
@@ -137,6 +147,14 @@ void log_warning( const char * format, ... ) ;
 void raise_error( const char * format, ... ) ;
 
 
+/// Prepares for the encoding of the next upcoming command.
+void prepare_for_command( smart_buffer * sm_buf ) ;
+
+
+/// Finalizes the current command.
+void finalize_command( smart_buffer * sm_buf ) ;
+
+
 /**
  * Receives the next command from the port's input file descriptor, and stores
  * it in the specified buffer.
@@ -160,25 +178,6 @@ void check_arity_is( arity expected, arity actual, fun_id id ) ;
 // Second, accessors to (result) values (setters):
 #include "seaplus_setters.h"
 
-
-/**
- * Returns a binary string for specified (NULL-terminated) C string.
- *
- * Does not take ownership of the specified C string.
- *
- * (lacking in a direct form in
- * http://erlang.org/doc/man/erl_eterm.html#erl_mk_binary)
- *
- */
-ETERM * make_bin_string( const char * c_string ) ;
-
-
-
-/**
- * Performs housekeeping after a command has been executed.
- *
- */
-void clean_up_command( ETERM * call_term, ETERM ** parameters ) ;
 
 
 /**

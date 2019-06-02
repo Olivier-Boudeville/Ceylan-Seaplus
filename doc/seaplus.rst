@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2019 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Monday, April 29, 2019
+:Lastly updated: Sunday, June 2, 2019
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -214,7 +214,7 @@ Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar
 
 At this point, one may think that, thanks to these function specs, the full counterpart C bridging code might have been automagically generated, in the same movement as the Erlang bridging code? Unfortunately, not exactly! At least, not yet; maybe some day (if ever possible and tractable). Currently: only *parts* of it are generated.
 
-Indeed C-side elements will have been produced by the Seaplus parse-transform (notably the function mapping include, used to map functions on either sides, and also, if not already existing, a compilable template of the C driver), but the conversion (thanks to ``Erl_Interface``) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.
+Indeed C-side elements will have been produced by the Seaplus parse-transform (notably the function mapping include, used to map functions on either sides, and also, if not already existing, a compilable template of the C driver), but the conversion (thanks to ``Erl_Interface`` - more precisely we are using `ei <http://erlang.org/doc/man/ei.html>`_ now) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.
 
 This work remains, yet it is also a chance to better adapt the bridging code to the interfacing contract one would like to be fulfilled, for example with regard to resource ownership. Indeed, should the C part take pointers as arguments, shall it delete them once having used them? Conversely, should a C function return a pointer to a dynamically allocated memory, who is responsible for the eventual deallocation of it? How the C implementation can maintain a state of its own between calls?
 
@@ -703,6 +703,10 @@ The parse transform just:
 - adds the facility functions to start, stop, etc. that service (they are actually directly obtained through the Seaplus include)
 - generates the Seaplus service-specific C header file, ready to be included by the C-side service driver that is to be filled by the service integrator, based on the C template that is also generated in a proper version
 
+
+As of June 2019, and related to the release of Erlang 22.0, we had to switch from the ``Erl_Interface`` API (now made obsolete) to the lower-level ``ei`` one (one may refer to the ``update_to_ei`` branch for that; for reference, the last version relying on ``Erl_Interface``, which was working great, has been marked with the ``before_switch_to_ei`` tag).
+
+A problem apparently induced by the direct use of ``ei`` is that, due to ``term_to_binary/1`` mistaking the ``[0..255]`` type for the ``string()`` one, such lists had to be special-cased, which is not so straightforward to support in a generic manner (like with Seaplus).
 
 
 

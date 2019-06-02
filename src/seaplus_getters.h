@@ -37,208 +37,82 @@
  * (Erlang-side) specified function, namely its function identifier and its
  * parameters, set in the variables whose reference is specified.
  *
- * Returns a term that is to be deallocated once all parameters will have been
- * used.
- *
  */
-ETERM * get_function_information( byte * buffer, fun_id * current_fun_id,
-  arity * param_count, ETERM *** parameters ) ;
+void get_function_information( byte * buffer, buffer_index * index,
+  fun_id * current_fun_id, arity * param_count ) ;
+
 
 
 // Accessors to (parameter) values (getters).
 
 
-
-/// For tuples:
-
-
 /**
- * Returns the element i of specified tuple, as a term that shall be
- * deallocated.
+ * Returns the element at current buffer location, supposed to be a (long,
+ * signed) integer.
  *
  */
-ETERM * get_element_from_tuple( tuple_index i, ETERM *tuple_term ) ;
-
-
-// Returns the element i of specified tuple, as an integer.
-int get_element_as_int( tuple_index i, ETERM *tuple_term ) ;
-
-
-/**
- * Returns the element i of specified tuple, as an unsigned integer.
- *
- * Note: apparently, Erlang integers are rather returned as 'int', not 'unsigned
- * int'.
- *
- */
-unsigned int get_element_as_unsigned_int( tuple_index i, ETERM *tuple_term ) ;
-
-// Returns the element i of specified tuple, as a double.
-double get_element_as_double( tuple_index i, ETERM *tuple_term ) ;
-
-
-// char * get_element_as_atom( tuple_index i, ETERM *tuple_term ) is lacking.
-
-
-/**
- * Returns the element i of specified tuple, as a string (char *).
- *
- * Ownership of the returned string transferred to the caller.
- *
- * Note: cannot return a const char*, as the caller is to deallocate that
- * string.
- *
- */
-char * get_element_as_string( tuple_index i, ETERM *tuple_term ) ;
-
-
-
-/// For lists:
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list.
- *
- * Note that the return term shall be freed (with erl_free_term/1) by the
- * caller.
- *
- */
-ETERM * get_head( ETERM * list_term ) ;
-
-
-/**
- * Returns the tail of the specified, supposedly non-empty, list.
- *
- * Note that the return term shall be freed (with erl_free_term/1) by the
- * caller.
- *
- */
-ETERM * get_tail( ETERM * list_term ) ;
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list, as an integer.
- *
- */
-int get_head_as_int( ETERM * list_term ) ;
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list, as an unsigned
- * integer.
- *
- */
-unsigned int get_head_as_unsigned_int( ETERM * list_term ) ;
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list, as a C double.
- *
- */
-double get_head_as_double( ETERM * list_term ) ;
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list as an atom
- * (translated to a char*)
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
- *
- */
-char * get_head_as_atom( ETERM * list_term ) ;
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list, as a string.
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
- *
- */
-char * get_head_as_string( ETERM * list_term ) ;
-
-
-
-// Parameter-based getters:
+long get_int_parameter( byte * decode_buffer, buffer_index * index ) ;
 
 
 
 /**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be an integer.
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
+ * Returns the element at current buffer location, supposed to be a (long,
+ * unsigned) integer.
  *
  */
-int get_parameter_as_int( parameter_index index, ETERM ** parameters ) ;
+unsigned long get_unsigned_int_parameter( byte * decode_buffer,
+  buffer_index * index ) ;
+
 
 
 /**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be an unsigned integer.
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
+ * Returns the element at current buffer location, supposed to be a double.
  *
  */
-unsigned int get_parameter_as_unsigned_int( parameter_index index,
-  ETERM ** parameters ) ;
+double get_double_parameter( byte * decode_buffer, buffer_index * index ) ;
+
 
 
 /**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be an Erlang float (hence returning a C double).
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
+ * Returns the element at current buffer location, supposed to be an atom,
+ * translated to a char*, whose ownership is transferred to the caller (who is
+ * thus supposed to deallocate it ultimately, with standard free/1).
  *
  */
-double get_parameter_as_double( parameter_index index, ETERM ** parameters ) ;
+char * get_atom_parameter( byte * decode_buffer, buffer_index * index ) ;
+
 
 
 /**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be an atom, translated to a char*.
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
+ * Returns the element at current buffer location, supposed to be a (plain)
+ * string, whose ownership is transferred to the caller (who is thus supposed to
+ * deallocate it ultimately, with standard free/1).
  *
  */
-char * get_parameter_as_atom( parameter_index index, ETERM ** parameters ) ;
+char * get_string_parameter( byte * decode_buffer, buffer_index * index ) ;
+
 
 
 /**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be a (plain) string.
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
+ * Returns the element at current buffer location, supposed to be a binary,
+ * returned as a string whose ownership is transferred to the caller (who is
+ * thus supposed to deallocate it ultimately, with standard free/1).
  *
  */
-char * get_parameter_as_string( parameter_index index, ETERM ** parameters ) ;
+char * get_binary_parameter( byte * decode_buffer, buffer_index * index ) ;
 
 
 /**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be a binary.
+ * Reads the header of a list that is supposed to exist at current buffer
+ * location, and sets the specified size accordingly (i.e. with the number of
+ * elements in that list).
  *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
+ * Note: handles transparently the lists containing only small integers (0..255)
+ * that are unintendendly interpreted as strings.
  *
  */
-char * get_parameter_as_binary( parameter_index index, ETERM ** parameters ) ;
-
+void read_list_header_parameter( byte * decode_buffer, buffer_index * index,
+								 arity * size ) ;
 
 
 #endif // _SEAPLUS_GETTERS_H_

@@ -56,7 +56,11 @@ run() ->
 
 	MyFooData = foobar:bar( 3.14, full_speed ),
 
+	110 = MyFooData#foo_data.count,
+	0.0 = MyFooData#foo_data.value,
+
 	NewCount = foobar:foo( MyFooData#foo_data.count ),
+
 
 	Res = case foobar:tur() of
 
