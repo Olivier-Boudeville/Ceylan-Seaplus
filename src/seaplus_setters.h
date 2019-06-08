@@ -40,28 +40,28 @@
  * Writes in specified return buffer the specified boolean result.
  *
  */
-void write_bool_result( smart_buffer * sm_buff, bool b ) ;
+void write_bool_result( smart_buffer * output_sm_buf, bool b ) ;
 
 
 /**
  * Writes in specified return buffer the specified (signed) integer result.
  *
  */
-void write_int_result( smart_buffer * sm_buff, int i ) ;
+void write_int_result( smart_buffer * output_sm_buf, int i ) ;
 
 
 /**
  * Writes in specified return buffer the specified unsigned integer result.
  *
  */
-void write_unsigned_int_result( smart_buffer * sm_buff, unsigned int u ) ;
+void write_unsigned_int_result( smart_buffer * output_sm_buf, unsigned int u ) ;
 
 
 /**
  * Writes in specified return buffer the specified double result.
  *
  */
-void write_double_result( smart_buffer * sm_buff, double d ) ;
+void write_double_result( smart_buffer * output_sm_buf, double d ) ;
 
 
 /**
@@ -71,7 +71,7 @@ void write_double_result( smart_buffer * sm_buff, double d ) ;
  * Note: not taking ownership of the input string.
  *
  */
-void write_atom_result( smart_buffer * sm_buff, const char * atom_name ) ;
+void write_atom_result( smart_buffer * output_sm_buf, const char * atom_name ) ;
 
 
 /**
@@ -80,17 +80,29 @@ void write_atom_result( smart_buffer * sm_buff, const char * atom_name ) ;
  * Note: not taking ownership of the input string.
  *
  */
-void write_string_result( smart_buffer * sm_buff, const char * string ) ;
+void write_string_result( smart_buffer * output_sm_buf, const char * string ) ;
 
 
 /**
- * Writes in specified return buffer the specified binary result.
+ * Writes in specified return buffer the specified binary result, of specified
+ * size.
+ *
+ * Note: not taking ownership of the input binary.
+ *
+ */
+void write_binary_result( smart_buffer * output_sm_buf, const void * content,
+  byte_count size ) ;
+
+
+/**
+ * Writes in specified return buffer the specified binary result obtained from a
+ * string.
  *
  * Note: not taking ownership of the input string.
  *
  */
-void write_binary_result( smart_buffer * sm_buff, const void * content,
-  byte_count size ) ;
+void write_binary_string_result( smart_buffer * output_sm_buf,
+  const char * string ) ;
 
 
 /**
@@ -100,7 +112,8 @@ void write_binary_result( smart_buffer * sm_buff, const void * content,
  * will correspond to the expected terms to form said tuple.
  *
  */
-void write_tuple_header_result( smart_buffer * sm_buf, tuple_size size ) ;
+void write_tuple_header_result( smart_buffer * output_sm_buf,
+  tuple_size size ) ;
 
 
 /**

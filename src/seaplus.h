@@ -110,7 +110,7 @@ typedef int ei_error ;
 /**
  * Starts the C driver.
  *
- * Returns the encoding/decoding buffer.
+ * Returns the (plain) input buffer (for parameter decoding).
  *
  */
 byte * start_seaplus_driver() ;
@@ -147,12 +147,18 @@ void log_warning( const char * format, ... ) ;
 void raise_error( const char * format, ... ) ;
 
 
-/// Prepares for the encoding of the next upcoming command.
-void prepare_for_command( smart_buffer * sm_buf ) ;
+/**
+ * Prepares for the encoding of the next upcoming command.
+ *
+ * A buffer is specified, as in some cases (ex: interrupt handling) multiple
+ * output buffers may be useful.
+ *
+ */
+void prepare_for_command( smart_buffer * output_sm_buf ) ;
 
 
 /// Finalizes the current command.
-void finalize_command( smart_buffer * sm_buf ) ;
+void finalize_command( smart_buffer * output_sm_buf ) ;
 
 
 /**
@@ -178,6 +184,13 @@ void check_arity_is( arity expected, arity actual, fun_id id ) ;
 // Second, accessors to (result) values (setters):
 #include "seaplus_setters.h"
 
+
+// Initializes specified smart buffer (the internal fields thereof).
+void init_smart_buffer( smart_buffer * sm_buf ) ;
+
+
+// Clears the specified smart buffer (the internal fields thereof).
+void clear_smart_buffer( smart_buffer * sm_buf ) ;
 
 
 /**

@@ -57,7 +57,10 @@
 
 const char * default_log_base_filename = "seaplus-driver" ;
 
+
+// Default buffer size, typically for decoding input parameters:
 const byte_count buffer_size = 4096*8 ;
+
 
 // Default upper bound of string sizes:
 const byte_count string_size = 150 ;
@@ -293,7 +296,7 @@ void raise_error( const char * format, ... )
 /**
  * Starts the C driver.
  *
- * Returns the encoding/decoding buffer.
+ * Returns the (plain) input buffer (for parameter decoding).
  *
  */
 byte * start_seaplus_driver()
@@ -311,7 +314,7 @@ byte * start_seaplus_driver()
 
   start_logging( log_filename ) ;
 
-  LOG_DEBUG( "Starting the Seaplus C driver, with a buffer of %u bytes.",
+  LOG_DEBUG( "Starting the Seaplus C driver, with an input buffer of %u bytes.",
 			 buffer_size ) ;
 
   ei_error error = ei_init() ;
@@ -320,22 +323,22 @@ byte * start_seaplus_driver()
 	raise_error( "The ei service could not be successfully initialized: %s.",
 	  strerror( error ) ) ;
 
-  byte * buffer = (byte *) malloc( buffer_size ) ;
+  byte * input_buffer = (byte *) malloc( buffer_size ) ;
 
-  if ( buffer == NULL )
-	raise_error( "Buffer allocation failed." ) ;
+  if ( input_buffer == NULL )
+	raise_error( "Allocation of the input buffer failed." ) ;
 
-  return buffer ;
+  return input_buffer ;
 
 }
 
 
 
 /**
- * Stops the C driver.
+ * Stops the C Seaplus driver.
  *
  */
-void stop_seaplus_driver( byte * buffer )
+void stop_seaplus_driver( byte * input_buffer )
 {
 
   LOG_DEBUG( "Stopping the Seaplus C driver." ) ;
@@ -347,8 +350,8 @@ void stop_seaplus_driver( byte * buffer )
 
   }
 
-  free( buffer ) ;
-  buffer = NULL ;
+  free( input_buffer ) ;
+  input_buffer = NULL ;
 
   // No ei_init/0 counterpart found.
 
@@ -358,29 +361,54 @@ void stop_seaplus_driver( byte * buffer )
 
 
 
-/// Prepares for the encoding of the next upcoming command.
-void prepare_for_command( smart_buffer * sm_buf )
+// Initializes specified smart buffer (the internal fields thereof).
+void init_smart_buffer( smart_buffer * sm_buf )
 {
 
-  int res = ei_x_new_with_version( sm_buf ) ;
-
-  if ( res != 0 )
-	raise_error( "Preparing for next command failed (code: %i).", res ) ;
+  if ( ei_x_new_with_version( sm_buf ) != 0 )
+	raise_error( "Allocation of smart buffer failed." ) ;
 
 }
 
 
 
-/// Finalizes the current command.
-void finalize_command( smart_buffer * sm_buf )
+// Clears the specified smart buffer (the internal fields thereof).
+void clear_smart_buffer( smart_buffer * sm_buf )
 {
 
-  write_buffer( sm_buf ) ;
+ if ( ei_x_free( sm_buf ) != 0 )
+	raise_error( "Clearing of smart buffer failed." ) ;
 
-  int res = ei_x_free( sm_buf ) ;
+}
 
-  if ( res != 0 )
-	raise_error( "Clean-up after command failed (code: %i).", res ) ;
+
+
+/**
+ * Prepares for the encoding of the next upcoming command.
+ *
+ * A (smart) buffer is specified, as in some cases (ex: interrupt handling)
+ * multiple output buffers may be useful.
+ *
+ */
+void prepare_for_command( smart_buffer * output_sm_buf )
+{
+
+  /* finalize_command/1 is expected to have already freed appropriately the
+   * internals of that smart buffer:
+   *
+   */
+  init_smart_buffer( output_sm_buf ) ;
+
+}
+
+
+/// Finalizes the current command.
+void finalize_command( smart_buffer * output_sm_buf )
+{
+
+  write_buffer( output_sm_buf ) ;
+
+  clear_smart_buffer( output_sm_buf ) ;
 
 }
 
@@ -479,13 +507,14 @@ byte_count read_command( byte *buf )
 }
 
 
+
 /**
  * Determines, from specified buffer, the information regarding the
  * (Erlang-side) specified function, namely its function identifier and its
  * parameters, set in the variables whose reference (pointer) is specified.
  *
  */
-void get_function_information( byte * buffer, buffer_index * index,
+void get_function_information( byte * input_buffer, buffer_index * index,
   fun_id * current_fun_id, arity * param_count )
 {
 
@@ -499,11 +528,9 @@ void get_function_information( byte * buffer, buffer_index * index,
 	 * Erlang binary term format (131, at the time of this writing).
 	 *
 	 */
-	ei_error error = ei_decode_version( buffer, index, &format_version ) ;
-
-	if ( error != 0 )
+	if ( ei_decode_version( input_buffer, index, &format_version ) != 0 )
 	  raise_error( "The version magic number of the binary term format could "
-		"not be successfully decoded: %s.", strerror( error ) ) ;
+		"not be successfully decoded." ) ;
 
 	LOG_DEBUG( "Read Erlang binary term format version number: %i, "
 	  "from index %i.", format_version, *index ) ;
@@ -520,12 +547,9 @@ void get_function_information( byte * buffer, buffer_index * index,
 
   tuple_size tuple_s ;
 
-  error = ei_decode_tuple_header( buffer, index, &tuple_s ) ;
-
-  if ( error != 0 )
-	raise_error( "The function pair could not be successfully decoded: %s. "
-	  "Detected type: %s.", strerror( error ),
-	  interpret_type_at( buffer, index ) ) ;
+  if ( ei_decode_tuple_header( input_buffer, index, &tuple_s ) != 0 )
+	raise_error( "The function pair could not be successfully decoded. "
+	  "Detected type: %s.", interpret_type_at( input_buffer, index ) ) ;
 
   if ( tuple_s != 2 )
 	raise_error( "Unexpected size of function tuple: not a pair, "
@@ -536,12 +560,10 @@ void get_function_information( byte * buffer, buffer_index * index,
 	 * identifier (ex: whose value is FOO_1_ID):
 	 *
 	 */
-  error = ei_decode_long( buffer, index, current_fun_id ) ;
-
-  if ( error != 0 )
+  if ( ei_decode_long( input_buffer, index, current_fun_id ) != 0 )
 	raise_error( "The function identifier could not be successfully "
-	  "decoded: %s. Detected type: %s.", strerror( error ),
-	  interpret_type_at( buffer, index ) ) ;
+	  "decoded. Detected type: %s.",
+	  interpret_type_at( input_buffer, index ) ) ;
 
   LOG_DEBUG( "Reading command: function identifier is %i (index is %i).",
 	*current_fun_id, *index ) ;
@@ -550,11 +572,11 @@ void get_function_information( byte * buffer, buffer_index * index,
    * arity of the function to be called can be checked):
    *
    */
-  read_list_header_parameter( buffer, index, param_count ) ;
+  read_list_header_parameter( input_buffer, index, param_count ) ;
 
   LOG_DEBUG( "%u parameter(s) received for this function.", *param_count ) ;
 
-  /* The (*param_count)+1 elements follow in the buffer, starting from the
+  /* The (*param_count)+1 elements follow in the input buffer, starting from the
    * current updated index (the last one is the tail of the list, normally an
    * empty list).
    *
@@ -908,12 +930,10 @@ void read_list_header_parameter( byte * buffer, buffer_index * index,
  * Writes in specified return buffer the specified bool result.
  *
  */
-void write_bool_result( smart_buffer * sm_buf, bool b )
+void write_bool_result( smart_buffer * output_sm_buf, bool b )
 {
 
-  int res = ei_x_encode_boolean( sm_buf, b ) ;
-
-  if ( res != 0 )
+  if ( ei_x_encode_boolean( output_sm_buf, b ) != 0 )
 	raise_error( "Erlang bool encoding failed." ) ;
 
 }
@@ -924,12 +944,10 @@ void write_bool_result( smart_buffer * sm_buf, bool b )
  * Writes in specified return buffer the specified (signed) integer result.
  *
  */
-void write_int_result( smart_buffer * sm_buf, int i )
+void write_int_result( smart_buffer * output_sm_buf, int i )
 {
 
-  int res = ei_x_encode_long( sm_buf, (long) i ) ;
-
-  if ( res != 0 )
+  if ( ei_x_encode_long( output_sm_buf, (long) i ) != 0 )
 	raise_error( "Erlang (signed) integer encoding failed." ) ;
 
 }
@@ -940,12 +958,10 @@ void write_int_result( smart_buffer * sm_buf, int i )
  * Writes in specified return buffer the specified unsigned integer result.
  *
  */
-void write_unsigned_int_result( smart_buffer * sm_buf, unsigned int u )
+void write_unsigned_int_result( smart_buffer * output_sm_buf, unsigned int u )
 {
 
-  int res = ei_x_encode_ulong( sm_buf, (unsigned long) u ) ;
-
-  if ( res != 0 )
+  if ( ei_x_encode_ulong( output_sm_buf, (unsigned long) u ) != 0 )
 	raise_error( "Erlang unsigned integer encoding failed." ) ;
 
 }
@@ -956,12 +972,10 @@ void write_unsigned_int_result( smart_buffer * sm_buf, unsigned int u )
  * Writes in specified return buffer the specified double result.
  *
  */
-void write_double_result( smart_buffer * sm_buf, double d )
+void write_double_result( smart_buffer * output_sm_buf, double d )
 {
 
-  int res = ei_x_encode_double( sm_buf, d ) ;
-
-  if ( res != 0 )
+  if ( ei_x_encode_double( output_sm_buf, d ) != 0 )
 	raise_error( "Erlang double encoding failed." ) ;
 
 }
@@ -975,14 +989,12 @@ void write_double_result( smart_buffer * sm_buf, double d )
  * Note: not taking ownership of the input string.
  *
  */
-void write_atom_result( smart_buffer * sm_buf, const char * atom_name )
+void write_atom_result( smart_buffer * output_sm_buf, const char * atom_name )
 {
 
   size_t len = strlen( atom_name ) ;
 
-  int res = ei_x_encode_atom_len( sm_buf, atom_name, len ) ;
-
-  if ( res != 0 )
+  if ( ei_x_encode_atom_len( output_sm_buf, atom_name, len ) != 0 )
 	raise_error( "Erlang atom encoding failed for '%s'.", atom_name ) ;
 
   // Not owned: free( atom_name ) ;
@@ -998,14 +1010,13 @@ void write_atom_result( smart_buffer * sm_buf, const char * atom_name )
  * Note: not taking ownership of the input string.
  *
  */
-void write_string_result( smart_buffer * sm_buf, const char * string )
+void write_string_result( smart_buffer * output_sm_buf, const char * string )
 {
 
   size_t len = strlen( string ) ;
 
-  int res = ei_x_encode_string_len( sm_buf, string, len ) ;
-
-  if ( res != 0 )
+  // Not including the NULL terminator:
+  if ( ei_x_encode_string_len( output_sm_buf, string, len ) != 0 )
 	raise_error( "Erlang string encoding failed for '%s'.",
 				 string ) ;
 
@@ -1016,19 +1027,37 @@ void write_string_result( smart_buffer * sm_buf, const char * string )
 
 
 /**
- * Writes in specified return buffer the specified binary result.
+ * Writes in specified return buffer the specified binary result, of specified
+ * size.
  *
- * Note: not taking ownership of the input content.
+ * Note: not taking ownership of the input binary.
  *
  */
-void write_binary_result( smart_buffer * sm_buf, const void * content,
+void write_binary_result( smart_buffer * output_sm_buf, const void * content,
 						  byte_count size )
 {
 
-  int res = ei_x_encode_binary( sm_buf, content, size ) ;
-
-  if ( res != 0 )
+  if ( ei_x_encode_binary( output_sm_buf, content, size ) != 0 )
 	raise_error( "Erlang binary encoding failed." ) ;
+
+}
+
+
+
+/**
+ * Writes in specified return buffer the specified binary result obtained from a
+ * string.
+ *
+ * Note: not taking ownership of the input string.
+ *
+ */
+void write_binary_string_result( smart_buffer * output_sm_buf,
+  const char * string )
+{
+
+  // Not including the NULL terminator:
+  if ( ei_x_encode_binary( output_sm_buf, string, strlen( string ) ) != 0 )
+	raise_error( "Erlang binary encoding from string failed." ) ;
 
 }
 
@@ -1041,10 +1070,10 @@ void write_binary_result( smart_buffer * sm_buf, const void * content,
  * will correspond to the expected terms to form said tuple.
  *
  */
-void write_tuple_header_result( smart_buffer * sm_buf, tuple_size size )
+void write_tuple_header_result( smart_buffer * output_sm_buf, tuple_size size )
 {
 
-  int res = ei_x_encode_tuple_header( sm_buf, size ) ;
+  int res = ei_x_encode_tuple_header( output_sm_buf, size ) ;
 
   if ( res != 0 )
 	raise_error( "Tuple header encoding failed (for size %i).", size ) ;
@@ -1098,10 +1127,10 @@ byte_count write_exact( byte *buf, byte_count len )
  * Returns the number of bytes written.
  *
  */
-byte_count write_buffer( smart_buffer * sm_buf )
+byte_count write_buffer( smart_buffer * output_sm_buf )
 {
 
-  unsigned int len = sm_buf->index ;
+  unsigned int len = output_sm_buf->index ;
 
   if ( len + 2 > buffer_size )
   {
@@ -1123,7 +1152,7 @@ byte_count write_buffer( smart_buffer * sm_buf )
   len_byte = len & 0xff ;
   write_exact( &len_byte, 1 ) ;
 
-  return write_exact( sm_buf->buff, sm_buf->index ) ;
+  return write_exact( output_sm_buf->buff, output_sm_buf->index ) ;
 
 }
 

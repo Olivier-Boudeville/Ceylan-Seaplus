@@ -34,7 +34,8 @@
 
 enum foo_status get_foo_status_from_atom( const char * atom_name ) ;
 
-void write_foo_data_record_from_struct( smart_buffer * sm_buf, struct foo_data * s ) ;
+void write_foo_data_record_from_struct( smart_buffer * output_sm_buf,
+  struct foo_data * s ) ;
 
 enum tur_status get_tur_status_enum_from_atom_name( const char * atom_name ) ;
 
@@ -43,24 +44,24 @@ int main()
 {
 
   // Provided by the Seaplus library:
-  byte * buffer = start_seaplus_driver() ;
+  byte * input_buf = start_seaplus_driver() ;
 
   // For the mandatory result:
-  smart_buffer sm_buf ;
+  smart_buffer output_sm_buf ;
 
-  LOG_TRACE( "Driver started." ) ;
+  LOG_TRACE( "Foobar Driver started." ) ;
 
   /* Reads a full command from (receive) buffer, based on its initial length:
    *
    * (a single term is expected hence read)
    *
    */
-  while ( read_command( buffer ) > 0 )
+  while ( read_command( input_buf ) > 0 )
   {
 
 	LOG_TRACE( "New command received." ) ;
 
-	// Current index in the input buffer (to decode):
+	// Current index in the input buffer (for decoding purpose):
 	buffer_index index = 0 ;
 
 	/* Will be set to the corresponding Seaplus-defined function identifier (ex:
@@ -75,12 +76,12 @@ int main()
 	 */
 	arity param_count ;
 
-	get_function_information( buffer, &index, &current_fun_id, &param_count ) ;
+	get_function_information( input_buf, &index, &current_fun_id, &param_count ) ;
 
 	LOG_DEBUG( "Function identifier is %u, arity is %u (new index is %u).",
 	  current_fun_id, param_count, index ) ;
 
-	prepare_for_command( &sm_buf ) ;
+	prepare_for_command( &output_sm_buf ) ;
 
 
 	// Now, taking care of the corresponding function call:
@@ -95,7 +96,7 @@ int main()
 	  check_arity_is( 1, param_count, FOO_1_ID ) ;
 
 	  // So we expect the (single, hence first) parameter to be an integer:
-	  long foo_a_param = get_int_parameter( buffer, &index ) ;
+	  long foo_a_param = get_int_parameter( input_buf, &index ) ;
 
 	  LOG_DEBUG( "foo/1's integer parameter: %ld.", foo_a_param ) ;
 
@@ -105,7 +106,7 @@ int main()
 	  LOG_DEBUG( "foo/1's integer result: %i.", foo_result ) ;
 
 	  // Sending of the result:
-	  write_int_result( &sm_buf, foo_result ) ;
+	  write_int_result( &output_sm_buf, foo_result ) ;
 
 	  break ;
 
@@ -122,10 +123,10 @@ int main()
 	  check_arity_is( 2, param_count, BAR_2_ID ) ;
 
 	  // Getting first the Erlang float:
-	  double bar_double_param = get_double_parameter( buffer, &index ) ;
+	  double bar_double_param = get_double_parameter( input_buf, &index ) ;
 
 	  // Then the atom for foo_status():
-	  char * atom_name = get_atom_parameter( buffer, &index ) ;
+	  char * atom_name = get_atom_parameter( input_buf, &index ) ;
 
 	  // Converting said atom for the C API:
 	  enum foo_status bar_status_param = get_foo_status_from_atom( atom_name ) ;
@@ -135,7 +136,7 @@ int main()
 	  // Actual call (ownership of struct_res transferred to this caller):
 	  struct foo_data * struct_res = bar( bar_double_param, bar_status_param ) ;
 
-	  write_foo_data_record_from_struct( &sm_buf, struct_res ) ;
+	  write_foo_data_record_from_struct( &output_sm_buf, struct_res ) ;
 
 	  free( struct_res ) ;
 
@@ -154,10 +155,10 @@ int main()
 	  check_arity_is( 2, param_count, BAZ_2_ID ) ;
 
 	  // Getting first the (unsigned) integer:
-	  int baz_int_param = get_int_parameter( buffer, &index ) ;
+	  int baz_int_param = get_int_parameter( input_buf, &index ) ;
 
 	  // Then the string:
-	  char * baz_string_param = get_string_parameter( buffer, &index ) ;
+	  char * baz_string_param = get_string_parameter( input_buf, &index ) ;
 
 	  // Actual call:
 	  enum tur_status enum_res = baz( baz_int_param, baz_string_param ) ;
@@ -165,9 +166,9 @@ int main()
 	  free( baz_string_param ) ;
 
 	  if ( enum_res == tur_value )
-		 write_atom_result( &sm_buf, "tur_value" ) ;
+		 write_atom_result( &output_sm_buf, "tur_value" ) ;
 	  else if ( enum_res == non_tur_value )
-		 write_atom_result( &sm_buf, "non_tur_value" ) ;
+		 write_atom_result( &output_sm_buf, "non_tur_value" ) ;
 	  else
 		raise_error( "Unexpected tur_status enum: %i", enum_res ) ;
 
@@ -186,7 +187,7 @@ int main()
 	  bool res = tur() ;
 
 	  // Sending of the result atom:
-	  write_bool_result( &sm_buf, res ) ;
+	  write_bool_result( &output_sm_buf, res ) ;
 
 	  break ;
 
@@ -202,13 +203,15 @@ int main()
 
 	  check_arity_is( 1, param_count, FROB_1_ID ) ;
 
-	  char * tur_atom_name = get_atom_parameter( buffer, &index ) ;
+	  char * tur_atom_name = get_atom_parameter( input_buf, &index ) ;
 
 	  enum tur_status s = get_tur_status_enum_from_atom_name( tur_atom_name ) ;
 
+	  free( tur_atom_name ) ;
+
 	  char * string_res = frob( s ) ;
 
-	  write_string_result( &sm_buf, string_res ) ;
+	  write_string_result( &output_sm_buf, string_res ) ;
 
 	  break ;
 
@@ -218,11 +221,13 @@ int main()
 
 	}
 
-	finalize_command( &sm_buf ) ;
+	finalize_command( &output_sm_buf ) ;
 
   }
 
-  stop_seaplus_driver( buffer ) ;
+  // output_sm_buf internally already freed appropriately.
+
+  stop_seaplus_driver( input_buf ) ;
 
 }
 
@@ -261,20 +266,25 @@ enum foo_status get_foo_status_from_atom( const char * atom_name )
  * Note: ownership of the returned term transferred to the caller.
  *
  */
-void write_foo_data_record_from_struct( smart_buffer * sm_buf,
+void write_foo_data_record_from_struct( smart_buffer * output_sm_buf,
   struct foo_data * s )
 {
 
-  write_tuple_header_result( sm_buf, 3 ) ;
+  write_tuple_header_result( output_sm_buf, 3 ) ;
 
-  write_atom_result( sm_buf, "foo_data" ) ;
-  write_int_result( sm_buf, s->count ) ;
-  write_double_result( sm_buf, s->value ) ;
+  write_atom_result( output_sm_buf, "foo_data" ) ;
+  write_int_result( output_sm_buf, s->count ) ;
+  write_double_result( output_sm_buf, s->value ) ;
 
 }
 
 
-// Returns a tur_status enum from specified atom name (as a string).
+/**
+ * Returns a tur_status enum from specified atom name (as a string).
+ *
+ * Note: not taking ownership of the input atom).
+ *
+ */
 enum tur_status get_tur_status_enum_from_atom_name( const char * atom_name )
 {
 
