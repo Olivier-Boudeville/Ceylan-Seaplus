@@ -31,14 +31,42 @@
 #ifndef _SEAPLUS_H_
 #define _SEAPLUS_H_
 
+
 // For ssize_t:
 #include <unistd.h>
 
 
+// For ei_x_buff and encoding/decoding functions:
+#include "ei.h"
+
+
 // Seaplus-defined types:
 
-// To address the message buffer:
-typedef unsigned char byte;
+
+/**
+ * To address the message buffer:
+ *
+ * (switched to signed, to accommodate ei; beware to size computation when
+ * performing bitwise operations)
+ *
+ */
+//typedef unsigned char byte;
+typedef char byte;
+
+
+/* Opaque type.
+ *
+ * Means that the input_buffer is a pointer to an array of bytes.
+ *
+ * The extra pointer indirection is necessary so that the array may be
+ * realloc'ed, should a large enough term have to be read.
+ *
+ */
+typedef byte **input_buffer ;
+
+
+// A smart buffer for encoding (meant to be an opaque type):
+typedef ei_x_buff output_buffer ;
 
 
 // As a number of bytes (negative values meaning errors):
@@ -57,10 +85,10 @@ extern const byte_count buffer_size ;
 
 
 // Seaplus reference onto an Erlang API function:
-typedef unsigned int fun_id ;
+typedef long int fun_id ;
 
 // The arity of an Erlang function (i.e. a count of parameters):
-typedef unsigned int arity ;
+typedef int arity ;
 
 // Index of a parameter (starts at 1):
 typedef unsigned int parameter_index ;
@@ -70,8 +98,11 @@ typedef unsigned int list_size ;
 
 typedef unsigned int string_len ;
 
-typedef unsigned int tuple_size ;
+// To accommodate ei:
+//typedef unsigned int tuple_size ;
+typedef int tuple_size ;
 
+typedef int ei_error ;
 
 // For bool:
 #include <stdbool.h>
@@ -79,14 +110,6 @@ typedef unsigned int tuple_size ;
 
 // Seaplus-provided functions (roughly listed in their expected order of use)
 
-
-// No forward declaration seems possible:
-//struct ETERM ;
-
-// So:
-
-// For ETERM and all:
-#include "erl_interface.h"
 
 
 // By default, enable logging:
@@ -100,10 +123,10 @@ typedef unsigned int tuple_size ;
 /**
  * Starts the C driver.
  *
- * Returns the encoding/decoding buffer.
+ * Sets the input buffer.
  *
  */
-byte * start_seaplus_driver() ;
+void start_seaplus_driver( input_buffer buf ) ;
 
 
 
@@ -138,11 +161,32 @@ void raise_error( const char * format, ... ) ;
 
 
 /**
+ * Prepares for the encoding of the next upcoming command.
+ *
+ * A buffer is specified, as in some cases (ex: interrupt handling) multiple
+ * output buffers may be useful.
+ *
+ */
+void prepare_for_command( output_buffer * output_sm_buf ) ;
+
+
+/**
+ * Finalizes the current command, provided it performed directly at least one
+ * write, which is by far the most general case.
+ *
+ * Not to be called if the actual writing is to be done elsewhere (ex: from an
+ * interrupt handler triggered later, asynchronously).
+ *
+ */
+void finalize_command_after_writing( output_buffer * output_sm_buf ) ;
+
+
+/**
  * Receives the next command from the port's input file descriptor, and stores
  * it in the specified buffer.
  *
  */
-byte_count read_command( byte *buf ) ;
+byte_count read_command( input_buffer buf ) ;
 
 
 /**
@@ -161,31 +205,29 @@ void check_arity_is( arity expected, arity actual, fun_id id ) ;
 #include "seaplus_setters.h"
 
 
+
 /**
- * Returns a binary string for specified (NULL-terminated) C string.
- *
- * Does not take ownership of the specified C string.
- *
- * (lacking in a direct form in
- * http://erlang.org/doc/man/erl_eterm.html#erl_mk_binary)
+ * Initializes the main smart buffer (the internal fields thereof) according to
+ * the Erlang binary format.
  *
  */
-ETERM * make_bin_string( const char * c_string ) ;
-
+void init_output_buffer( output_buffer * sm_buf ) ;
 
 
 /**
- * Performs housekeeping after a command has been executed.
+ * Clears the specified (main or auxiliary) smart buffer (the internal fields
+ * thereof).
  *
  */
-void clean_up_command( ETERM * call_term, ETERM ** parameters ) ;
+void clear_output_buffer( output_buffer * sm_buf ) ;
+
 
 
 /**
  * Stops the C driver.
  *
  */
-void stop_seaplus_driver( byte * buffer ) ;
+void stop_seaplus_driver( input_buffer buffer ) ;
 
 
 // Mostly exported for separate testing:

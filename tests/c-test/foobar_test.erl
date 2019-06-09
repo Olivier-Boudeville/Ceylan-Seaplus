@@ -56,7 +56,11 @@ run() ->
 
 	MyFooData = foobar:bar( 3.14, full_speed ),
 
+	110 = MyFooData#foo_data.count,
+	0.0 = MyFooData#foo_data.value,
+
 	NewCount = foobar:foo( MyFooData#foo_data.count ),
+
 
 	Res = case foobar:tur() of
 
@@ -76,8 +80,8 @@ run() ->
 	% Better than { ok, 4 }, as we rely on exception support:
 	4 = foobar:foo( 3 ),
 
-	test_facilities:display( "Now triggering on purpose a crash of the "
-							 "integrated service." ),
+	test_facilities:display( "Base testing successful.~nNow triggering on "
+							 "purpose a crash of the integrated service." ),
 
 	% Throwing an exception is better than returning { error, FailReason }:
 	FooCrashed = try

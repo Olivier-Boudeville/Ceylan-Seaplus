@@ -57,14 +57,68 @@
 
 const char * default_log_base_filename = "seaplus-driver" ;
 
+
+// Default buffer size, typically for decoding input parameters:
 const byte_count buffer_size = 4096*8 ;
 
+
+// Default upper bound of string sizes:
+const byte_count string_size = 150 ;
+
+
+// For reading and writing terms:
+input_buffer buffer = NULL ;
 
 // Actual file used for logging:
 FILE * log_file = NULL ;
 
 
+/**
+ * Tells whether a list (ex: the top-level parameter one, or one that is nested
+ * in it) was wrongly encoded by term_to_binary/1 as a string (a series of
+ * bytes, i.e. 8-bit characters) instead of a real list happening to contain
+ * only small integers; see
+ * http://erlang.org/doc/man/ei.html#ei_decode_list_header for more details.
+ *
+ * This "simple" scheme will work as string-encoded lists cannot be nested (so
+ * there is up to one level of them).
+ *
+ * Note that, afterwards, for that command, only get_int_parameter/2 will read
+ * its data from that list-as-a-string.
+ *
+ */
+bool encoded_as_string ;
+
+
+/**
+ * The temporary string whence list element will be read, should an unintended
+ * string-encoding of a list have been done:
+ *
+ */
+char * encoded_string = NULL ;
+
+
+/**
+ * The index within a list encoded as a string corresponding to the next
+ * (integer) element that will be read:
+ *
+ */
+buffer_index encoded_index ;
+
+
+/// The number of elements in any current list encoded as a string.
+list_size encoded_length ;
+
+
 #include <stdio.h>
+
+
+// Forward references:
+
+void check_encoded_list() ;
+
+char * interpret_type_at( const input_buffer buffer,
+  const buffer_index * index ) ;
 
 
 /*
@@ -103,6 +157,7 @@ void start_logging( const char * log_filename )
 #endif // SEAPLUS_ENABLE_LOG
 
 }
+
 
 
 void stop_logging()
@@ -241,10 +296,10 @@ void raise_error( const char * format, ... )
 /**
  * Starts the C driver.
  *
- * Returns the encoding/decoding buffer.
+ * Returns the (plain) input buffer (for parameter decoding).
  *
  */
-byte * start_seaplus_driver()
+void start_seaplus_driver( input_buffer buf )
 {
 
   pid_t current_pid = getpid() ;
@@ -259,123 +314,108 @@ byte * start_seaplus_driver()
 
   start_logging( log_filename ) ;
 
-  LOG_DEBUG( "Starting the Seaplus C driver, with a buffer of %u bytes.",
+  LOG_DEBUG( "Starting the Seaplus C driver, with an input buffer of %u bytes.",
 			 buffer_size ) ;
 
-  /* Initiating memory handling, always as:
-	 (see http://erlang.org/doc/man/erl_eterm.html#erl_init)
-   */
-  erl_init( NULL, 0 ) ;
+  ei_error error = ei_init() ;
 
-  byte * buffer = (byte *) malloc( buffer_size ) ;
+  if ( error != 0 )
+	raise_error( "The ei service could not be successfully initialized: %s.",
+	  strerror( error ) ) ;
 
-  if ( buffer == NULL )
-	raise_error( "Buffer allocation failed." ) ;
+  *buf = (byte *) malloc( buffer_size ) ;
 
-#ifdef DEBUG_SEAPLUS
-
-  long unsigned int allocated_count, freed_count ;
-
-  erl_eterm_statistics( &allocated_count , &freed_count ) ;
-
-  LOG_TRACE( "At start-up: currently allocated blocks: %ld; "
-	"length of freelist: %ld.", allocated_count, freed_count ) ;
-
-#endif // DEBUG_SEAPLUS
-
-  return buffer ;
-
-}
-
-
-
-// Performs housekeeping after a command has been executed.
-void clean_up_command( ETERM * call_term, ETERM ** parameters )
-{
-
-#ifdef DEBUG_SEAPLUS
-
-	long unsigned int allocated_count, freed_count ;
-
-#endif // DEBUG_SEAPLUS
-
-	/*
-	erl_eterm_statistics( &allocated_count, &freed_count ) ;
-
-	LOG_TRACE( "Before term release: currently allocated blocks: %ld; "
-	  "length of freelist: %ld.", allocated_count, freed_count ) ;
-
-	erl_eterm_release() ;
-
-
-	erl_eterm_statistics( &allocated_count, &freed_count ) ;
-
-	LOG_TRACE( "After term release: currently allocated blocks: %ld; "
-	  "length of freelist: %ld.", allocated_count, freed_count ) ;
-
-	*/
-
-	erl_free_compound( call_term ) ;
-
-	/*
-	erl_eterm_statistics( &allocated_count, &freed_count ) ;
-
-	LOG_TRACE( "After free: currently allocated blocks: %ld; "
-	  "length of freelist: %ld.", allocated_count, freed_count ) ;
-
-	*/
-
-	erl_eterm_release() ;
-
-#ifdef DEBUG_SEAPLUS
-
-	erl_eterm_statistics( &allocated_count, &freed_count ) ;
-
-	/*
-	LOG_TRACE( "After second term release: currently allocated blocks: %ld; "
-	  "length of freelist: %ld.", allocated_count, freed_count ) ;
-	*/
-
-	if ( allocated_count != 0 )
-	  log_warning( "At command clean-up, still %lu allocated blocks.",
-		allocated_count ) ;
-
-#endif // DEBUG_SEAPLUS
-
-	free( parameters ) ;
+  if ( *buf == NULL )
+	raise_error( "Allocation of the input buffer failed." ) ;
 
 }
 
 
 
 /**
- * Stops the C driver.
+ * Stops the C Seaplus driver.
  *
  */
-void stop_seaplus_driver( byte * buffer )
+void stop_seaplus_driver( input_buffer input_buffer )
 {
 
   LOG_DEBUG( "Stopping the Seaplus C driver." ) ;
 
-  free( buffer ) ;
+  if ( encoded_string != NULL )
+  {
+	  free( encoded_string ) ;
+	  encoded_string = NULL ;
 
-#ifdef DEBUG_SEAPLUS
+  }
 
-  long unsigned int allocated_count, freed_count ;
+  free( *input_buffer ) ;
+  *input_buffer = NULL ;
 
-  erl_eterm_statistics( &allocated_count , &freed_count ) ;
-
-  LOG_TRACE( "At stop: currently allocated blocks: %ld; "
-	"length of freelist: %ld.", allocated_count, freed_count ) ;
-
-  if ( allocated_count != 0 )
-	log_warning( "At stop, still %lu allocated blocks.", allocated_count ) ;
-
- #endif // DEBUG_SEAPLUS
-
-  // No erl_init/2 counterpart.
+  // No ei_init/0 counterpart found.
 
   stop_logging() ;
+
+}
+
+
+
+/**
+ * Initializes the main smart buffer (the internal fields thereof) according to
+ * the Erlang binary format.
+ *
+ */
+void init_output_buffer( output_buffer * sm_buf )
+{
+
+  if ( ei_x_new_with_version( sm_buf ) != 0 )
+	raise_error( "Initialization of smart buffer failed." ) ;
+
+}
+
+
+
+// Clears the specified smart buffer (the internal fields thereof).
+void clear_output_buffer( output_buffer * sm_buf )
+{
+
+ if ( ei_x_free( sm_buf ) != 0 )
+	raise_error( "Clearing of smart buffer failed." ) ;
+
+}
+
+
+
+/**
+ * Prepares for the encoding of the next upcoming command.
+ *
+ * A (smart) buffer is specified, as in some cases (ex: interrupt handling)
+ * multiple output buffers may be useful.
+ *
+ */
+void prepare_for_command( output_buffer * output_sm_buf )
+{
+
+  /* finalize_command/1 is expected to have already freed appropriately the
+   * internals of that smart buffer:
+   *
+   */
+  init_output_buffer( output_sm_buf ) ;
+
+}
+
+
+
+/**
+ * Finalizes the current command, supposed to have performed a writing (which is
+ * by far the most general case).
+ *
+ */
+void finalize_command_after_writing( output_buffer * output_sm_buf )
+{
+
+  write_buffer( output_sm_buf ) ;
+
+  clear_output_buffer( output_sm_buf ) ;
 
 }
 
@@ -389,10 +429,12 @@ void stop_seaplus_driver( byte * buffer )
  * (helper)
  *
  */
-byte_count read_exact( byte *buf, byte_count len )
+byte_count read_exact( byte * buf, byte_count len )
 {
 
   byte_count got = 0 ;
+
+  LOG_DEBUG( "%d bytes to read.", len ) ;
 
   do
   {
@@ -408,15 +450,19 @@ byte_count read_exact( byte *buf, byte_count len )
 		return 0 ;
 
 	  // Expected to be -1 (error) then:
-	  raise_error( "Reading from buffer failed: %s.", strerror( errno ) ) ;
+	  raise_error( "Reading from buffer %p at position %i "
+		"for a count of %i bytes failed: %s.", buf, got, len-got,
+		strerror( errno ) ) ;
 
 	}
+
+	LOG_DEBUG( "%i bytes actually read.", len ) ;
 
 	got += i ;
 
   } while ( got < len ) ;
 
-  //LOG_DEBUG( "Read %i bytes.", len ) ;
+  LOG_DEBUG( "Read %i bytes.", len ) ;
 
   return len ;
 
@@ -429,25 +475,33 @@ byte_count read_exact( byte *buf, byte_count len )
  * it in the specified buffer.
  *
  */
-byte_count read_command( byte *buf )
+byte_count read_command( input_buffer buf )
 {
 
+  LOG_DEBUG( "Reading a new command, from address %p.", buf ) ;
+
   // Two bytes for command length:
-  byte_count len = read_exact( buf, 2 ) ;
+  byte_count len = read_exact( *buf, 2 ) ;
 
   // Not reading these length bytes may not be abnormal, if stopping:
   if ( len == 2 )
   {
 
-	len = (buf[0] << 8) | buf[1] ;
 
-	//LOG_DEBUG( "Will read %i bytes.", len ) ;
+	// Beware to infamous signed chars and negative lengths:
+	len = ( ( ((unsigned char *) (*buf))[0] ) << 8)
+	  | ( ((unsigned char *) (*buf))[1] ) ;
+
+	LOG_DEBUG( "Command payload to read: %d bytes.", len ) ;
+
+	if ( len < 0 )
+	  raise_error( "Invalid length to read (%d bytes).", len ) ;
 
 	if ( len + 2 > buffer_size )
 	  raise_error( "Read length (%i) is too high (buffer size: %i).",
 		len, buffer_size ) ;
 
-	return read_exact( buf, len ) ;
+	return read_exact( *buf, len ) ;
 
   }
   else
@@ -455,8 +509,10 @@ byte_count read_command( byte *buf )
 
 	if ( len == 0 )
 	{
-	  // The port must have been closed:
+
+	  LOG_DEBUG( "No byte read, port expected to be closed." ) ;
 	  return 0 ;
+
 	}
 	else
 	{
@@ -474,102 +530,85 @@ byte_count read_command( byte *buf )
 }
 
 
+
 /**
  * Determines, from specified buffer, the information regarding the
  * (Erlang-side) specified function, namely its function identifier and its
- * parameters, set in the variables whose reference is specified.
- *
- * Returns a term that is to be deallocated once all parameters will have been
- * used.
+ * parameters, set in the variables whose reference (pointer) is specified.
  *
  */
-ETERM * get_function_information( byte * buffer, fun_id * current_fun_id,
-  arity * param_count, ETERM *** parameters )
+void get_function_information( input_buffer input_buffer, buffer_index * index,
+  fun_id * current_fun_id, arity * param_count )
 {
 
-	//LOG_TRACE( "Getting function information." ) ;
+	LOG_TRACE( "Getting function information." ) ;
+
+	int format_version ;
+
+	/* According to
+	 * https://erlangcentral.org/wiki/How_to_use_ei_to_marshal_binary_terms_in_port_programs,
+	 * the first token in a binary term is the version magic number for the
+	 * Erlang binary term format (131, at the time of this writing).
+	 *
+	 */
+	if ( ei_decode_version( *input_buffer, index, &format_version ) != 0 )
+	  raise_error( "The version magic number of the binary term format could "
+		"not be successfully decoded." ) ;
+
+	LOG_DEBUG( "Read Erlang binary term format version number: %i, "
+	  "from index %i.", format_version, *index ) ;
 
 	/*
-	 * Reads a { FunId, FunParams } pair thanks to Erl_Interface:
+	 * Reads a { FunId, FunParams } pair (ex: { 5, [ 140, true ] }) thanks to,
+	 * now, ei:
 	 *
-	 * (see http://erlang.org/doc/man/erl_marshal.html#erl_decode)
+	 * (see http://erlang.org/doc/man/ei.html)
 	 *
 	 * A single term (pair) is expected here:
 	 *
 	 */
-	ETERM * read_pair = erl_decode( buffer ) ;
 
-	if ( read_pair == NULL )
-		raise_error(
-		  "Decoding of the pair command from the receive buffer failed." ) ;
+  tuple_size tuple_s ;
 
-	if ( ! ERL_IS_TUPLE( read_pair ) )
-	  raise_error( "Read term is not a tuple (whereas pair expected)." ) ;
+  if ( ei_decode_tuple_header( *input_buffer, index, &tuple_s ) != 0 )
+	raise_error( "The function pair could not be successfully decoded. "
+	  "Detected type: %s.", interpret_type_at( input_buffer, index ) ) ;
 
-	tuple_size tuple_s = ERL_TUPLE_SIZE( read_pair ) ;
-
-	if ( tuple_s != 2 )
-	  raise_error( "Read tuple is not a pair (%u elements found).",
-		tuple_s ) ;
+  if ( tuple_s != 2 )
+	raise_error( "Unexpected size of function tuple: not a pair, "
+	  "%i elements to decode.", tuple_s ) ;
 
 
 	/* Gets the first element of the pair, i.e. the Seaplus-defined function
 	 * identifier (ex: whose value is FOO_1_ID):
 	 *
 	 */
-	*current_fun_id = get_element_as_int( 1, read_pair ) ;
+  if ( ei_decode_long( *input_buffer, index, current_fun_id ) != 0 )
+	raise_error( "The function identifier could not be successfully "
+	  "decoded. Detected type: %s.",
+	  interpret_type_at( input_buffer, index ) ) ;
 
-	//LOG_DEBUG( "Reading command: function identifier is %i.", *current_fun_id ) ;
+  LOG_DEBUG( "Reading command: function identifier is %i (index is %i).",
+	*current_fun_id, *index ) ;
 
+  /* Second element of the pair is the list of the call parameters (hence the
+   * arity of the function to be called can be checked):
+   *
+   */
+  read_list_header_parameter( input_buffer, index, param_count ) ;
 
-	/* Second element of the pair is the list of the call parameters (hence the
-	 * arity of the function to be called can be checked):
-	 *
-	 */
-	ETERM * cmd_params = get_element_from_tuple( 2, read_pair ) ;
+  LOG_DEBUG( "%u parameter(s) received for this function.", *param_count ) ;
 
-	if( ! ERL_IS_LIST( cmd_params ) )
-	  raise_error( "Second element of the parameter pair cannot be cast "
-		"to a list." ) ;
+  /* The (*param_count)+1 elements follow in the input buffer, starting from the
+   * current updated index (the last one is the tail of the list, normally an
+   * empty list).
+   *
+   * The handler for the corresponding function identifier is now to read in
+   * turn its parameters.
+   *
+   */
 
-	// The number of elements in the list of call parameters:
-	arity fun_param_count = erl_length( cmd_params ) ;
-
-	if ( fun_param_count == -1 )
-	  raise_error( "Improper list received." ) ;
-
-	/*
-	LOG_DEBUG( "%u parameter(s) received for this function.",
-	  fun_param_count ) ;
-	 */
-
-	*param_count = fun_param_count ;
-
-	/* We used to return the FunParams list as it was, but iterating on it was
-	 * making the driver more complex than needed.
-	 *
-	 * Now we return a simple array of terms (more convenient for the driver
-	 * developer, and inline with how NIFs proceed).
-	 *
-	 */
-	ETERM ** fun_params =
-	  (ETERM **) malloc( fun_param_count * sizeof( ETERM * ) ) ;
-
-	if ( fun_params == NULL )
-	  raise_error( "Creation of parameter array failed." ) ;
-
-	for ( arity i = 0; i < fun_param_count ; i++ )
-	{
-	  fun_params[ i ] = get_head( cmd_params ) ;
-	  cmd_params = get_tail( cmd_params ) ;
-	}
-
-	*parameters = fun_params ;
-
-	//LOG_TRACE( "Function information obtained." ) ;
-
-	// Returned to be deallocated as a whole afterwards:
-	return read_pair ;
+  LOG_TRACE( "Function information obtained." ) ;
 
 }
 
@@ -592,575 +631,331 @@ void check_arity_is( arity expected, arity actual, fun_id id )
 
 
 
-/* First, accessors to values (getters) returned by erl_decode.
- *
- * Note: visibly, ownership of the result of these decode calls is transferred
- * to the caller, who has thus to deallocate them, which is done in these
- * getters whenever possible.
- *
- */
-
-
-
-/// Tuple subsection.
-
-/**
- * Returns the element i of specified tuple, as a term that shall be
- * deallocated.
- *
- */
-ETERM * get_element_from_tuple( tuple_index i, ETERM *tuple_term )
-{
-
-  ETERM * elem = erl_element( i, tuple_term ) ;
-
-  if ( elem == NULL )
-	raise_error( "Reading tuple element at index %u failed.", i ) ;
-
-  return elem ;
-
-}
-
-
-
-
-// Returns the element i of specified tuple, as an int.
-signed int get_element_as_int( tuple_index i, ETERM *tuple_term )
-{
-
-  ETERM * elem = get_element_from_tuple( i, tuple_term ) ;
-
-  if ( ! ERL_IS_INTEGER( elem ) )
-	raise_error( "Tuple element %i cannot be cast to integer.", i ) ;
-
-  int res = ERL_INT_VALUE( elem ) ;
-
-  //LOG_DEBUG( "Read integer %i.", res ) ;
-
-  erl_free_term( elem ) ;
-
-  return res ;
-
-}
-
+// Accessors to (parameter) values (getters).
 
 
 /**
- * Returns the element i of specified tuple, as an unsigned integer.
- *
- * Note: apparently, Erlang integers are rather returned as 'int', not 'unsigned
- * int'.
+ * Returns the element at current buffer location, supposed to be a (long,
+ * signed) integer.
  *
  */
-unsigned int get_element_as_unsigned_int( tuple_index i, ETERM *tuple_term )
+long get_int_parameter( input_buffer decode_buffer, buffer_index * index )
 {
 
-  ETERM * elem = get_element_from_tuple( i, tuple_term ) ;
+  long res ;
 
-  if ( ! ERL_IS_UNSIGNED_INTEGER( elem ) )
-	raise_error( "Tuple element %u cannot be cast to unsigned integer.", i ) ;
+  // Default, normal case:
+  if ( ! encoded_as_string )
+  {
 
-  unsigned int res = ERL_INT_UVALUE( elem ) ;
+	LOG_DEBUG( "Reading long integer at index %i.", *index ) ;
 
-  erl_free_term( elem ) ;
+	ei_error error = ei_decode_long( *decode_buffer, index, &res ) ;
 
-  //LOG_DEBUG( "Read unsigned integer %u.", res ) ;
+	if ( error != 0 )
+	  raise_error( "Parameter at index %i cannot be decoded to (long) integer: "
+		"%s; its actual type is %s.", index, strerror( error ),
+		interpret_type_at( decode_buffer, index ) ) ;
 
-  return res ;
+	LOG_DEBUG( "Read (long, signed) integer parameter %ld.", res ) ;
 
-}
+	return res ;
 
-
-// Returns the element i of specified tuple, as a double.
-double get_element_as_double( tuple_index i, ETERM *tuple_term )
-{
-
-  ETERM * elem = get_element_from_tuple( i, tuple_term ) ;
-
-  if ( ! ERL_IS_FLOAT( elem ) )
-	raise_error( "Tuple element %u cannot be cast to double.", i ) ;
-
-  double res = ERL_FLOAT_VALUE( elem ) ;
-
-  //LOG_DEBUG( "Read double %e.", res ) ;
-
-  erl_free_term( elem ) ;
-
-  return res ;
-
-}
-
-
-// char * get_element_as_atom( tuple_index i, ETERM *tuple_term ) is lacking.
-
-
-/**
- * Returns the element i of specified tuple, as a string (char *).
- *
- * Ownership of the returned string transferred to the caller.
- *
- * Note: cannot return a const char*, as the caller is to deallocate that
- * string.
- *
- */
-char * get_element_as_string( tuple_index i, ETERM *tuple_term )
-{
-
-  ETERM * elem = get_element_from_tuple( i, tuple_term ) ;
-
-  if ( ! ERL_IS_LIST( elem ) )
-	raise_error( "Tuple element %u cannot be cast to string (i.e. list)", i ) ;
-
-  //LOG_DEBUG( "String length is %u bytes.", erl_length( elem ) ) ;
-
-  char * res = erl_iolist_to_string( elem ) ;
-
-  //LOG_DEBUG( "Read string: '%s'.", res ) ;
-
-  erl_free_term( elem ) ;
-
-  return res ;
-
-}
-
-
-
-/// List subsection.
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list.
- *
- * Note that the return term shall be freed (with erl_free_term/1) by the
- * caller.
- *
- */
-ETERM * get_head( ETERM * list_term )
-{
-
-  ETERM * head = erl_hd( list_term ) ;
-
-  if ( head == NULL )
-	raise_error( "Unable to get the head of specified list." ) ;
-
-  return head ;
-
-}
-
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list, as an integer.
- *
- */
-int get_head_as_int( ETERM * list_term )
-{
-
-  ETERM * head_term = get_head( list_term ) ;
-
-   if ( ! ERL_IS_INTEGER( head_term ) )
-	raise_error( "Head of list cannot be cast to integer." ) ;
-
-  int res = ERL_INT_VALUE( head_term ) ;
-
-  erl_free_term( head_term ) ;
-
-  return res ;
-
-}
-
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list, as an unsigned
- * integer.
- *
- */
-unsigned int get_head_as_unsigned_int( ETERM * list_term )
-{
-
-  ETERM * head_term = get_head( list_term ) ;
-
-   if ( ! ERL_IS_UNSIGNED_INTEGER( head_term ) )
-	raise_error( "Head of list cannot be cast to unsigned integer." ) ;
-
-  int res = ERL_INT_UVALUE( head_term ) ;
-
-  erl_free_term( head_term ) ;
-
-  return res ;
-
-}
-
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list as a double.
- *
- */
-double get_head_as_double( ETERM * list_term )
-{
-
-  ETERM * head_term = get_head( list_term ) ;
-
-   if ( ! ERL_IS_FLOAT( head_term ) )
-	raise_error( "Head of list cannot be cast to double." ) ;
-
-  double res = ERL_FLOAT_VALUE( head_term ) ;
-
-  //LOG_DEBUG( "Read double %e.", res ) ;
-
-  erl_free_term( head_term ) ;
-
-  return res ;
-
-}
-
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list as an atom
- * (translated to a char*)
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
- *
- */
-char * get_head_as_atom( ETERM * list_term )
-{
-
-  ETERM * head_term = get_head( list_term ) ;
-
-  if ( ! ERL_IS_ATOM( head_term ) )
-	raise_error( "Head of list cannot be cast to atom." ) ;
-
-  /* The pointer returned by the ERL_ATOM_PTR macro references memory possessed
-   * by head_term, that will be freed during this call, so the corresponding
-   * string shall be copied:
-   *
-   */
-
-  char * atom_name = ERL_ATOM_PTR( head_term ) ;
-
-  if ( atom_name == NULL )
-	raise_error( "Head of list cannot be converted to atom." ) ;
-
-  //LOG_DEBUG( "Read head as atom '%s'.", atom_name ) ;
-
-  char * res = strdup( atom_name ) ;
-
-   erl_free_term( head_term ) ;
-
-  return res ;
-
-}
-
-
-
-/**
- * Returns the head of the specified, supposedly non-empty, list, as a string.
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
- *
- */
-char * get_head_as_string( ETERM * list_term )
-{
-
-  ETERM * head_term = get_head( list_term ) ;
-
-  if ( ! ERL_IS_LIST( head_term ) )
-	raise_error( "Head of list cannot be cast to list (string)." ) ;
-
-  // Strangely, no ERL_STRING_VALUE or alike in Erl_Interface, so:
-  char * res_string = erl_iolist_to_string( head_term ) ;
-
-  if ( res_string == NULL )
-	raise_error( "Head of list cannot be converted to string." ) ;
-
-  //LOG_DEBUG( "Read head as string '%s'.", res_string ) ;
-
-  erl_free_term( head_term ) ;
-
-  return res_string ;
-
-}
-
-
-
-
-// Parameter getters.
-
-
-
-/**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be an integer.
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
- *
- */
-int get_parameter_as_int( parameter_index index, ETERM ** parameters )
-{
-
- // Starts at zero:
-  ETERM * elem  = parameters[ index - 1 ] ;
-
-  if ( ! ERL_IS_INTEGER( elem ) )
-	raise_error( "Parameter element of index %i cannot be cast to integer.",
-	  index ) ;
-
-  int res = ERL_INT_VALUE( elem ) ;
-
-  //LOG_DEBUG( "Read integer parameter %i.", res ) ;
-
-  return res ;
-
-}
-
-
-/**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be an unsigned integer.
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
- *
- */
-unsigned int get_parameter_as_unsigned_int( parameter_index index,
-  ETERM ** parameters )
-{
-
-  // Starts at zero:
-  ETERM * elem  = parameters[ index - 1 ] ;
-
-  if ( ! ERL_IS_UNSIGNED_INTEGER( elem ) )
-	raise_error( "Parameter element of index %i cannot be cast to "
-	  "unsigned integer.", index ) ;
-
-  int res = ERL_INT_UVALUE( elem ) ;
-
-  //LOG_DEBUG( "Read unsigned integer parameter %u.", res ) ;
-
-  return res ;
-
-}
-
-
-
-/**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be an Erlang float (hence returning a C double).
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
- *
- */
-double get_parameter_as_double( parameter_index index, ETERM ** parameters )
-{
-
-   // Starts at zero:
-  ETERM * elem  = parameters[ index - 1 ] ;
-
-  if ( ! ERL_IS_FLOAT( elem ) )
-	raise_error( "Parameter element of index %i cannot be cast to double.",
-	  index ) ;
-
-  int res = ERL_FLOAT_VALUE( elem ) ;
-
-  //LOG_DEBUG( "Read double parameter %e.", res ) ;
-
-  return res ;
-
-}
-
-
-/**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be an atom, translated to a char*.
- *
- * Note: the corresponding term is not freed, as the parameter array is expected
- * to be deallocated as a whole (recursively) afterwards.
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
- *
- */
-char * get_parameter_as_atom( parameter_index index, ETERM ** parameters )
-{
-
-  // Starts at zero:
-  ETERM * elem  = parameters[ index - 1 ] ;
-
-  if ( ! ERL_IS_ATOM( elem ) )
-	raise_error( "Parameter element of index %i cannot be cast to atom.",
-	  index ) ;
-
-  char * res = ERL_ATOM_PTR( elem ) ;
-
-  //LOG_DEBUG( "Read atom '%s'.", res ) ;
-
-  return res ;
-
-}
-
-
-
-/**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be a (plain) string.
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
- *
- */
-char * get_parameter_as_string( parameter_index index, ETERM ** parameters )
-{
-
-  // Starts at zero:
-  ETERM * elem  = parameters[ index - 1 ] ;
-
-  if ( ! ERL_IS_LIST( elem ) )
-	raise_error( "Parameter element of index %i is not a list, hence cannot "
-	  "be cast to a string", index ) ;
-
-  //LOG_DEBUG( "String length is %u bytes.", erl_length( elem ) ) ;
-
-  char * res = erl_iolist_to_string( elem ) ;
-
-  //LOG_DEBUG( "Read (plain) string: '%s'.", res ) ;
-
-  return res ;
-
-}
-
-
-
-/**
- * Returns the element at specified index of specified array of parameters,
- * supposed to be a binary.
- *
- * Note: the corresponding terms is not freed, as the parameter array is
- * expected to be deallocated as a whole (recursively) afterwards.
- *
- * Ownership of the returned string transferred to the caller (who shall use
- * erl_free/1 to deallocate it).
- *
- */
-char * get_parameter_as_binary( parameter_index index, ETERM ** parameters )
-{
-
-  // Starts at zero:
-  ETERM * elem  = parameters[ index - 1 ] ;
-
-  if ( ! ERL_IS_BINARY( elem ) )
-	raise_error( "Parameter element of index %i is not a binary, hence cannot "
-	  "be cast to a string", index ) ;
-
-  // Wrong, as it is an internal field (hence not owned), not zero-terminated:
-  //char * res = (char *) ERL_BIN_PTR( elem ) ;
-
-  int bin_length = ERL_BIN_SIZE( elem ) ;
-
-  // As shall be zero-terminated:
-  char * res = malloc( ( bin_length + 1 ) * sizeof( char ) ) ;
-
-  strncpy( res, (char *) ERL_BIN_PTR( elem ), bin_length ) ;
-
-  res[ bin_length ] = 0 ;
-
-  //LOG_DEBUG( "Read (binary) string: '%s'.", res ) ;
-
-  return res ;
-
-}
-
-
-
-
-
-
-/**
- * Returns the tail of the specified, supposedly non-empty, list.
- *
- * Note that the return term shall be freed (with erl_free_term/1) by the
- * caller.
- *
- */
-ETERM * get_tail( ETERM * list_term )
-{
-
-  ETERM * tail = erl_tl( list_term ) ;
-
-  if ( tail == NULL )
-	raise_error( "Unable to get the tail of specified list." ) ;
-
-  return tail ;
-
-}
-
-
-
-
-
-
-/* Second, setters of values accepted by erl_encode.
- *
- */
-
-
-/**
- * Writes specified term into specified buffer.
- *
- * Takes ownership, and deallocates, specified term.
- *
- */
-void write_term( byte * buffer, ETERM * term )
-{
-
-  // Encodes that ETERM into the specified (send) buffer:
-  if ( erl_encode( term, buffer ) == 0 )
-	raise_error( "Encoding in buffer failed." ) ;
-
-  int bytes_to_write = erl_term_len( term ) ;
-
-  if ( bytes_to_write == 0 )
-	raise_error( "Empty term length." ) ;
-
-  // Sends that buffer:
-  write_buffer( buffer, bytes_to_write ) ;
-
-  // Clean-up ETERM memory allocated for this round:
-  // Not 'erl_free_term( term ) ;', as of course we may write compounds:
-  erl_free_compound( term ) ;
-
-}
-
-
-
-/**
- * Writes in specified return buffer the specified (signed) integer result.
- *
- */
-void write_as_bool( byte * buffer, bool b )
-{
-
-  // Constructing the ETERM struct that represents the bool (atom) result:
-  ETERM * bool_term ;
-
-  if( b == true )
-	bool_term = erl_mk_atom( "true" ) ;
+  }
   else
-	bool_term = erl_mk_atom( "false" ) ;
+  {
 
-  if ( bool_term == NULL )
-	raise_error( "Erlang boolean creation failed." ) ;
+	// Here we have an incorrect encoding ([0..255] became string()):
+	res = (long) encoded_string[ encoded_index ] ;
 
-  write_term( buffer, bool_term ) ;
+	encoded_index++ ;
+
+	if ( encoded_index == encoded_length )
+	{
+
+	  LOG_DEBUG( "Read last small integer %ld of string-based list "
+		"(of size %i).", res, encoded_length ) ;
+
+	  free( encoded_string ) ;
+	  encoded_string = NULL ;
+
+	  encoded_as_string = false ;
+
+	}
+	else
+	{
+
+	  // Elements start at 1 here:
+	  LOG_DEBUG( "Read small integer %ld of string-based list (element %i/%i).",
+		res, encoded_index, encoded_length ) ;
+
+	}
+
+	return res ;
+
+  }
+
+}
+
+
+
+/**
+ * Returns the element at current buffer location, supposed to be a (long,
+ * unsigned) integer.
+ *
+ */
+unsigned long get_unsigned_int_parameter( input_buffer decode_buffer,
+  buffer_index * index )
+{
+
+  check_encoded_list() ;
+
+	unsigned long res ;
+
+  ei_error error = ei_decode_ulong( *decode_buffer, index, &res ) ;
+
+  if ( error != 0 )
+	raise_error( "Parameter at index %i cannot be decoded to (long) "
+	  "unsigned integer: %s; its actual type is %s.", index, strerror( error ),
+	  interpret_type_at( decode_buffer, index ) ) ;
+
+  LOG_DEBUG( "Read (long, unsigned) integer parameter %ul.", res ) ;
+
+  return res ;
+
+}
+
+
+
+/**
+ * Returns the element at current buffer location, supposed to be a double.
+ *
+ */
+double get_double_parameter( input_buffer decode_buffer,
+  buffer_index * index )
+{
+
+  check_encoded_list() ;
+
+  double res ;
+
+   ei_error error = ei_decode_double( *decode_buffer, index, &res ) ;
+
+  if ( error != 0 )
+	raise_error( "Parameter at index %i cannot be decoded to double: %s; "
+	  "its actual type is %s.", index, strerror( error ),
+	  interpret_type_at( decode_buffer, index ) ) ;
+
+  LOG_DEBUG( "Read double parameter %lf.", res ) ;
+
+  return res ;
+
+}
+
+
+
+/**
+ * Returns the element at current buffer location, supposed to be an atom,
+ * translated to a char*, whose ownership is transferred to the caller (who is
+ * thus supposed to deallocate it ultimately, with standard free/1).
+ *
+ */
+char * get_atom_parameter( input_buffer decode_buffer, buffer_index * index )
+{
+
+ check_encoded_list() ;
+
+ char * res = (char*) malloc( MAXATOMLEN * sizeof( char ) ) ;
+
+  if ( res == NULL )
+	raise_error( "Failed to allocate atom buffer." ) ;
+
+  ei_error error = ei_decode_atom( *decode_buffer, index, res ) ;
+
+  if ( error != 0 )
+	raise_error( "Parameter at index %i cannot be decoded to atom: %s; "
+	  "its actual type is %s.", index, strerror( error ),
+	  interpret_type_at( decode_buffer, index ) ) ;
+
+  LOG_DEBUG( "Read atom parameter '%s'.", res ) ;
+
+  return res ;
+
+}
+
+
+
+/**
+ * Returns the element at current buffer location, supposed to be a (plain)
+ * string, whose ownership is transferred to the caller (who is thus supposed to
+ * deallocate it ultimately, with standard free/1)..
+ *
+ */
+char * get_string_parameter( input_buffer decode_buffer, buffer_index * index )
+{
+
+  check_encoded_list() ;
+
+  int type ;
+  int size ;
+
+  if ( ei_get_type( *decode_buffer, index, &type, &size ) != 0 )
+	raise_error( "Cannot determine the type encoded at index %i", index ) ;
+
+  if ( type != ERL_STRING_EXT )
+	raise_error( "Not a string at index %i, got %s.", index,
+	  interpret_type_at( decode_buffer, index ) ) ;
+
+  // For the null terminator:
+  char * res = (char*) malloc( (size+1) * sizeof( char ) ) ;
+
+  if ( res == NULL )
+	raise_error( "Failed to allocate string buffer." ) ;
+
+  if ( ei_decode_string( *decode_buffer, index, res ) != 0 )
+	raise_error( "Parameter at index %i cannot be decoded to string; "
+	  "its actual type is %s.", *index,
+	  interpret_type_at( decode_buffer, index ) ) ;
+
+  LOG_DEBUG( "Read (plain) string: '%s'.", res ) ;
+
+  return res ;
+
+}
+
+
+
+/**
+ * Returns the element at current buffer location, supposed to be a binary,
+ * returned as a string whose ownership is transferred to the caller (who is
+ * thus supposed to deallocate it ultimately, with standard free/1).
+ *
+ */
+char * get_binary_parameter( input_buffer decode_buffer, buffer_index * index )
+{
+
+  check_encoded_list() ;
+
+  int type ;
+  int size ;
+
+  ei_error error = ei_get_type( *decode_buffer, index, &type, &size ) ;
+
+  if ( error != 0 )
+	raise_error( "Cannot determine the type encoded at index %i: %s.",
+	  index, strerror( error ) ) ;
+
+  if ( type != ERL_BINARY_EXT )
+	raise_error( "Not a binary at index %i, got %s.", index,
+	  interpret_type_at( decode_buffer, index ) ) ;
+
+  // No null terminator here:
+  char * res = (char*) malloc( size * sizeof( char ) ) ;
+
+  if ( res == NULL )
+	raise_error( "Failed to allocate binary buffer." ) ;
+
+  // Not used:
+  long l_size ;
+
+  if ( ei_decode_binary( *decode_buffer, index, res, &l_size ) != 0 )
+	raise_error( "Parameter at index %i cannot be decoded to binary: %s; "
+	  "its actual type is %s.", index, strerror( error ),
+	  interpret_type_at( decode_buffer, index ) ) ;
+
+  LOG_DEBUG( "Read binary: '%s'.", res ) ;
+
+  return res ;
+
+}
+
+
+
+/**
+ * Reads the header of a list that is supposed to exist at current buffer
+ * location, and sets the specified size accordingly (i.e. with the number of
+ * elements in that list).
+ *
+ * Note: handles transparently the lists containing only small integers (0..255)
+ * that are unintendendly interpreted as strings.
+ *
+ */
+void read_list_header_parameter( input_buffer buffer, buffer_index * index,
+								 arity * size )
+{
+
+ // Init:
+  encoded_as_string = false ;
+
+  if ( ei_decode_list_header( *buffer, index, size ) != 0 )
+  {
+
+	/* Could not be interpreted as a list, probably because term_to_binary/1
+	 * mistook that list for a string...
+	 *
+	 */
+
+	LOG_DEBUG( "List could not be successfully decoded as such; "
+	  "actual detected type: %s (index is %i).",
+	  interpret_type_at( buffer, index ), *index ) ;
+
+	int type ;
+
+	if ( ei_get_type( *buffer, index, &type, size ) != 0 )
+	  raise_error( "The actual type of the list at %i could not be "
+		"determined.", index ) ;
+
+	if ( type != ERL_STRING_EXT )
+	  raise_error( "The actual type of the list is not a string either, "
+		"it is: %s.", interpret_type_at( buffer, index ) ) ;
+
+	encoded_as_string = true ;
+
+	if ( encoded_string != NULL )
+	  free( encoded_string ) ;
+
+	// Null-terminated:
+	encoded_string = (char *) malloc( ( *size + 1 ) * sizeof( char ) ) ;
+
+	if ( ei_decode_string( *buffer, index, encoded_string ) != 0 )
+	  raise_error( "Detected an unintended string-encoding of parameters, "
+		"yet was not able to decode it." ) ;
+
+	LOG_DEBUG( "Switching to string-based list of size %i", *size ) ;
+
+	encoded_index = 0 ;
+
+	encoded_length = *size ;
+
+	return ;
+
+  }
+
+  // Here we had a normal list, nothing more to do.
+  LOG_DEBUG( "Normal list found at index %i, having %i element(s).",
+	*index, *size ) ;
+
+}
+
+
+
+
+/* Second, setters of values, to encode from C to Erlang.
+ *
+ */
+
+
+
+
+/**
+ * Writes in specified return buffer the specified bool result.
+ *
+ */
+void write_bool_result( output_buffer * output_sm_buf, bool b )
+{
+
+  if ( ei_x_encode_boolean( output_sm_buf, b ) != 0 )
+	raise_error( "Erlang bool encoding failed." ) ;
 
 }
 
@@ -1170,75 +965,79 @@ void write_as_bool( byte * buffer, bool b )
  * Writes in specified return buffer the specified (signed) integer result.
  *
  */
-void write_as_int( byte * buffer, int i )
+void write_int_result( output_buffer * output_sm_buf, int i )
 {
 
-  // Constructing the ETERM struct that represents the integer result:
-  ETERM * int_term = erl_mk_int( i ) ;
-
-  if ( int_term == NULL )
-	raise_error( "Erlang integer creation failed." ) ;
-
-  write_term( buffer, int_term ) ;
+  if ( ei_x_encode_long( output_sm_buf, (long) i ) != 0 )
+	raise_error( "Erlang (signed) integer encoding failed." ) ;
 
 }
+
 
 
 /**
  * Writes in specified return buffer the specified unsigned integer result.
  *
  */
-void write_as_unsigned_int( byte * buffer, unsigned int u )
+void write_unsigned_int_result( output_buffer * output_sm_buf, unsigned int u )
 {
 
-  // Constructing the ETERM struct that represents the unsigned integer result:
-  ETERM * uint_term = erl_mk_uint( u ) ;
-
-  if ( uint_term == NULL )
-	raise_error( "Erlang unsigned integer creation failed." ) ;
-
-  write_term( buffer, uint_term ) ;
+  if ( ei_x_encode_ulong( output_sm_buf, (unsigned long) u ) != 0 )
+	raise_error( "Erlang unsigned integer encoding failed." ) ;
 
 }
+
 
 
 /**
  * Writes in specified return buffer the specified double result.
  *
  */
-void write_as_double( byte * buffer, double d )
+void write_double_result( output_buffer * output_sm_buf, double d )
 {
 
-  // Constructing the ETERM struct that represents the unsigned integer result:
-  ETERM * float_term = erl_mk_float( d ) ;
+  if ( ei_x_encode_double( output_sm_buf, d ) != 0 )
+	raise_error( "Erlang double encoding failed." ) ;
 
-  if ( float_term == NULL )
-	raise_error( "Erlang float creation failed." ) ;
+}
 
-  write_term( buffer, float_term ) ;
+
+
+/**
+ * Writes in specified return buffer the specified atom result, based on
+ * specified (NULL-terminated) string.
+ *
+ * Note: not taking ownership of the input string.
+ *
+ */
+void write_atom_result( output_buffer * output_sm_buf, const char * atom_name )
+{
+
+  size_t len = strlen( atom_name ) ;
+
+  if ( ei_x_encode_atom_len( output_sm_buf, atom_name, len ) != 0 )
+	raise_error( "Erlang atom encoding failed for '%s'.", atom_name ) ;
+
+  // Not owned: free( atom_name ) ;
 
 }
 
 
 /**
- * Writes in specified return buffer the specified string result.
+ * Writes in specified return buffer the specified (NULL-terminated) string
+ * result, of specified length.
  *
  * Note: not taking ownership of the input string.
  *
  */
-void write_as_string( byte * buffer, const char * string )
+void write_string_with_length_result( output_buffer * output_sm_buf,
+  const char * string, size_t length )
 {
 
-  // Constructing the ETERM struct that represents the string result:
-
-  size_t len = strlen( string ) ;
-
-  ETERM * string_term = erl_mk_estring( string, len ) ;
-
-  if ( string_term == NULL )
-	raise_error( "Erlang string creation failed." ) ;
-
-  write_term( buffer, string_term ) ;
+  // Not including the NULL terminator:
+  if ( ei_x_encode_string_len( output_sm_buf, string, length ) != 0 )
+	raise_error( "Erlang string encoding failed for '%s' (with length: %i).",
+	  string, length ) ;
 
   // Not owned: free( string ) ;
 
@@ -1247,36 +1046,125 @@ void write_as_string( byte * buffer, const char * string )
 
 
 /**
- * Writes in specified return buffer the specified binary result.
+ * Writes in specified return buffer the specified (NULL-terminated) string
+ * result.
  *
  * Note: not taking ownership of the input string.
  *
  */
-void write_as_binary( byte * buffer, const char * string )
+void write_string_result( output_buffer * output_sm_buf, const char * string )
 {
-
-  // Constructing the ETERM struct that represents the string result:
 
   size_t len = strlen( string ) ;
 
-  ETERM * binary_term = erl_mk_binary( string, len ) ;
-
-  if ( binary_term == NULL )
-	raise_error( "Erlang binary creation failed." ) ;
-
-  // Encodes that ETERM into the (send) buffer:
-  erl_encode( binary_term, buffer ) ;
-
-  // Sends that buffer:
-  write_buffer( buffer, erl_term_len( binary_term ) ) ;
-
-  // Clean-up ETERM memory allocated for this round:
-  erl_free_term( binary_term ) ;
+  // Not including the NULL terminator:
+  if ( ei_x_encode_string_len( output_sm_buf, string, len ) != 0 )
+	raise_error( "Erlang string encoding failed for '%s'.",
+				 string ) ;
 
   // Not owned: free( string ) ;
 
 }
 
+
+
+/**
+ * Writes in specified return buffer the specified binary result, of specified
+ * size.
+ *
+ * Note: not taking ownership of the input binary.
+ *
+ */
+void write_binary_result( output_buffer * output_sm_buf, const void * content,
+						  byte_count size )
+{
+
+  if ( ei_x_encode_binary( output_sm_buf, content, size ) != 0 )
+	raise_error( "Erlang binary encoding failed." ) ;
+
+}
+
+
+
+/**
+ * Writes in specified return buffer the specified binary result obtained from a
+ * string.
+ *
+ * Note: not taking ownership of the input string.
+ *
+ */
+void write_binary_string_result( output_buffer * output_sm_buf,
+  const char * string )
+{
+
+  // Not including the NULL terminator:
+  if ( ei_x_encode_binary( output_sm_buf, string, strlen( string ) ) != 0 )
+	raise_error( "Erlang binary encoding from string failed." ) ;
+
+}
+
+
+
+/**
+ * Writes in specified return buffer the specified list header result.
+ *
+ * For a list declared of size N (hence having N elements), the N next writes
+ * will correspond to the expected terms to form said list.
+ *
+ * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header to handle lists
+ * whose size is not known a priori (see also write_empty_list_result/1).
+ *
+ */
+void write_list_header_result( output_buffer * output_sm_buf, list_size size )
+{
+
+  if ( ei_x_encode_list_header( output_sm_buf, size ) != 0 )
+	raise_error( "List header encoding failed (for size %i).", size ) ;
+
+}
+
+
+
+/**
+ * Writes in specified return buffer an empty list.
+ *
+ * Especially useful to write lists whose size is not known a priori, by
+ * cons'ing elements one by one until none is left.
+ *
+ * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header for more information.
+ *
+ */
+void write_empty_list_result( output_buffer * output_sm_buf )
+{
+
+  if ( ei_x_encode_empty_list( output_sm_buf) != 0 )
+	raise_error( "Empty list encoding failed" ) ;
+
+}
+
+
+
+/**
+ * Writes in specified return buffer the specified tuple header result.
+ *
+ * For a tuple declared of size N (hence having N elements), the N next writes
+ * will correspond to the expected terms to form said tuple.
+ *
+ */
+void write_tuple_header_result( output_buffer * output_sm_buf, tuple_size size )
+{
+
+  if ( ei_x_encode_tuple_header( output_sm_buf, size ) != 0 )
+	raise_error( "Tuple header encoding failed (for size %i).", size ) ;
+
+}
+
+
+
+
+
+
+// Lower-level primitives.
 
 
 /**
@@ -1284,10 +1172,10 @@ void write_as_binary( byte * buffer, const char * string )
  *
  * Returns, if positive, the number of bytes written, otherwise an error code.
  *
- * (helper)
+  * (helper)
  *
  */
-byte_count write_exact( byte *buf, byte_count len )
+byte_count write_exact( byte * buf, byte_count len )
 {
 
   byte_count wrote = 0 ;
@@ -1312,16 +1200,16 @@ byte_count write_exact( byte *buf, byte_count len )
 
 
 /**
- * Sends the content of the specified buffer through the port's output file
- * descriptor.
+ * Sends the content of the specified smart buffer through the port's output
+ * file descriptor.
  *
  * Returns the number of bytes written.
  *
  */
-byte_count write_buffer( byte *buf, byte_count len )
+byte_count write_buffer( output_buffer * output_sm_buf )
 {
 
-  //LOG_DEBUG( "Will write %i bytes.", len ) ;
+  unsigned int len = output_sm_buf->index ;
 
   if ( len + 2 > buffer_size )
   {
@@ -1333,33 +1221,195 @@ byte_count write_buffer( byte *buf, byte_count len )
 
   }
 
-  byte li ;
+  LOG_DEBUG( "Will write %i bytes.", len ) ;
 
-  // Two bytes for command length:
-  li = (len >> 8) & 0xff ;
-  write_exact( &li, 1 ) ;
+  // Writes the 16-bit length, MSB-first:
 
-  li = len & 0xff ;
-  write_exact( &li, 1 ) ;
+  byte len_byte = ( len >> 8) & 0xff ;
+  write_exact( &len_byte, 1 ) ;
 
-  return write_exact( buf, len ) ;
+  len_byte = len & 0xff ;
+  write_exact( &len_byte, 1 ) ;
+
+  return write_exact( output_sm_buf->buff, output_sm_buf->index ) ;
+
+}
+
+
+
+
+/**
+ * Ensures that no invalid reading is done if being processing a
+ * list-as-a-string.
+ *
+ */
+void check_encoded_list()
+{
+
+ if ( encoded_as_string )
+	raise_error( "Attempt to read a term whereas still in a string-based list "
+	  "(at element %i/%i).", encoded_index, encoded_length ) ;
 
 }
 
 
 
 /**
- * Returns a binary string for specified (NULL-terminated) C string.
+ * Returns a string describing the type of the term located in specified buffer.
  *
- * Does not take ownership of the specified C string.
+ * Ownership of that string is transferred to the caller.
  *
- * (lacking in a direct form in
- * http://erlang.org/doc/man/erl_eterm.html#erl_mk_binary)
+ * This call will not impact the buffer or the index.
  *
  */
-ETERM * make_bin_string( const char * c_string )
+char * interpret_type_at( const input_buffer buffer,
+  const buffer_index * index )
 {
 
-  return erl_mk_binary( c_string, strlen( c_string ) ) ;
+  int type ;
+  int size ;
+
+  ei_error error = ei_get_type( *buffer, index, &type, &size ) ;
+
+  if ( error != 0 )
+	raise_error(
+	  "The type of the term at index %i could not be determined: %s.",
+	  index, strerror( error ) ) ;
+
+  char * res ;
+
+  switch( type )
+  {
+
+  case ERL_SMALL_INTEGER_EXT:
+	return strdup( "small integer" ) ;
+
+  case ERL_INTEGER_EXT:
+	return strdup( "integer" ) ;
+
+  case ERL_FLOAT_EXT:
+	return strdup( "float" ) ;
+
+  case NEW_FLOAT_EXT:
+	return strdup( "new float" ) ;
+
+  case ERL_ATOM_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "atom of %i actual characters",
+	  size );
+	return res ;
+
+  case ERL_SMALL_ATOM_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "small atom of %i actual characters",
+	  size );
+	return res ;
+
+  case ERL_ATOM_UTF8_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "UTF8 atom of %i actual characters",
+	  size );
+	return res ;
+
+  case ERL_SMALL_ATOM_UTF8_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "small UTF8 atom of %i actual characters",
+	  size );
+	return res ;
+
+  case ERL_REFERENCE_EXT:
+	return strdup( "reference" ) ;
+
+  case ERL_NEW_REFERENCE_EXT:
+	return strdup( "new reference" ) ;
+
+  case ERL_NEWER_REFERENCE_EXT:
+	return strdup( "newer reference" ) ;
+
+  case ERL_PORT_EXT:
+	return strdup( "port" ) ;
+
+  case ERL_NEW_PORT_EXT:
+	return strdup( "new port" ) ;
+
+  case ERL_PID_EXT:
+	return strdup( "PID" ) ;
+
+  case ERL_NEW_PID_EXT:
+	return strdup( "new PID" ) ;
+
+  case ERL_SMALL_TUPLE_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "small tuple of %i elements",
+	  size );
+	return res ;
+
+  case ERL_LARGE_TUPLE_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "large tuple of %i elements",
+	  size );
+	return res ;
+
+  case ERL_NIL_EXT:
+	return strdup( "empty list" ) ;
+
+  case ERL_STRING_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "string of %i actual characters",
+	  size );
+	return res ;
+
+  case ERL_LIST_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "list of %i elements",
+	  size );
+	return res ;
+
+  case ERL_BINARY_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "binary of %i bytes",
+	  size );
+	return res ;
+
+  case ERL_BIT_BINARY_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "bit binary of %i bytes",
+	  size );
+	return res ;
+
+  case ERL_SMALL_BIG_EXT:
+	return strdup( "small big integer" ) ;
+
+  case ERL_LARGE_BIG_EXT:
+	return strdup( "large big integer" ) ;
+
+  case ERL_NEW_FUN_EXT:
+	return strdup( "new fun" ) ;
+
+  case ERL_MAP_EXT:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "map of %i entries",
+	  size );
+	return res ;
+
+  case ERL_FUN_EXT:
+	return strdup( "fun" ) ;
+
+  case ERL_EXPORT_EXT:
+	return strdup( "export" ) ;
+
+  case ERL_NEW_CACHE:
+	return strdup( "new cache" ) ;
+
+  case ERL_CACHED_ATOM:
+	res = (char*) malloc( string_size * sizeof( char ) ) ;
+	snprintf( res, string_size, "cached atom of %i actual characters",
+	  size );
+	return res ;
+
+  default:
+	return strdup( "unexpected type (abnormal)" ) ;
+
+  }
 
 }
