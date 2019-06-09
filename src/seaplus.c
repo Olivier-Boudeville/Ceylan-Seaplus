@@ -67,7 +67,7 @@ const byte_count string_size = 150 ;
 
 
 // For reading and writing terms:
-byte * buffer = NULL ;
+input_buffer buffer = NULL ;
 
 // Actual file used for logging:
 FILE * log_file = NULL ;
@@ -117,7 +117,7 @@ list_size encoded_length ;
 
 void check_encoded_list() ;
 
-char * interpret_type_at( const byte * buffer,
+char * interpret_type_at( const input_buffer buffer,
   const buffer_index * index ) ;
 
 
@@ -299,7 +299,7 @@ void raise_error( const char * format, ... )
  * Returns the (plain) input buffer (for parameter decoding).
  *
  */
-byte * start_seaplus_driver()
+void start_seaplus_driver( input_buffer buf )
 {
 
   pid_t current_pid = getpid() ;
@@ -323,12 +323,10 @@ byte * start_seaplus_driver()
 	raise_error( "The ei service could not be successfully initialized: %s.",
 	  strerror( error ) ) ;
 
-  byte * input_buffer = (byte *) malloc( buffer_size ) ;
+  *buf = (byte *) malloc( buffer_size ) ;
 
-  if ( input_buffer == NULL )
+  if ( *buf == NULL )
 	raise_error( "Allocation of the input buffer failed." ) ;
-
-  return input_buffer ;
 
 }
 
@@ -338,7 +336,7 @@ byte * start_seaplus_driver()
  * Stops the C Seaplus driver.
  *
  */
-void stop_seaplus_driver( byte * input_buffer )
+void stop_seaplus_driver( input_buffer input_buffer )
 {
 
   LOG_DEBUG( "Stopping the Seaplus C driver." ) ;
@@ -350,8 +348,8 @@ void stop_seaplus_driver( byte * input_buffer )
 
   }
 
-  free( input_buffer ) ;
-  input_buffer = NULL ;
+  free( *input_buffer ) ;
+  *input_buffer = NULL ;
 
   // No ei_init/0 counterpart found.
 
@@ -361,19 +359,23 @@ void stop_seaplus_driver( byte * input_buffer )
 
 
 
-// Initializes specified smart buffer (the internal fields thereof).
-void init_smart_buffer( smart_buffer * sm_buf )
+/**
+ * Initializes the main smart buffer (the internal fields thereof) according to
+ * the Erlang binary format.
+ *
+ */
+void init_output_buffer( output_buffer * sm_buf )
 {
 
   if ( ei_x_new_with_version( sm_buf ) != 0 )
-	raise_error( "Allocation of smart buffer failed." ) ;
+	raise_error( "Initialization of smart buffer failed." ) ;
 
 }
 
 
 
 // Clears the specified smart buffer (the internal fields thereof).
-void clear_smart_buffer( smart_buffer * sm_buf )
+void clear_output_buffer( output_buffer * sm_buf )
 {
 
  if ( ei_x_free( sm_buf ) != 0 )
@@ -390,25 +392,30 @@ void clear_smart_buffer( smart_buffer * sm_buf )
  * multiple output buffers may be useful.
  *
  */
-void prepare_for_command( smart_buffer * output_sm_buf )
+void prepare_for_command( output_buffer * output_sm_buf )
 {
 
   /* finalize_command/1 is expected to have already freed appropriately the
    * internals of that smart buffer:
    *
    */
-  init_smart_buffer( output_sm_buf ) ;
+  init_output_buffer( output_sm_buf ) ;
 
 }
 
 
-/// Finalizes the current command.
-void finalize_command( smart_buffer * output_sm_buf )
+
+/**
+ * Finalizes the current command, supposed to have performed a writing (which is
+ * by far the most general case).
+ *
+ */
+void finalize_command_after_writing( output_buffer * output_sm_buf )
 {
 
   write_buffer( output_sm_buf ) ;
 
-  clear_smart_buffer( output_sm_buf ) ;
+  clear_output_buffer( output_sm_buf ) ;
 
 }
 
@@ -422,10 +429,12 @@ void finalize_command( smart_buffer * output_sm_buf )
  * (helper)
  *
  */
-byte_count read_exact( byte *buf, byte_count len )
+byte_count read_exact( byte * buf, byte_count len )
 {
 
   byte_count got = 0 ;
+
+  LOG_DEBUG( "%d bytes to read.", len ) ;
 
   do
   {
@@ -441,15 +450,19 @@ byte_count read_exact( byte *buf, byte_count len )
 		return 0 ;
 
 	  // Expected to be -1 (error) then:
-	  raise_error( "Reading from buffer failed: %s.", strerror( errno ) ) ;
+	  raise_error( "Reading from buffer %p at position %i "
+		"for a count of %i bytes failed: %s.", buf, got, len-got,
+		strerror( errno ) ) ;
 
 	}
+
+	LOG_DEBUG( "%i bytes actually read.", len ) ;
 
 	got += i ;
 
   } while ( got < len ) ;
 
-  //LOG_DEBUG( "Read %i bytes.", len ) ;
+  LOG_DEBUG( "Read %i bytes.", len ) ;
 
   return len ;
 
@@ -462,25 +475,33 @@ byte_count read_exact( byte *buf, byte_count len )
  * it in the specified buffer.
  *
  */
-byte_count read_command( byte *buf )
+byte_count read_command( input_buffer buf )
 {
 
+  LOG_DEBUG( "Reading a new command, from address %p.", buf ) ;
+
   // Two bytes for command length:
-  byte_count len = read_exact( buf, 2 ) ;
+  byte_count len = read_exact( *buf, 2 ) ;
 
   // Not reading these length bytes may not be abnormal, if stopping:
   if ( len == 2 )
   {
 
-	len = (buf[0] << 8) | buf[1] ;
 
-	//LOG_DEBUG( "Will read %i bytes.", len ) ;
+	// Beware to infamous signed chars and negative lengths:
+	len = ( ( ((unsigned char *) (*buf))[0] ) << 8)
+	  | ( ((unsigned char *) (*buf))[1] ) ;
+
+	LOG_DEBUG( "Command payload to read: %d bytes.", len ) ;
+
+	if ( len < 0 )
+	  raise_error( "Invalid length to read (%d bytes).", len ) ;
 
 	if ( len + 2 > buffer_size )
 	  raise_error( "Read length (%i) is too high (buffer size: %i).",
 		len, buffer_size ) ;
 
-	return read_exact( buf, len ) ;
+	return read_exact( *buf, len ) ;
 
   }
   else
@@ -488,8 +509,10 @@ byte_count read_command( byte *buf )
 
 	if ( len == 0 )
 	{
-	  // The port must have been closed:
+
+	  LOG_DEBUG( "No byte read, port expected to be closed." ) ;
 	  return 0 ;
+
 	}
 	else
 	{
@@ -514,7 +537,7 @@ byte_count read_command( byte *buf )
  * parameters, set in the variables whose reference (pointer) is specified.
  *
  */
-void get_function_information( byte * input_buffer, buffer_index * index,
+void get_function_information( input_buffer input_buffer, buffer_index * index,
   fun_id * current_fun_id, arity * param_count )
 {
 
@@ -528,7 +551,7 @@ void get_function_information( byte * input_buffer, buffer_index * index,
 	 * Erlang binary term format (131, at the time of this writing).
 	 *
 	 */
-	if ( ei_decode_version( input_buffer, index, &format_version ) != 0 )
+	if ( ei_decode_version( *input_buffer, index, &format_version ) != 0 )
 	  raise_error( "The version magic number of the binary term format could "
 		"not be successfully decoded." ) ;
 
@@ -547,7 +570,7 @@ void get_function_information( byte * input_buffer, buffer_index * index,
 
   tuple_size tuple_s ;
 
-  if ( ei_decode_tuple_header( input_buffer, index, &tuple_s ) != 0 )
+  if ( ei_decode_tuple_header( *input_buffer, index, &tuple_s ) != 0 )
 	raise_error( "The function pair could not be successfully decoded. "
 	  "Detected type: %s.", interpret_type_at( input_buffer, index ) ) ;
 
@@ -560,7 +583,7 @@ void get_function_information( byte * input_buffer, buffer_index * index,
 	 * identifier (ex: whose value is FOO_1_ID):
 	 *
 	 */
-  if ( ei_decode_long( input_buffer, index, current_fun_id ) != 0 )
+  if ( ei_decode_long( *input_buffer, index, current_fun_id ) != 0 )
 	raise_error( "The function identifier could not be successfully "
 	  "decoded. Detected type: %s.",
 	  interpret_type_at( input_buffer, index ) ) ;
@@ -616,7 +639,7 @@ void check_arity_is( arity expected, arity actual, fun_id id )
  * signed) integer.
  *
  */
-long get_int_parameter( byte * decode_buffer, buffer_index * index )
+long get_int_parameter( input_buffer decode_buffer, buffer_index * index )
 {
 
   long res ;
@@ -627,7 +650,7 @@ long get_int_parameter( byte * decode_buffer, buffer_index * index )
 
 	LOG_DEBUG( "Reading long integer at index %i.", *index ) ;
 
-	ei_error error = ei_decode_long( decode_buffer, index, &res ) ;
+	ei_error error = ei_decode_long( *decode_buffer, index, &res ) ;
 
 	if ( error != 0 )
 	  raise_error( "Parameter at index %i cannot be decoded to (long) integer: "
@@ -681,7 +704,7 @@ long get_int_parameter( byte * decode_buffer, buffer_index * index )
  * unsigned) integer.
  *
  */
-unsigned long get_unsigned_int_parameter( byte * decode_buffer,
+unsigned long get_unsigned_int_parameter( input_buffer decode_buffer,
   buffer_index * index )
 {
 
@@ -689,7 +712,7 @@ unsigned long get_unsigned_int_parameter( byte * decode_buffer,
 
 	unsigned long res ;
 
-  ei_error error = ei_decode_ulong( decode_buffer, index, &res ) ;
+  ei_error error = ei_decode_ulong( *decode_buffer, index, &res ) ;
 
   if ( error != 0 )
 	raise_error( "Parameter at index %i cannot be decoded to (long) "
@@ -708,7 +731,7 @@ unsigned long get_unsigned_int_parameter( byte * decode_buffer,
  * Returns the element at current buffer location, supposed to be a double.
  *
  */
-double get_double_parameter( byte * decode_buffer,
+double get_double_parameter( input_buffer decode_buffer,
   buffer_index * index )
 {
 
@@ -716,7 +739,7 @@ double get_double_parameter( byte * decode_buffer,
 
   double res ;
 
-   ei_error error = ei_decode_double( decode_buffer, index, &res ) ;
+   ei_error error = ei_decode_double( *decode_buffer, index, &res ) ;
 
   if ( error != 0 )
 	raise_error( "Parameter at index %i cannot be decoded to double: %s; "
@@ -737,7 +760,7 @@ double get_double_parameter( byte * decode_buffer,
  * thus supposed to deallocate it ultimately, with standard free/1).
  *
  */
-char * get_atom_parameter( byte * decode_buffer, buffer_index * index )
+char * get_atom_parameter( input_buffer decode_buffer, buffer_index * index )
 {
 
  check_encoded_list() ;
@@ -747,7 +770,7 @@ char * get_atom_parameter( byte * decode_buffer, buffer_index * index )
   if ( res == NULL )
 	raise_error( "Failed to allocate atom buffer." ) ;
 
-  ei_error error = ei_decode_atom( decode_buffer, index, res ) ;
+  ei_error error = ei_decode_atom( *decode_buffer, index, res ) ;
 
   if ( error != 0 )
 	raise_error( "Parameter at index %i cannot be decoded to atom: %s; "
@@ -768,7 +791,7 @@ char * get_atom_parameter( byte * decode_buffer, buffer_index * index )
  * deallocate it ultimately, with standard free/1)..
  *
  */
-char * get_string_parameter( byte * decode_buffer, buffer_index * index )
+char * get_string_parameter( input_buffer decode_buffer, buffer_index * index )
 {
 
   check_encoded_list() ;
@@ -776,7 +799,7 @@ char * get_string_parameter( byte * decode_buffer, buffer_index * index )
   int type ;
   int size ;
 
-  if ( ei_get_type( decode_buffer, index, &type, &size ) != 0 )
+  if ( ei_get_type( *decode_buffer, index, &type, &size ) != 0 )
 	raise_error( "Cannot determine the type encoded at index %i", index ) ;
 
   if ( type != ERL_STRING_EXT )
@@ -789,7 +812,7 @@ char * get_string_parameter( byte * decode_buffer, buffer_index * index )
   if ( res == NULL )
 	raise_error( "Failed to allocate string buffer." ) ;
 
-  if ( ei_decode_string( decode_buffer, index, res ) != 0 )
+  if ( ei_decode_string( *decode_buffer, index, res ) != 0 )
 	raise_error( "Parameter at index %i cannot be decoded to string; "
 	  "its actual type is %s.", *index,
 	  interpret_type_at( decode_buffer, index ) ) ;
@@ -808,7 +831,7 @@ char * get_string_parameter( byte * decode_buffer, buffer_index * index )
  * thus supposed to deallocate it ultimately, with standard free/1).
  *
  */
-char * get_binary_parameter( byte * decode_buffer, buffer_index * index )
+char * get_binary_parameter( input_buffer decode_buffer, buffer_index * index )
 {
 
   check_encoded_list() ;
@@ -816,7 +839,7 @@ char * get_binary_parameter( byte * decode_buffer, buffer_index * index )
   int type ;
   int size ;
 
-  ei_error error = ei_get_type( decode_buffer, index, &type, &size ) ;
+  ei_error error = ei_get_type( *decode_buffer, index, &type, &size ) ;
 
   if ( error != 0 )
 	raise_error( "Cannot determine the type encoded at index %i: %s.",
@@ -835,9 +858,7 @@ char * get_binary_parameter( byte * decode_buffer, buffer_index * index )
   // Not used:
   long l_size ;
 
-  error = ei_decode_binary( decode_buffer, index, res, &l_size ) ;
-
-  if ( error != 0 )
+  if ( ei_decode_binary( *decode_buffer, index, res, &l_size ) != 0 )
 	raise_error( "Parameter at index %i cannot be decoded to binary: %s; "
 	  "its actual type is %s.", index, strerror( error ),
 	  interpret_type_at( decode_buffer, index ) ) ;
@@ -859,14 +880,14 @@ char * get_binary_parameter( byte * decode_buffer, buffer_index * index )
  * that are unintendendly interpreted as strings.
  *
  */
-void read_list_header_parameter( byte * buffer, buffer_index * index,
+void read_list_header_parameter( input_buffer buffer, buffer_index * index,
 								 arity * size )
 {
 
  // Init:
   encoded_as_string = false ;
 
-  if ( ei_decode_list_header( buffer, index, size ) != 0 )
+  if ( ei_decode_list_header( *buffer, index, size ) != 0 )
   {
 
 	/* Could not be interpreted as a list, probably because term_to_binary/1
@@ -880,7 +901,7 @@ void read_list_header_parameter( byte * buffer, buffer_index * index,
 
 	int type ;
 
-	if ( ei_get_type( buffer, index, &type, size ) != 0 )
+	if ( ei_get_type( *buffer, index, &type, size ) != 0 )
 	  raise_error( "The actual type of the list at %i could not be "
 		"determined.", index ) ;
 
@@ -896,7 +917,7 @@ void read_list_header_parameter( byte * buffer, buffer_index * index,
 	// Null-terminated:
 	encoded_string = (char *) malloc( ( *size + 1 ) * sizeof( char ) ) ;
 
-	if ( ei_decode_string( buffer, index, encoded_string ) != 0 )
+	if ( ei_decode_string( *buffer, index, encoded_string ) != 0 )
 	  raise_error( "Detected an unintended string-encoding of parameters, "
 		"yet was not able to decode it." ) ;
 
@@ -930,7 +951,7 @@ void read_list_header_parameter( byte * buffer, buffer_index * index,
  * Writes in specified return buffer the specified bool result.
  *
  */
-void write_bool_result( smart_buffer * output_sm_buf, bool b )
+void write_bool_result( output_buffer * output_sm_buf, bool b )
 {
 
   if ( ei_x_encode_boolean( output_sm_buf, b ) != 0 )
@@ -944,7 +965,7 @@ void write_bool_result( smart_buffer * output_sm_buf, bool b )
  * Writes in specified return buffer the specified (signed) integer result.
  *
  */
-void write_int_result( smart_buffer * output_sm_buf, int i )
+void write_int_result( output_buffer * output_sm_buf, int i )
 {
 
   if ( ei_x_encode_long( output_sm_buf, (long) i ) != 0 )
@@ -958,7 +979,7 @@ void write_int_result( smart_buffer * output_sm_buf, int i )
  * Writes in specified return buffer the specified unsigned integer result.
  *
  */
-void write_unsigned_int_result( smart_buffer * output_sm_buf, unsigned int u )
+void write_unsigned_int_result( output_buffer * output_sm_buf, unsigned int u )
 {
 
   if ( ei_x_encode_ulong( output_sm_buf, (unsigned long) u ) != 0 )
@@ -972,7 +993,7 @@ void write_unsigned_int_result( smart_buffer * output_sm_buf, unsigned int u )
  * Writes in specified return buffer the specified double result.
  *
  */
-void write_double_result( smart_buffer * output_sm_buf, double d )
+void write_double_result( output_buffer * output_sm_buf, double d )
 {
 
   if ( ei_x_encode_double( output_sm_buf, d ) != 0 )
@@ -989,7 +1010,7 @@ void write_double_result( smart_buffer * output_sm_buf, double d )
  * Note: not taking ownership of the input string.
  *
  */
-void write_atom_result( smart_buffer * output_sm_buf, const char * atom_name )
+void write_atom_result( output_buffer * output_sm_buf, const char * atom_name )
 {
 
   size_t len = strlen( atom_name ) ;
@@ -1002,6 +1023,27 @@ void write_atom_result( smart_buffer * output_sm_buf, const char * atom_name )
 }
 
 
+/**
+ * Writes in specified return buffer the specified (NULL-terminated) string
+ * result, of specified length.
+ *
+ * Note: not taking ownership of the input string.
+ *
+ */
+void write_string_with_length_result( output_buffer * output_sm_buf,
+  const char * string, size_t length )
+{
+
+  // Not including the NULL terminator:
+  if ( ei_x_encode_string_len( output_sm_buf, string, length ) != 0 )
+	raise_error( "Erlang string encoding failed for '%s' (with length: %i).",
+	  string, length ) ;
+
+  // Not owned: free( string ) ;
+
+}
+
+
 
 /**
  * Writes in specified return buffer the specified (NULL-terminated) string
@@ -1010,7 +1052,7 @@ void write_atom_result( smart_buffer * output_sm_buf, const char * atom_name )
  * Note: not taking ownership of the input string.
  *
  */
-void write_string_result( smart_buffer * output_sm_buf, const char * string )
+void write_string_result( output_buffer * output_sm_buf, const char * string )
 {
 
   size_t len = strlen( string ) ;
@@ -1033,7 +1075,7 @@ void write_string_result( smart_buffer * output_sm_buf, const char * string )
  * Note: not taking ownership of the input binary.
  *
  */
-void write_binary_result( smart_buffer * output_sm_buf, const void * content,
+void write_binary_result( output_buffer * output_sm_buf, const void * content,
 						  byte_count size )
 {
 
@@ -1051,7 +1093,7 @@ void write_binary_result( smart_buffer * output_sm_buf, const void * content,
  * Note: not taking ownership of the input string.
  *
  */
-void write_binary_string_result( smart_buffer * output_sm_buf,
+void write_binary_string_result( output_buffer * output_sm_buf,
   const char * string )
 {
 
@@ -1064,18 +1106,55 @@ void write_binary_string_result( smart_buffer * output_sm_buf,
 
 
 /**
+ * Writes in specified return buffer the specified list header result.
+ *
+ * For a list declared of size N (hence having N elements), the N next writes
+ * will correspond to the expected terms to form said list.
+ *
+ * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header to handle lists
+ * whose size is not known a priori (see also write_empty_list_result/1).
+ *
+ */
+void write_list_header_result( output_buffer * output_sm_buf, list_size size )
+{
+
+  if ( ei_x_encode_list_header( output_sm_buf, size ) != 0 )
+	raise_error( "List header encoding failed (for size %i).", size ) ;
+
+}
+
+
+
+/**
+ * Writes in specified return buffer an empty list.
+ *
+ * Especially useful to write lists whose size is not known a priori, by
+ * cons'ing elements one by one until none is left.
+ *
+ * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header for more information.
+ *
+ */
+void write_empty_list_result( output_buffer * output_sm_buf )
+{
+
+  if ( ei_x_encode_empty_list( output_sm_buf) != 0 )
+	raise_error( "Empty list encoding failed" ) ;
+
+}
+
+
+
+/**
  * Writes in specified return buffer the specified tuple header result.
  *
  * For a tuple declared of size N (hence having N elements), the N next writes
  * will correspond to the expected terms to form said tuple.
  *
  */
-void write_tuple_header_result( smart_buffer * output_sm_buf, tuple_size size )
+void write_tuple_header_result( output_buffer * output_sm_buf, tuple_size size )
 {
 
-  int res = ei_x_encode_tuple_header( output_sm_buf, size ) ;
-
-  if ( res != 0 )
+  if ( ei_x_encode_tuple_header( output_sm_buf, size ) != 0 )
 	raise_error( "Tuple header encoding failed (for size %i).", size ) ;
 
 }
@@ -1096,7 +1175,7 @@ void write_tuple_header_result( smart_buffer * output_sm_buf, tuple_size size )
   * (helper)
  *
  */
-byte_count write_exact( byte *buf, byte_count len )
+byte_count write_exact( byte * buf, byte_count len )
 {
 
   byte_count wrote = 0 ;
@@ -1127,7 +1206,7 @@ byte_count write_exact( byte *buf, byte_count len )
  * Returns the number of bytes written.
  *
  */
-byte_count write_buffer( smart_buffer * output_sm_buf )
+byte_count write_buffer( output_buffer * output_sm_buf )
 {
 
   unsigned int len = output_sm_buf->index ;
@@ -1183,14 +1262,14 @@ void check_encoded_list()
  * This call will not impact the buffer or the index.
  *
  */
-char * interpret_type_at( const byte * buffer,
+char * interpret_type_at( const input_buffer buffer,
   const buffer_index * index )
 {
 
   int type ;
   int size ;
 
-  ei_error error = ei_get_type( buffer, index, &type, &size ) ;
+  ei_error error = ei_get_type( *buffer, index, &type, &size ) ;
 
   if ( error != 0 )
 	raise_error(

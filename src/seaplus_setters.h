@@ -40,28 +40,28 @@
  * Writes in specified return buffer the specified boolean result.
  *
  */
-void write_bool_result( smart_buffer * output_sm_buf, bool b ) ;
+void write_bool_result( output_buffer * output_sm_buf, bool b ) ;
 
 
 /**
  * Writes in specified return buffer the specified (signed) integer result.
  *
  */
-void write_int_result( smart_buffer * output_sm_buf, int i ) ;
+void write_int_result( output_buffer * output_sm_buf, int i ) ;
 
 
 /**
  * Writes in specified return buffer the specified unsigned integer result.
  *
  */
-void write_unsigned_int_result( smart_buffer * output_sm_buf, unsigned int u ) ;
+void write_unsigned_int_result( output_buffer * output_sm_buf, unsigned int u ) ;
 
 
 /**
  * Writes in specified return buffer the specified double result.
  *
  */
-void write_double_result( smart_buffer * output_sm_buf, double d ) ;
+void write_double_result( output_buffer * output_sm_buf, double d ) ;
 
 
 /**
@@ -71,7 +71,18 @@ void write_double_result( smart_buffer * output_sm_buf, double d ) ;
  * Note: not taking ownership of the input string.
  *
  */
-void write_atom_result( smart_buffer * output_sm_buf, const char * atom_name ) ;
+void write_atom_result( output_buffer * output_sm_buf, const char * atom_name ) ;
+
+
+/**
+ * Writes in specified return buffer the specified (NULL-terminated) string
+ * result, of specified length.
+ *
+ * Note: not taking ownership of the input string.
+ *
+ */
+void write_string_with_length_result( output_buffer * output_sm_buf, const char * string,
+  size_t length ) ;
 
 
 /**
@@ -80,7 +91,7 @@ void write_atom_result( smart_buffer * output_sm_buf, const char * atom_name ) ;
  * Note: not taking ownership of the input string.
  *
  */
-void write_string_result( smart_buffer * output_sm_buf, const char * string ) ;
+void write_string_result( output_buffer * output_sm_buf, const char * string ) ;
 
 
 /**
@@ -90,7 +101,7 @@ void write_string_result( smart_buffer * output_sm_buf, const char * string ) ;
  * Note: not taking ownership of the input binary.
  *
  */
-void write_binary_result( smart_buffer * output_sm_buf, const void * content,
+void write_binary_result( output_buffer * output_sm_buf, const void * content,
   byte_count size ) ;
 
 
@@ -101,8 +112,37 @@ void write_binary_result( smart_buffer * output_sm_buf, const void * content,
  * Note: not taking ownership of the input string.
  *
  */
-void write_binary_string_result( smart_buffer * output_sm_buf,
+void write_binary_string_result( output_buffer * output_sm_buf,
   const char * string ) ;
+
+
+
+/**
+ * Writes in specified return buffer the specified list header result.
+ *
+ * For a list declared of size N (hence having N elements), the N next writes
+ * will correspond to the expected terms to form said list.
+ *
+ * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header to handle lists
+ * whose size is not known a priori (see also write_empty_list_result/1).
+ *
+ */
+void write_list_header_result( output_buffer * output_sm_buf,
+  list_size size ) ;
+
+
+
+/**
+ * Writes in specified return buffer an empty list.
+ *
+ * Especially useful to write lists whose size is not known a priori, by
+ * cons'ing elements one by one until none is left.
+ *
+ * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header for more information.
+ *
+ */
+void write_empty_list_result( output_buffer * output_sm_buf ) ;
+
 
 
 /**
@@ -112,7 +152,7 @@ void write_binary_string_result( smart_buffer * output_sm_buf,
  * will correspond to the expected terms to form said tuple.
  *
  */
-void write_tuple_header_result( smart_buffer * output_sm_buf,
+void write_tuple_header_result( output_buffer * output_sm_buf,
   tuple_size size ) ;
 
 
@@ -123,7 +163,7 @@ void write_tuple_header_result( smart_buffer * output_sm_buf,
  * Returns the number of bytes written.
  *
  */
-byte_count write_buffer( smart_buffer * buf ) ;
+byte_count write_buffer( output_buffer * output_sm_buf ) ;
 
 
 #endif // _SEAPLUS_SETTERS_H_

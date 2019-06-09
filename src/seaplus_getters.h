@@ -38,7 +38,7 @@
  * parameters, set in the variables whose reference is specified.
  *
  */
-void get_function_information( byte * buffer, buffer_index * index,
+void get_function_information( input_buffer buffer, buffer_index * index,
   fun_id * current_fun_id, arity * param_count ) ;
 
 
@@ -51,7 +51,7 @@ void get_function_information( byte * buffer, buffer_index * index,
  * signed) integer.
  *
  */
-long get_int_parameter( byte * decode_buffer, buffer_index * index ) ;
+long get_int_parameter( input_buffer decode_buffer, buffer_index * index ) ;
 
 
 
@@ -60,7 +60,7 @@ long get_int_parameter( byte * decode_buffer, buffer_index * index ) ;
  * unsigned) integer.
  *
  */
-unsigned long get_unsigned_int_parameter( byte * decode_buffer,
+unsigned long get_unsigned_int_parameter( input_buffer decode_buffer,
   buffer_index * index ) ;
 
 
@@ -69,7 +69,7 @@ unsigned long get_unsigned_int_parameter( byte * decode_buffer,
  * Returns the element at current buffer location, supposed to be a double.
  *
  */
-double get_double_parameter( byte * decode_buffer, buffer_index * index ) ;
+double get_double_parameter( input_buffer decode_buffer, buffer_index * index ) ;
 
 
 
@@ -79,7 +79,7 @@ double get_double_parameter( byte * decode_buffer, buffer_index * index ) ;
  * thus supposed to deallocate it ultimately, with standard free/1).
  *
  */
-char * get_atom_parameter( byte * decode_buffer, buffer_index * index ) ;
+char * get_atom_parameter( input_buffer decode_buffer, buffer_index * index ) ;
 
 
 
@@ -89,7 +89,7 @@ char * get_atom_parameter( byte * decode_buffer, buffer_index * index ) ;
  * deallocate it ultimately, with standard free/1).
  *
  */
-char * get_string_parameter( byte * decode_buffer, buffer_index * index ) ;
+char * get_string_parameter( input_buffer decode_buffer, buffer_index * index ) ;
 
 
 
@@ -99,7 +99,7 @@ char * get_string_parameter( byte * decode_buffer, buffer_index * index ) ;
  * thus supposed to deallocate it ultimately, with standard free/1).
  *
  */
-char * get_binary_parameter( byte * decode_buffer, buffer_index * index ) ;
+char * get_binary_parameter( input_buffer decode_buffer, buffer_index * index ) ;
 
 
 /**
@@ -111,7 +111,7 @@ char * get_binary_parameter( byte * decode_buffer, buffer_index * index ) ;
  * that are unintendendly interpreted as strings.
  *
  */
-void read_list_header_parameter( byte * decode_buffer, buffer_index * index,
+void read_list_header_parameter( input_buffer decode_buffer, buffer_index * index,
 								 arity * size ) ;
 
 

@@ -80,8 +80,8 @@ run() ->
 	% Better than { ok, 4 }, as we rely on exception support:
 	4 = foobar:foo( 3 ),
 
-	test_facilities:display( "Now triggering on purpose a crash of the "
-							 "integrated service." ),
+	test_facilities:display( "Base testing successful.~nNow triggering on "
+							 "purpose a crash of the integrated service." ),
 
 	% Throwing an exception is better than returning { error, FailReason }:
 	FooCrashed = try
