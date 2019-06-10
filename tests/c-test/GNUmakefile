@@ -58,7 +58,13 @@ compile-service-to-wrap: $(TARGET_SERVICE_OBJ)
 
 $(TARGET_DRIVER_OBJ): foobar.beam
 
+
+# For some reason, $(TARGET_DRIVER_OBJ) has to be specified twice if relying on
+# the auto-generated templated version of it, otherwise foobar_seaplus_driver.o
+# is not found:
+#
 $(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB_PATH)
+	@$(MAKE) $(TARGET_DRIVER_OBJ)
 	@echo "   Linking driver $(TARGET_DRIVER)"
 	@$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) \
 	 $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT) -L$(FOOBAR_LIB_DIR) -lfoobar
