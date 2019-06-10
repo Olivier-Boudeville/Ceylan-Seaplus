@@ -515,9 +515,9 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 	BinMessage = term_to_binary( Message ),
 
-	trace_utils:debug_fmt( "Sending command message '~p' (size: ~B bytes) "
-						   "to port ~w.",
-						   [ Message, size( BinMessage ), TargetPort ] ),
+	%trace_utils:debug_fmt( "Sending command message '~p' (size: ~B bytes) "
+	%					   "to port ~w.",
+	%					   [ Message, size( BinMessage ), TargetPort ] ),
 
 	% To be handled by the (C-based) driver:
 	%
