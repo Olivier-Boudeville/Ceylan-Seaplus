@@ -5,7 +5,7 @@
 
 This repository corresponds to the part of the [Ceylan project](https://github.com/Olivier-Boudeville/Ceylan) gathering facilities introduced in order to better integrate C/C++ code to Erlang.
 
-This binding relies on a port (not a NIF) based on a C-Node and the standard Erl_Interface (now: ei), so that the integrated C/C++ code cannot jeopardise the operation of the Erlang VM (hence at the cost of a few message exchanges, yet with a low overhead, marshalling/demarshalling having to happen anyway).
+This binding relies on a port (not a NIF) based on a C-Node and the standard ei (formerly: Erl_Interface), so that the integrated C/C++ code cannot jeopardise the operation of the Erlang VM (hence at the cost of a few message exchanges, yet with a low overhead, marshalling/demarshalling having to happen anyway).
 
 A parse transform is used in order to ease the definition of both sides (Erlang and C) of the corresponding driver (generating the former integrally, and the latter partially; moreover a C library gathering higher-level primitives is provided in order to facilitate the development of the rest of the C side).
 
