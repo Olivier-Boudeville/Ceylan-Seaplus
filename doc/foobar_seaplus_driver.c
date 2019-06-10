@@ -2,10 +2,10 @@
 
 /*
  * C Seaplus driver in charge of converting, for each function exposed by the
- * foobar service API, the Erlang parameters received from the
- * port into C variables that can be passed to the service functions, and to
- * perform the reciprocal operation on their results, so that they can be sent
- * back to the Erlang calling side.
+ * 'foobar' service API, the Erlang parameters received from the port into
+ * C variables that can be passed to the service functions, and to perform the
+ * reciprocal operation on their results, so that they can be sent back to the
+ * Erlang calling side.
  *
  */
 
@@ -22,7 +22,7 @@
 #include "foobar.h"
 
 
-// For exit:
+// For free:
 #include <stdlib.h>
 
 
@@ -30,19 +30,29 @@ int main()
 {
 
   // Provided by the Seaplus library:
-  byte * buffer = start_seaplus_driver() ;
+  byte * current_read_buf ;
 
-  LOG_TRACE( "Driver started." ) ;
+  input_buffer read_buf = &current_read_buf ;
+
+  start_seaplus_driver( read_buf ) ;
+
+  // For the mandatory result:
+  output_buffer output_sm_buf ;
+
+  LOG_TRACE( "foobar driver started." ) ;
 
   /* Reads a full command from (receive) buffer, based on its initial length:
    *
    * (a single term is expected hence read)
    *
    */
-  while ( read_command( buffer ) > 0 )
+  while ( read_command( read_buf ) > 0 )
   {
 
-	//LOG_TRACE( "New command received." ) ;
+	LOG_TRACE( "New command received." ) ;
+
+	// Current index in the input buffer (for decoding purpose):
+	buffer_index index = 0 ;
 
 	/* Will be set to the corresponding Seaplus-defined function identifier (ex:
 	 * whose value is FOO_1_ID):
@@ -56,80 +66,126 @@ int main()
 	 */
 	arity param_count ;
 
+	read_function_information( read_buf, &index, &current_fun_id, &param_count ) ;
 
-	// Array containing, in-order, the (param_count) transmitted parameters:
-	ETERM ** parameters = NULL ;
+	LOG_DEBUG( "Function identifier is %u, arity is %u (new index is %u).",
+	  current_fun_id, param_count, index ) ;
 
-	ETERM * call_term = get_function_information( buffer, &current_fun_id,
-	  &param_count, &parameters ) ;
+	prepare_for_command( &output_sm_buf ) ;
 
-	/*
-	LOG_DEBUG( "Function identifier is %u, arity is %u.", current_fun_id,
-	  param_count ) ;
-	 */
 
 	// Now, taking care of the corresponding function call:
 	switch( current_fun_id )
 	{
 
-	case FOO_1_ID:
+    case FOO_1_ID:
 
-		LOG_DEBUG( "Executing foo/1." ) ;
-		check_arity_is( 1, param_count, FOO_1_ID ) ;
+        LOG_DEBUG( "Executing foo/1." ) ;
+        check_arity_is( 1, param_count, FOO_1_ID ) ;
 
-		// Add an Erlang term -> C conversion here for each parameter of interest.
-		// Add call to the C counterpart of foo/1.
-		// Write the returned result to buffer.
+        // Add an Erlang term -> C conversion here for each parameter of interest:
+        // (refer to seaplus_getters.h for the conversion functions)
+        // Ex (supposing int):
+        // int i = read_int_parameter( read_buf, &index ) ;
 
-		break ;
+        //        // Add call to the C counterpart of foo/1:
+        // Ex: float f = some_service_function( i ) ;
 
+        // Write the returned result to buffer:
+        // (refer to seaplus_setters.h for the conversion functions)
+        // Ex: write_double_result( &output_sm_buf, (double) f ) ;
 
-	case BAR_2_ID:
+        // Do not forget to deallocate any relevant memory!
 
-		LOG_DEBUG( "Executing bar/2." ) ;
-		check_arity_is( 2, param_count, BAR_2_ID ) ;
-
-		// Add an Erlang term -> C conversion here for each parameter of interest.
-		// Add call to the C counterpart of bar/2.
-		// Write the returned result to buffer.
-
-		break ;
+        break ;
 
 
-	case BAZ_2_ID:
+    case BAR_2_ID:
 
-		LOG_DEBUG( "Executing baz/2." ) ;
-		check_arity_is( 2, param_count, BAZ_2_ID ) ;
+        LOG_DEBUG( "Executing bar/2." ) ;
+        check_arity_is( 2, param_count, BAR_2_ID ) ;
 
-		// Add an Erlang term -> C conversion here for each parameter of interest.
-		// Add call to the C counterpart of baz/2.
-		// Write the returned result to buffer.
+        // Add an Erlang term -> C conversion here for each parameter of interest:
+        // (refer to seaplus_getters.h for the conversion functions)
+        // Ex (supposing int):
+        // int i = read_int_parameter( read_buf, &index ) ;
 
-		break ;
+        //        // Add call to the C counterpart of bar/2:
+        // Ex: float f = some_service_function( i ) ;
 
+        // Write the returned result to buffer:
+        // (refer to seaplus_setters.h for the conversion functions)
+        // Ex: write_double_result( &output_sm_buf, (double) f ) ;
 
-	case TUR_0_ID:
+        // Do not forget to deallocate any relevant memory!
 
-		LOG_DEBUG( "Executing tur/0." ) ;
-		check_arity_is( 0, param_count, TUR_0_ID ) ;
-
-		// Add an Erlang term -> C conversion here for each parameter of interest.
-		// Add call to the C counterpart of tur/0.
-		// Write the returned result to buffer.
-
-		break ;
+        break ;
 
 
-	case FROB_1_ID:
+    case BAZ_2_ID:
 
-		LOG_DEBUG( "Executing frob/1." ) ;
-		check_arity_is( 1, param_count, FROB_1_ID ) ;
+        LOG_DEBUG( "Executing baz/2." ) ;
+        check_arity_is( 2, param_count, BAZ_2_ID ) ;
 
-		// Add an Erlang term -> C conversion here for each parameter of interest.
-		// Add call to the C counterpart of frob/1.
-		// Write the returned result to buffer.
+        // Add an Erlang term -> C conversion here for each parameter of interest:
+        // (refer to seaplus_getters.h for the conversion functions)
+        // Ex (supposing int):
+        // int i = read_int_parameter( read_buf, &index ) ;
 
-		break ;
+        //        // Add call to the C counterpart of baz/2:
+        // Ex: float f = some_service_function( i ) ;
+
+        // Write the returned result to buffer:
+        // (refer to seaplus_setters.h for the conversion functions)
+        // Ex: write_double_result( &output_sm_buf, (double) f ) ;
+
+        // Do not forget to deallocate any relevant memory!
+
+        break ;
+
+
+    case TUR_0_ID:
+
+        LOG_DEBUG( "Executing tur/0." ) ;
+        check_arity_is( 0, param_count, TUR_0_ID ) ;
+
+        // Add an Erlang term -> C conversion here for each parameter of interest:
+        // (refer to seaplus_getters.h for the conversion functions)
+        // Ex (supposing int):
+        // int i = read_int_parameter( read_buf, &index ) ;
+
+        //        // Add call to the C counterpart of tur/0:
+        // Ex: float f = some_service_function( i ) ;
+
+        // Write the returned result to buffer:
+        // (refer to seaplus_setters.h for the conversion functions)
+        // Ex: write_double_result( &output_sm_buf, (double) f ) ;
+
+        // Do not forget to deallocate any relevant memory!
+
+        break ;
+
+
+    case FROB_1_ID:
+
+        LOG_DEBUG( "Executing frob/1." ) ;
+        check_arity_is( 1, param_count, FROB_1_ID ) ;
+
+        // Add an Erlang term -> C conversion here for each parameter of interest:
+        // (refer to seaplus_getters.h for the conversion functions)
+        // Ex (supposing int):
+        // int i = read_int_parameter( read_buf, &index ) ;
+
+        //        // Add call to the C counterpart of frob/1:
+        // Ex: float f = some_service_function( i ) ;
+
+        // Write the returned result to buffer:
+        // (refer to seaplus_setters.h for the conversion functions)
+        // Ex: write_double_result( &output_sm_buf, (double) f ) ;
+
+        // Do not forget to deallocate any relevant memory!
+
+        break ;
 
 
 	default:
@@ -137,10 +193,12 @@ int main()
 
 	}
 
-	clean_up_command( call_term, parameters ) ;
+	finalize_command_after_writing( &output_sm_buf ) ;
 
   }
 
-  stop_seaplus_driver( buffer ) ;
+  // output_sm_buf internally already freed appropriately.
+
+  stop_seaplus_driver( read_buf ) ;
 
 }
