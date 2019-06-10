@@ -109,7 +109,7 @@ int main()
 
 	  LOG_DEBUG( "foo/1's integer result: %i.", foo_result ) ;
 
-	  // Sending of the result:
+	  // Sending of the integer result:
 	  write_int_result( &output_sm_buf, foo_result ) ;
 
 	  break ;
@@ -139,6 +139,7 @@ int main()
 	  // Actual call (ownership of struct_res transferred to this caller):
 	  struct foo_data * struct_res = bar( bar_double_param, bar_status_param ) ;
 
+	  // Defining a separated writing function is more convenient here:
 	  write_foo_data_record_from_struct( &output_sm_buf, struct_res ) ;
 
 	  free( struct_res ) ;
