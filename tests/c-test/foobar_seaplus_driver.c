@@ -22,7 +22,7 @@
 #include "foobar.h"
 
 
-// For malloc:
+// For free:
 #include <stdlib.h>
 
 
@@ -80,7 +80,7 @@ int main()
 	 */
 	arity param_count ;
 
-	get_function_information( read_buf, &index, &current_fun_id, &param_count ) ;
+	read_function_information( read_buf, &index, &current_fun_id, &param_count ) ;
 
 	LOG_DEBUG( "Function identifier is %u, arity is %u (new index is %u).",
 	  current_fun_id, param_count, index ) ;
@@ -100,7 +100,7 @@ int main()
 	  check_arity_is( 1, param_count, FOO_1_ID ) ;
 
 	  // So we expect the (single, hence first) parameter to be an integer:
-	  long foo_a_param = get_int_parameter( read_buf, &index ) ;
+	  long foo_a_param = read_int_parameter( read_buf, &index ) ;
 
 	  LOG_DEBUG( "foo/1's integer parameter: %ld.", foo_a_param ) ;
 
@@ -126,10 +126,10 @@ int main()
 	  check_arity_is( 2, param_count, BAR_2_ID ) ;
 
 	  // Getting first the Erlang float:
-	  double bar_double_param = get_double_parameter( read_buf, &index ) ;
+	  double bar_double_param = read_double_parameter( read_buf, &index ) ;
 
 	  // Then the atom for foo_status():
-	  char * atom_name = get_atom_parameter( read_buf, &index ) ;
+	  char * atom_name = read_atom_parameter( read_buf, &index ) ;
 
 	  // Converting said atom for the C API:
 	  enum foo_status bar_status_param = get_foo_status_from_atom( atom_name ) ;
@@ -157,10 +157,10 @@ int main()
 	  check_arity_is( 2, param_count, BAZ_2_ID ) ;
 
 	  // Getting first the (unsigned) integer:
-	  int baz_int_param = get_int_parameter( read_buf, &index ) ;
+	  int baz_int_param = read_int_parameter( read_buf, &index ) ;
 
 	  // Then the string:
-	  char * baz_string_param = get_string_parameter( read_buf, &index ) ;
+	  char * baz_string_param = read_string_parameter( read_buf, &index ) ;
 
 	  // Actual call:
 	  enum tur_status enum_res = baz( baz_int_param, baz_string_param ) ;
@@ -203,7 +203,7 @@ int main()
 	  LOG_DEBUG( "Executing frob/1." ) ;
 	  check_arity_is( 1, param_count, FROB_1_ID ) ;
 
-	  char * tur_atom_name = get_atom_parameter( read_buf, &index ) ;
+	  char * tur_atom_name = read_atom_parameter( read_buf, &index ) ;
 
 	  enum tur_status s = get_tur_status_enum_from_atom_name( tur_atom_name ) ;
 
