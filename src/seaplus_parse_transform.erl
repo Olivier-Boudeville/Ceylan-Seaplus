@@ -839,14 +839,13 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 		"        // Add an Erlang term -> C conversion here for each "
 				"parameter of interest:~n"
 		"        // (refer to seaplus_getters.h for the conversion functions)~n"
-		"        // Ex (supposing int): int i = get_parameter_as_int( "
-		"1, parameters ) ;~n~n"
-
-		"        // Add call to the C counterpart of ~s/~B:~n"
+		"        // Ex (supposing int):~n"
+		"        // int i = read_int_parameter( read_buf, &index ) ;~n~n"
+		"        // This allows then calling the C counterpart of ~s/~B:~n"
 		"        // Ex: float f = some_service_function( i ) ;~n~n"
-		"        // Write the returned result to buffer:~n"
+		"        // Then write the returned result to the Erlang side:~n"
 		"        // (refer to seaplus_setters.h for the conversion functions)~n"
-		"        // Ex: write_as_double( buffer, (double) f ) ;~n~n"
+		"        // Ex: write_double_result( &output_sm_buf, (double) f ) ;~n"
 		"        // Do not forget to deallocate any relevant memory!~n~n"
 		"        break ;~n",
 		[ DriverId, FunName, Arity, Arity, DriverId, FunName, Arity ] ),

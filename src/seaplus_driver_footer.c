@@ -4,10 +4,12 @@
 
 	}
 
-	clean_up_command( call_term, parameters ) ;
+	finalize_command_after_writing( &output_sm_buf ) ;
 
   }
 
-  stop_seaplus_driver( buffer ) ;
+  // output_sm_buf internally already freed appropriately.
+
+  stop_seaplus_driver( read_buf ) ;
 
 }

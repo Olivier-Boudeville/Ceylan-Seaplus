@@ -22,7 +22,7 @@
 #include "##SEAPLUS_SERVICE_NAME##.h"
 
 
-// For exit:
+// For free:
 #include <stdlib.h>
 
 
@@ -30,19 +30,29 @@ int main()
 {
 
   // Provided by the Seaplus library:
-  byte * buffer = start_seaplus_driver() ;
+  byte * current_read_buf ;
 
-  LOG_TRACE( "Driver started." ) ;
+  input_buffer read_buf = &current_read_buf ;
+
+  start_seaplus_driver( read_buf ) ;
+
+  // For the mandatory result:
+  output_buffer output_sm_buf ;
+
+  LOG_TRACE( "##SEAPLUS_SERVICE_NAME## driver started." ) ;
 
   /* Reads a full command from (receive) buffer, based on its initial length:
    *
    * (a single term is expected hence read)
    *
    */
-  while ( read_command( buffer ) > 0 )
+  while ( read_command( read_buf ) > 0 )
   {
 
-	//LOG_TRACE( "New command received." ) ;
+	LOG_TRACE( "New command received." ) ;
+
+	// Current index in the input buffer (for decoding purpose):
+	buffer_index index = 0 ;
 
 	/* Will be set to the corresponding Seaplus-defined function identifier (ex:
 	 * whose value is FOO_1_ID):
@@ -56,17 +66,13 @@ int main()
 	 */
 	arity param_count ;
 
+	read_function_information( read_buf, &index, &current_fun_id, &param_count ) ;
 
-	// Array containing, in-order, the (param_count) transmitted parameters:
-	ETERM ** parameters = NULL ;
+	LOG_DEBUG( "Function identifier is %u, arity is %u (new index is %u).",
+	  current_fun_id, param_count, index ) ;
 
-	ETERM * call_term = get_function_information( buffer, &current_fun_id,
-	  &param_count, &parameters ) ;
+	prepare_for_command( &output_sm_buf ) ;
 
-	/*
-	LOG_DEBUG( "Function identifier is %u, arity is %u.", current_fun_id,
-	  param_count ) ;
-	 */
 
 	// Now, taking care of the corresponding function call:
 	switch( current_fun_id )
