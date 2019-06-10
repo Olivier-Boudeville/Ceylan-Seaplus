@@ -89,7 +89,7 @@ FILE * log_file = NULL ;
  * This "simple" scheme will work as string-encoded lists cannot be nested (so
  * there is up to one level of them).
  *
- * Note that, afterwards, for that command, only get_int_parameter/2 will read
+ * Note that, afterwards, for that command, only read_int_parameter/2 will read
  * its data from that list-as-a-string.
  *
  */
@@ -575,7 +575,7 @@ byte_count read_command( input_buffer buf )
  * parameters, set in the variables whose reference (pointer) is specified.
  *
  */
-void get_function_information( input_buffer input_buffer, buffer_index * index,
+void read_function_information( input_buffer input_buffer, buffer_index * index,
   fun_id * current_fun_id, arity * param_count )
 {
 
@@ -677,7 +677,7 @@ void check_arity_is( arity expected, arity actual, fun_id id )
  * signed) integer.
  *
  */
-long get_int_parameter( input_buffer decode_buffer, buffer_index * index )
+long read_int_parameter( input_buffer decode_buffer, buffer_index * index )
 {
 
   long res ;
@@ -742,7 +742,7 @@ long get_int_parameter( input_buffer decode_buffer, buffer_index * index )
  * unsigned) integer.
  *
  */
-unsigned long get_unsigned_int_parameter( input_buffer decode_buffer,
+unsigned long read_unsigned_int_parameter( input_buffer decode_buffer,
   buffer_index * index )
 {
 
@@ -769,7 +769,7 @@ unsigned long get_unsigned_int_parameter( input_buffer decode_buffer,
  * Returns the element at current buffer location, supposed to be a double.
  *
  */
-double get_double_parameter( input_buffer decode_buffer,
+double read_double_parameter( input_buffer decode_buffer,
   buffer_index * index )
 {
 
@@ -798,7 +798,7 @@ double get_double_parameter( input_buffer decode_buffer,
  * thus supposed to deallocate it ultimately, with standard free/1).
  *
  */
-char * get_atom_parameter( input_buffer decode_buffer, buffer_index * index )
+char * read_atom_parameter( input_buffer decode_buffer, buffer_index * index )
 {
 
  check_encoded_list() ;
@@ -829,7 +829,7 @@ char * get_atom_parameter( input_buffer decode_buffer, buffer_index * index )
  * deallocate it ultimately, with standard free/1)..
  *
  */
-char * get_string_parameter( input_buffer decode_buffer, buffer_index * index )
+char * read_string_parameter( input_buffer decode_buffer, buffer_index * index )
 {
 
   check_encoded_list() ;
@@ -869,7 +869,7 @@ char * get_string_parameter( input_buffer decode_buffer, buffer_index * index )
  * thus supposed to deallocate it ultimately, with standard free/1).
  *
  */
-char * get_binary_parameter( input_buffer decode_buffer, buffer_index * index )
+char * read_binary_parameter( input_buffer decode_buffer, buffer_index * index )
 {
 
   check_encoded_list() ;
