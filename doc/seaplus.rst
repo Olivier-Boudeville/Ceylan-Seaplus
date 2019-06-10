@@ -722,7 +722,7 @@ Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sen
 Seaplus Inner Workings
 ======================
 
-It is mostly the one described in the `Erl_Interface <http://erlang.org/doc/tutorial/erl_interface.html>`_ tutorial, once switched to ``ei`` and augmented with conventions and automated by the `Seaplus parse transform <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_ as much as realistically possible (hence a code generation that is exhaustive on the Erlang side, and partial of the C side) and adapted for increased performances (notably: no extra relay process between the user code and the port involving more messages and processing, no string-based mapping of function signatures across the bridge - direct integer identifiers used instead).
+It is mostly the one described in the `Erl_Interface <http://erlang.org/doc/tutorial/erl_interface.html>`_ tutorial, once switched to ``ei`` (another source of inspiration has been `this article <https://erlangcentral.org/wiki/How_to_use_ei_to_marshal_binary_terms_in_port_programs>`_) and augmented with conventions and automated by the `Seaplus parse transform <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_ as much as realistically possible (hence a code generation that is exhaustive on the Erlang side, and partial of the C side) and adapted for increased performances (notably: no extra relay process between the user code and the port involving more messages and processing, no string-based mapping of function signatures across the bridge - direct integer identifiers used instead).
 
 The parse transform just:
 
@@ -741,6 +741,7 @@ Please React!
 =============
 
 If you have information more detailed or more recent than those presented in this document, if you noticed errors, neglects or points insufficiently discussed, drop us a line! (for that, follow the Support_ guidelines).
+
 
 
 Ending Word
