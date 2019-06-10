@@ -80,8 +80,8 @@ typedef int buffer_index ;
 typedef unsigned int tuple_index ;
 
 
-// Size of the buffer for port input/output:
-extern const byte_count buffer_size ;
+// Size of the buffer for input/output:
+extern byte_count input_buffer_size ;
 
 
 // Seaplus reference onto an Erlang API function:

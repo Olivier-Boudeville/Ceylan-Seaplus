@@ -58,8 +58,14 @@
 const char * default_log_base_filename = "seaplus-driver" ;
 
 
-// Default buffer size, typically for decoding input parameters:
-const byte_count buffer_size = 4096*8 ;
+/* Current size of the input buffer (possibly increased during the processing),
+ * used for decoding input parameters:
+ *
+ */
+// If wanting to test buffer expansion:
+//byte_count input_buffer_size = 4 ;
+byte_count input_buffer_size = 4096*8 ;
+
 
 
 // Default upper bound of string sizes:
@@ -315,7 +321,7 @@ void start_seaplus_driver( input_buffer buf )
   start_logging( log_filename ) ;
 
   LOG_DEBUG( "Starting the Seaplus C driver, with an input buffer of %u bytes.",
-			 buffer_size ) ;
+			 input_buffer_size ) ;
 
   ei_error error = ei_init() ;
 
@@ -323,7 +329,7 @@ void start_seaplus_driver( input_buffer buf )
 	raise_error( "The ei service could not be successfully initialized: %s.",
 	  strerror( error ) ) ;
 
-  *buf = (byte *) malloc( buffer_size ) ;
+  *buf = (byte *) malloc( input_buffer_size ) ;
 
   if ( *buf == NULL )
 	raise_error( "Allocation of the input buffer failed." ) ;
@@ -494,12 +500,44 @@ byte_count read_command( input_buffer buf )
 
 	LOG_DEBUG( "Command payload to read: %d bytes.", len ) ;
 
+#ifdef DEBUG_SEAPLUS
 	if ( len < 0 )
 	  raise_error( "Invalid length to read (%d bytes).", len ) ;
+#endif
 
-	if ( len + 2 > buffer_size )
+	// Not len + 2, we restart at the beginning of the buffer:
+	if ( len > input_buffer_size )
+	{
+
+	  /* Better to resize than:
+
 	  raise_error( "Read length (%i) is too high (buffer size: %i).",
-		len, buffer_size ) ;
+		len, input_buffer_size ) ;
+
+	  */
+
+	  LOG_DEBUG( "Expanding input buffer from %i bytes to %i.",
+		input_buffer_size, len ) ;
+
+	  // May involve a useless copy as will be overwritten:
+	  byte * tmp = (byte *) realloc( *buf, len ) ;
+
+	  if (tmp == NULL)
+	  {
+
+		raise_error( "Could not expand input buffer from %i bytes to %i.",
+		  input_buffer_size, len ) ;
+
+	  }
+	  else
+	  {
+
+		*buf = tmp ;
+		input_buffer_size = len ;
+
+	  }
+
+	}
 
 	return read_exact( *buf, len ) ;
 
@@ -1211,15 +1249,19 @@ byte_count write_buffer( output_buffer * output_sm_buf )
 
   unsigned int len = output_sm_buf->index ;
 
+  /* Not relevant anymore now that we use ei's smart buffer:
+
   if ( len + 2 > buffer_size )
   {
 
 	raise_error( "Write length (%i) too high (buffer size: %i).",
-	  len, buffer_size ) ;
+	  len, input_buffer_size ) ;
 
 	return -1 ;
 
   }
+
+  */
 
   LOG_DEBUG( "Will write %i bytes.", len ) ;
 
