@@ -88,10 +88,10 @@ int main()
         // Ex (supposing int):
         // int i = read_int_parameter( read_buf, &index ) ;
 
-        //        // Add call to the C counterpart of foo/1:
+        // This allows then calling the C counterpart of foo/1:
         // Ex: float f = some_service_function( i ) ;
 
-        // Write the returned result to buffer:
+        // Then write the returned result to the Erlang side:
         // (refer to seaplus_setters.h for the conversion functions)
         // Ex: write_double_result( &output_sm_buf, (double) f ) ;
 
@@ -110,10 +110,10 @@ int main()
         // Ex (supposing int):
         // int i = read_int_parameter( read_buf, &index ) ;
 
-        //        // Add call to the C counterpart of bar/2:
+        // This allows then calling the C counterpart of bar/2:
         // Ex: float f = some_service_function( i ) ;
 
-        // Write the returned result to buffer:
+        // Then write the returned result to the Erlang side:
         // (refer to seaplus_setters.h for the conversion functions)
         // Ex: write_double_result( &output_sm_buf, (double) f ) ;
 
@@ -132,10 +132,10 @@ int main()
         // Ex (supposing int):
         // int i = read_int_parameter( read_buf, &index ) ;
 
-        //        // Add call to the C counterpart of baz/2:
+        // This allows then calling the C counterpart of baz/2:
         // Ex: float f = some_service_function( i ) ;
 
-        // Write the returned result to buffer:
+        // Then write the returned result to the Erlang side:
         // (refer to seaplus_setters.h for the conversion functions)
         // Ex: write_double_result( &output_sm_buf, (double) f ) ;
 
@@ -154,10 +154,10 @@ int main()
         // Ex (supposing int):
         // int i = read_int_parameter( read_buf, &index ) ;
 
-        //        // Add call to the C counterpart of tur/0:
+        // This allows then calling the C counterpart of tur/0:
         // Ex: float f = some_service_function( i ) ;
 
-        // Write the returned result to buffer:
+        // Then write the returned result to the Erlang side:
         // (refer to seaplus_setters.h for the conversion functions)
         // Ex: write_double_result( &output_sm_buf, (double) f ) ;
 
@@ -176,10 +176,10 @@ int main()
         // Ex (supposing int):
         // int i = read_int_parameter( read_buf, &index ) ;
 
-        //        // Add call to the C counterpart of frob/1:
+        // This allows then calling the C counterpart of frob/1:
         // Ex: float f = some_service_function( i ) ;
 
-        // Write the returned result to buffer:
+        // Then write the returned result to the Erlang side:
         // (refer to seaplus_setters.h for the conversion functions)
         // Ex: write_double_result( &output_sm_buf, (double) f ) ;
 
