@@ -1,8 +1,8 @@
 SEAPLUS_TOP = ../..
 
-.PHONY: all compile-erl-generic-support compile-service-driver          \
-		compile-service-to-wrap run-driver erlang-test integration-test \
-		clean clean-local clean-driver clean-beams                      \
+.PHONY: all test test-local compile-erl-generic-support compile-service-driver \
+		compile-service-to-wrap run-driver erlang-test integration-test        \
+		clean clean-local clean-driver clean-beams                             \
 		info info-compile info-erlang-local info-target
 
 
@@ -30,6 +30,15 @@ include $(SEAPLUS_TOP)/GNUmakesettings.inc
 
 
 all: build-foobar-lib $(TARGET_DRIVER_EXEC) erlang-test
+
+
+test: test-local
+
+
+# Must fail, as the regular 'test' target is to fail:
+test-local:
+	@echo "  Error, tests must be run on a specific environment (with regard to LD_LIBRARY_PATH); run: 'make integration-test' instead." 1>&2
+	@exit 10
 
 
 build-foobar-lib:
