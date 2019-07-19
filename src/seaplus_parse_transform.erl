@@ -23,7 +23,7 @@
 % <http://www.mozilla.org/MPL/>.
 %
 % Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
-% Creation date: Tuesday, January 29, 2019
+% Creation date: Tuesday, January 29, 2019.
 
 
 
@@ -333,7 +333,7 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 	% defined (probably automatically, by including seaplus.hrl), in which case
 	% it will be removed:
 	%
-	case table:extractEntryIfExisting( MarkerFunId, FunctionTable ) of
+	case table:extract_entry_if_existing( MarkerFunId, FunctionTable ) of
 
 		false ->
 			%trace_utils:debug(
@@ -434,7 +434,7 @@ handle_start_function( ModuleInfo=#module_info{
 
 	%trace_utils:debug_fmt( "Start call: '~p'.", [ SeaplusStartCall ] ),
 
-	case table:extractEntryIfExisting( StartFunId, FunctionTable ) of
+	case table:extract_entry_if_existing( StartFunId, FunctionTable ) of
 
 		% Here, start/0 is (surprisingly) exported, but not defined by the
 		% user:
@@ -494,7 +494,7 @@ handle_start_function( ModuleInfo=#module_info{
 												exported=NewExports },
 
 			NewFunctionTable =
-				table:addEntry( StartFunId, NewFunInfo, ShrunkTable ),
+				table:add_entry( StartFunId, NewFunInfo, ShrunkTable ),
 
 			ModuleInfo#module_info{ functions=NewFunctionTable }
 
@@ -518,7 +518,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 	%trace_utils:debug_fmt( "Start link call: '~p'.",
 	%						[ SeaplusStartLinkCall ] ),
 
-	case table:extractEntryIfExisting( StartLinkFunId, FunctionTable ) of
+	case table:extract_entry_if_existing( StartLinkFunId, FunctionTable ) of
 
 		% Here, start_link/0 is (surprisingly) exported, but not defined by the
 		% user:
@@ -579,7 +579,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 												exported=NewExports },
 
 			NewFunctionTable =
-				table:addEntry( StartLinkFunId, NewFunInfo, ShrunkTable ),
+				table:add_entry( StartLinkFunId, NewFunInfo, ShrunkTable ),
 
 			ModuleInfo#module_info{ functions=NewFunctionTable }
 
@@ -601,7 +601,7 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 
 	%trace_utils:debug_fmt( "Stop call: ~p", [ SeaplusStopCall ] ),
 
-	case table:extractEntryIfExisting( StopFunId, FunctionTable ) of
+	case table:extract_entry_if_existing( StopFunId, FunctionTable ) of
 
 		% Here, stop/0 is (surprisingly) exported, but not defined by the
 		% user:
@@ -662,7 +662,7 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 												exported=NewExports },
 
 			NewFunctionTable =
-				table:addEntry( StopFunId, NewFunInfo, ShrunkTable ),
+				table:add_entry( StopFunId, NewFunInfo, ShrunkTable ),
 
 			ModuleInfo#module_info{ functions=NewFunctionTable }
 
@@ -903,7 +903,7 @@ prepare_api_functions( ModuleInfo=#module_info{ functions=FunctionTable,
 
 	ExportLoc = ast_info:get_default_export_function_location( MarkerTable ),
 
-	DefLoc = table:getValue( definition_functions_marker, MarkerTable ),
+	DefLoc = table:get_value( definition_functions_marker, MarkerTable ),
 
 	% Now that the order is known, we can generate or transform these API
 	% functions:
@@ -1174,6 +1174,6 @@ inject_fun_infos( _FunInfos=[], FunctionTable ) ->
 inject_fun_infos( [ FunInfo=#function_info{ name=Name, arity=Arity } | T ],
 				  FunctionTable ) ->
 	% An already-existing (clauseless) entry is expected:
-	NewFunctionTable = table:updateEntry( _Id={Name,Arity}, FunInfo,
-										  FunctionTable ),
+	NewFunctionTable = table:update_entry( _Id={Name,Arity}, FunInfo,
+										   FunctionTable ),
 	inject_fun_infos( T, NewFunctionTable ).
