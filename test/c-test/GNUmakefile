@@ -3,7 +3,7 @@ SEAPLUS_TOP = ../..
 .PHONY: all test test-local compile-erl-generic-support compile-service-driver \
 		compile-service-to-wrap run-driver erlang-test integration-test        \
 		clean clean-local clean-driver clean-beams                             \
-		info info-compile info-erlang-local info-target
+		info info-compile info-erlang-local info-target info-compile
 
 
 # Explicit recursion (done by build-foobar-lib) preferred, to avoid parallel
@@ -26,7 +26,7 @@ include $(SEAPLUS_TOP)/GNUmakesettings.inc
 
 %.o: %.c
 	@echo "   Compiling $<"
-	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(INC) $(FOOBAR_INC_OPT) -o $@ -c $<
+	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(FOOBAR_INC_OPT) -o $@ -c $<
 
 
 all: build-foobar-lib $(TARGET_DRIVER_EXEC) erlang-test
@@ -122,3 +122,10 @@ info-target:
 	@echo "TARGET_SERVICE_TESTER_EXEC = $(TARGET_SERVICE_TESTER_EXEC)"
 	@echo "TARGET_DRIVER = $(TARGET_DRIVER)"
 	@echo "FOOBAR_LIBRARY = $(FOOBAR_LIBRARY)"
+
+
+info-compile:
+	@echo "INC = $(INC)"
+	@echo "C_INC = $(C_INC)"
+	@echo "C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT_FOR_OBJ)"
+	@echo "FOOBAR_INC_OPT = $(FOOBAR_INC_OPT)"

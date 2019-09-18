@@ -41,7 +41,8 @@ SEAPLUS_SRC := $(SEAPLUS_TOP)/src
 SEAPLUS_BEAM := $(SEAPLUS_SRC)
 
 # Include path section.
-SEAPLUS_INC = -I$(SEAPLUS_SRC)
+SEAPLUS_INC = -I$(SEAPLUS_TOP)/include
+
 
 # Library referencing section.
 
@@ -172,7 +173,7 @@ ERL_INTERFACE_LIB = -L$(ERL_INTERFACE)/lib
 C_COMPILER := $(shell which gcc)
 
 
-C_INC = $(ERL_INTERFACE_INC) -I.
+C_INC = $(ERL_INTERFACE_INC) -I. $(SEAPLUS_INC)
 C_LIB = $(ERL_INTERFACE_LIB)
 
 ifndef C_COMPILER_OPT
@@ -344,7 +345,7 @@ endif
 
 # Foobar-related section.
 
-FOOBAR_ROOT = $(SEAPLUS_TOP)/tests/c-test/foobar
+FOOBAR_ROOT = $(SEAPLUS_TOP)/test/c-test/foobar
 
 FOOBAR_INC = $(FOOBAR_ROOT)/inc
 
