@@ -32,15 +32,6 @@ include $(SEAPLUS_TOP)/GNUmakesettings.inc
 all: build-foobar-lib $(TARGET_DRIVER_EXEC) erlang-test
 
 
-test: test-local
-
-
-# Must fail, as the regular 'test' target is to fail:
-test-local:
-	@echo "  Error, tests must be run on a specific environment (with regard to LD_LIBRARY_PATH); run: 'make integration-test' instead." 1>&2
-	@exit 10
-
-
 build-foobar-lib:
 	@cd foobar && $(MAKE) -s build-foobar-lib
 
@@ -90,8 +81,9 @@ erlang-test: foobar.beam $(TEST).beam
 
 
 # The actual target to execute for testing:
-integration-test: clean-log erlang-test $(TARGET_DRIVER_EXEC)
-	@$(MAKE) -s foobar_run LD_LIBRARY_PATH=$(SEAPLUS_TOP)/src:foobar/lib:$(LD_LIBRARY_PATH) || cat seaplus-driver.*.log
+# (deactivated now that environment is set from the test case itself)
+#integration-test: clean-log erlang-test $(TARGET_DRIVER_EXEC)
+#	@$(MAKE) -s foobar_run LD_LIBRARY_PATH=$(SEAPLUS_TOP)/src:foobar/lib:$(LD_LIBRARY_PATH) || cat seaplus-driver.*.log
 
 
 clean: clean-local
