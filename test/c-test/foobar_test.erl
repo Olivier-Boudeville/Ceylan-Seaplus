@@ -23,7 +23,7 @@
 % <http://www.mozilla.org/MPL/>.
 %
 % Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
-% Creation date: December 16, 2018
+% Creation date: December 16, 2018.
 
 
 
@@ -47,6 +47,11 @@ run() ->
 	test_facilities:start( ?MODULE ),
 
 	test_facilities:display( "Testing the Erlang-integrated foobar service." ),
+
+	% As we want to locate the libraries both for Seaplus and this Foobar test
+	% example:
+	%
+	system_utils:add_paths_for_library_lookup( [ "../../src/", "foobar/lib" ] ),
 
 	% Not foobar:start_link(), as here we want to survive a crash of the foobar
 	% service (i.e. to be able to handle failures explicitly, as messages
@@ -81,7 +86,9 @@ run() ->
 	4 = foobar:foo( 3 ),
 
 	test_facilities:display( "Base testing successful.~nNow triggering on "
-							 "purpose a crash of the integrated service." ),
+							 "purpose a crash of the integrated service "
+							 "(so an error report should be displayed just "
+							 "next)." ),
 
 	% Throwing an exception is better than returning { error, FailReason }:
 	FooCrashed = try
