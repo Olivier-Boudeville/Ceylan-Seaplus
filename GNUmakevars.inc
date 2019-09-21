@@ -52,7 +52,7 @@ SEAPLUS_LIB_PATH = $(SEAPLUS_LIB_DIR)/$(SEAPLUS_LIB)
 SEAPLUS_LIB_OPT = -L$(SEAPLUS_LIB_DIR) -lseaplus-$(SEAPLUS_VERSION)
 
 
-DOC_ROOT       = $(SEAPLUS_TOP)/doc
+DOC_ROOT = $(SEAPLUS_TOP)/doc
 SEAPLUS_DOC_DIR = $(DOC_ROOT)/web/main/documentation/seaplus
 
 
