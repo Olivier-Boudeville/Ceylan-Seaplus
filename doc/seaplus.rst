@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2019 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Monday, June 10, 2019
+:Lastly updated: Sunday, September 22, 2019
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -125,7 +125,7 @@ Let's suppose that said service is named ``Foobar``, and that the functions it p
   char * frob(enum tur_status);
 
 
-.. [#] See the full, unedited version of the `foobar.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar/inc/foobar.h>`_ test header that is actually used.
+.. [#] See the full, unedited version of the `foobar.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar/inc/foobar.h>`_ test header that is actually used.
 
 
 
@@ -161,11 +161,15 @@ At the very least, what will be offered on the Erlang side by our ``foobar`` mod
  -spec tur() -> boolean().
  -spec frob(tur_status()) -> text_utils:ustring().
 
-.. [#] See the full, unedited version of the `foobar.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl>`_ API module that is actually used, together with its `foobar.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl>`_ header file.
+.. [#] See the full, unedited version of the `foobar.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar.erl>`_ API module that is actually used, together with its `foobar.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar.hrl>`_ header file.
 
 .. comment Not relevant anymore: Note that some pseudo-builtin types (like ``void/0`` or ``maybe/1``) are introduced here thanks to the use of Myriad - this does not matter for the current topic.
 
 The Seaplus header include allows notably to mark this ``foobar`` module as a service stub (so that the build system can determine this module is to be fleshed out).
+
+It can be included in a more OTP-compliant fashion with::
+
+ -include_lib("seaplus/include/seaplus.hrl").
 
 Comments (description, usage, examples) are also expected to be joined to these specs, they are omitted in this documentation only for brevity.
 
@@ -209,7 +213,7 @@ Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar
   foobar:stop().
 
 
-.. [#] See the full, unedited, richer version of the `foobar_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_test.erl>`_ module used to test the Erlang-integrated service (emulating an actual use of that service).
+.. [#] See the full, unedited, richer version of the `foobar_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_test.erl>`_ module used to test the Erlang-integrated service (emulating an actual use of that service).
 
 
 At this point, one may think that, thanks to these function specs, the full counterpart C bridging code might have been automagically generated as well, in the same movement as the Erlang bridging code? Unfortunately, not exactly! At least, not yet; maybe some day (if ever possible and tractable). Currently: only *parts* of it are generated.
@@ -240,16 +244,16 @@ The C part of the bridge (i.e., the service driver), typically defined in ``foob
 
 Should no such driver implementation already exist, Seaplus will generate a template version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:
 
-1. convert the received arguments (Erlang terms) into their C counterparts (see `seaplus_getters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_getters.h>`_ for that, typically the ``read_*_parameter`` functions)
+1. convert the received arguments (Erlang terms) into their C counterparts (see `seaplus_getters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus_getters.h>`_ for that, typically the ``read_*_parameter`` functions)
 2. call the corresponding C integrated function
-3. convert its result the other way round, so that a relevant Erlang term is returned (see `seaplus_setters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_setters.h>`_ for that, typically the ``write_*_result`` functions)
+3. convert its result the other way round, so that a relevant Erlang term is returned (see `seaplus_setters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus_setters.h>`_ for that, typically the ``write_*_result`` functions)
 
 See the full, unedited version of the generated `foobar_seaplus_driver.c template <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_  corresponding to the Foobar service (one may note the placeholders in each ``case`` branch of the function identifier switch).
 
 
-Seaplus offers moreover various helpers to facilitate the writing of this C driver (i.e. the filling of said generated template); they are gathered in the Seaplus library (typically ``libseaplus.so``) and available by including the Seaplus C header file, ``seaplus.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_).
+Seaplus offers moreover various helpers to facilitate the writing of this C driver (i.e. the filling of said generated template); they are gathered in the Seaplus library (typically ``libseaplus.so``) and available by including the Seaplus C header file, ``seaplus.h`` (see `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus.h>`_).
 
-Based on these elements, the actual bridging code can be written, like in the following shortened version. The ``FOO_1_ID`` case is among the simplest possible call, while the ``BAR_2_ID`` one is more complex; for both calls no memory leak is involved (see the `full source <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ of this test driver, notably for the conversion helpers used for ``bar/2``):
+Based on these elements, the actual bridging code can be written, like in the following shortened version. The ``FOO_1_ID`` case is among the simplest possible call, while the ``BAR_2_ID`` one is more complex; for both calls no memory leak is involved (see the `full source <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_seaplus_driver.c>`_ of this test driver, notably for the conversion helpers used for ``bar/2``):
 
 .. code:: c
 
@@ -366,9 +370,9 @@ Based on these elements, the actual bridging code can be written, like in the fo
 
 
 
-One may finally compare the aforementioned `generated template <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_ with - once it has been appropriately filled by the service integrator - the `final version <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ of this driver.
+One may finally compare the aforementioned `generated template <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_ with - once it has been appropriately filled by the service integrator - the `final version <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_seaplus_driver.c>`_ of this driver.
 
-This version of course compiles, links and allows to run the ``foobar_test`` successfully (once Seaplus is built, one may run, from the ``tests/c-test`` directory, ``make integration-test`` for that).
+This version of course compiles, links and allows to run the ``foobar_test`` successfully (once Seaplus is built, one may run, from the ``test/c-test`` directory, ``make test`` for that).
 
 If wanting to see, beyond this test, what could be an actual, more involved driver (larger, richer, partly interrupt-based), one may refer to the `Ceylan-Mobile driver <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile_seaplus_driver.c>`_.
 
@@ -381,13 +385,13 @@ We believe that, in order to make a pre-existing C/C++ library available to Erla
 
 The overall integration process is quite streamlined, and we tried to reduce as much as possible the size and complexity of the service-specific integration code that remains needed.
 
-For example one may contrast the few Foobar-specific files (`foobar.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl>`_, `foobar.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl>`_ and the final `foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c>`_ - i.e. the ones that shall be written or filled by the service integrator), with:
+For example one may contrast the few Foobar-specific files (`foobar.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar.hrl>`_, `foobar.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar.erl>`_ and the final `foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_seaplus_driver.c>`_ - i.e. the ones that shall be written or filled by the service integrator), with:
 
 - the generated ones, namely the header file for function identifier mapping (`foobar_seaplus_api_mapping.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h>`_) and the original driver template (`foobar_seaplus_driver.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_)
-- the ones implementing the Seaplus generic support, namely `seaplus.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl>`_, `seaplus.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl>`_, `seaplus.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h>`_, `seaplus.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c>`_ and `seaplus_parse_transform.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_
+- the ones implementing the Seaplus generic support, namely `seaplus.hrl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus.hrl>`_, `seaplus.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl>`_, `seaplus.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus.h>`_, `seaplus.c <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c>`_ and `seaplus_parse_transform.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl>`_
 
 
-As mentioned, beside the Seaplus-included `Foobar example <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/tree/master/tests/c-test>`_, one may refer to the `Ceylan-Mobile <http://mobile.esperide.org>`_ project for a complete, standalone use of Seaplus.
+As mentioned, beside the Seaplus-included `Foobar example <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/tree/master/test/c-test>`_, one may refer to the `Ceylan-Mobile <http://mobile.esperide.org>`_ project for a complete, standalone use of Seaplus.
 
 :raw-latex:`\pagebreak`
 
@@ -439,7 +443,7 @@ We try to ensure that the main line (in the ``master`` branch) always stays func
 
 This integration layer, ``Ceylan-Seaplus``, relies (only) on:
 
-- `Erlang <http://www.erlang.org/>`_, version 22.0 or higher
+- `Erlang <http://www.erlang.org/>`_, version 22.1 or higher
 - a suitable C/C++ compiler, typically `gcc <https://gcc.gnu.org>`_
 - the `Ceylan-Myriad <http://myriad.esperide.org>`_ base layer
 
@@ -460,17 +464,17 @@ As a result, once proper Erlang and C environments are available, the `Ceylan-My
 
 .. code:: bash
 
- $ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad
- $ cd Ceylan-Myriad && make all && cd ..
- $ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus
- $ cd Ceylan-Seaplus && make all
+ $ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad myriad
+ $ cd myriad && make all && cd ..
+ $ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus seaplus
+ $ cd seaplus && make all
 
 One can then test the whole with:
 
 .. code:: bash
 
- $ cd tests/c-test
- $ make integration-test
+ $ cd test/c-test
+ $ make test
 
 
 

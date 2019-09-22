@@ -16,6 +16,7 @@ OVERALL_DOCUMENT_SOURCE := $(DOC_NAME).rst
 CURRENT_SEAPLUS_PDF := $(DOC_NAME).pdf
 CURRENT_SEAPLUS_HTML := $(DOC_NAME).html
 
+HTML_TARGET = $(CURRENT_SEAPLUS_HTML)
 
 DOC_GENERATED_FILES := $(CURRENT_SEAPLUS_PDF) $(CURRENT_SEAPLUS_HTML)
 
@@ -50,8 +51,11 @@ all:
 
 
 
-
 full-doc: $(CURRENT_SEAPLUS_HTML)
+
+
+html: clean-doc $(HTML_TARGET)
+
 
 
 # Creates a separate repository for the GitHub pages branch:
@@ -64,12 +68,12 @@ clone-mirror:
 export-doc: clean-doc full-doc export-to-official export-to-mirror
 
 
-export-to-official:
+export-to-official: $(DOC_GENERATED_FILES)
 	@echo "   Exporting Seaplus documentation to official website"
 	@/bin/scp $(SP) $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Seaplus/
 
 
-export-to-mirror:
+export-to-mirror: $(DOC_GENERATED_FILES)
 	@echo "   Exporting Seaplus documentation to mirror website in $(SEAPLUS_WEB_MIRROR_BRANCH)"
 	@/bin/cp -f $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
 
