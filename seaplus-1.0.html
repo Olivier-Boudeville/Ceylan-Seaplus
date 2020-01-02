@@ -25,13 +25,13 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Organisation:</th><td class="field-body">Copyright (C) 2018-2019 Olivier Boudeville</td>
+<tr class="field"><th class="field-name">Organisation:</th><td class="field-body">Copyright (C) 2018-2020 Olivier Boudeville</td>
 </tr>
 <tr class="field"><th class="field-name">Contact:</th><td class="field-body">about (dash) seaplus (at) esperide (dot) com</td>
 </tr>
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, December 23, 2018</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Monday, June 10, 2019</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Thursday, January 2, 2020</td>
 </tr>
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Seaplus</tt> bridge, version 1.0.</td>
 </tr>
@@ -113,7 +113,7 @@
 <table class="docutils footnote" frame="void" id="id3" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>See the full, unedited version of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar/inc/foobar.h">foobar.h</a> test header that is actually used.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>See the full, unedited version of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar/inc/foobar.h">foobar.h</a> test header that is actually used.</td></tr>
 </tbody>
 </table>
 <p>With the definition of this example, we ensured to reproduce real-life situations, like atoms vs enums, dynamic memory allocation (for the returned struct) and runtime failures (since calling <tt class="docutils literal">foo(0)</tt> is to trigger a division by zero).</p>
@@ -143,10 +143,14 @@
 <table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[2]</a></td><td>See the full, unedited version of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl">foobar.erl</a> API module that is actually used, together with its <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl">foobar.hrl</a> header file.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id4">[2]</a></td><td>See the full, unedited version of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar.erl">foobar.erl</a> API module that is actually used, together with its <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar.hrl">foobar.hrl</a> header file.</td></tr>
 </tbody>
 </table>
 <p>The Seaplus header include allows notably to mark this <tt class="docutils literal">foobar</tt> module as a service stub (so that the build system can determine this module is to be fleshed out).</p>
+<p>It can be included in a more OTP-compliant fashion with:</p>
+<pre class="literal-block">
+-include_lib(&quot;seaplus/include/seaplus.hrl&quot;).
+</pre>
 <p>Comments (description, usage, examples) are also expected to be joined to these specs, they are omitted in this documentation only for brevity.</p>
 <p><strong>Facility functions</strong> that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (ex: to start/stop this service from Erlang), will also certainly be needed.</p>
 <p>However, listing these facility functions in our <tt class="docutils literal">foobar</tt> module would offer little interest, should they involve no service-specific part; so these extra functions are to remain implicit here <a class="footnote-reference" href="#id7" id="id6">[3]</a>.</p>
@@ -185,7 +189,7 @@
 <table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id8">[4]</a></td><td>See the full, unedited, richer version of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_test.erl">foobar_test.erl</a> module used to test the Erlang-integrated service (emulating an actual use of that service).</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id8">[4]</a></td><td>See the full, unedited, richer version of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_test.erl">foobar_test.erl</a> module used to test the Erlang-integrated service (emulating an actual use of that service).</td></tr>
 </tbody>
 </table>
 <p>At this point, one may think that, thanks to these function specs, the full counterpart C bridging code might have been automagically generated as well, in the same movement as the Erlang bridging code? Unfortunately, not exactly! At least, not yet; maybe some day (if ever possible and tractable). Currently: only <em>parts</em> of it are generated.</p>
@@ -211,13 +215,13 @@
 <p>The C part of the bridge (i.e., the service driver), typically defined in <tt class="docutils literal">foobar_seaplus_driver.c</tt>, is thus to include that <tt class="docutils literal">foobar_seaplus_api_mapping.h</tt> generated header in order to map the Erlang function identifier in a call request to its processing.</p>
 <p>Should no such driver implementation already exist, Seaplus will generate a template version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:</p>
 <ol class="arabic simple">
-<li>convert the received arguments (Erlang terms) into their C counterparts (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_getters.h">seaplus_getters.h</a> for that, typically the <tt class="docutils literal">read_*_parameter</tt> functions)</li>
+<li>convert the received arguments (Erlang terms) into their C counterparts (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus_getters.h">seaplus_getters.h</a> for that, typically the <tt class="docutils literal">read_*_parameter</tt> functions)</li>
 <li>call the corresponding C integrated function</li>
-<li>convert its result the other way round, so that a relevant Erlang term is returned (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_setters.h">seaplus_setters.h</a> for that, typically the <tt class="docutils literal">write_*_result</tt> functions)</li>
+<li>convert its result the other way round, so that a relevant Erlang term is returned (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus_setters.h">seaplus_setters.h</a> for that, typically the <tt class="docutils literal">write_*_result</tt> functions)</li>
 </ol>
 <p>See the full, unedited version of the generated <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">foobar_seaplus_driver.c template</a>  corresponding to the Foobar service (one may note the placeholders in each <tt class="docutils literal">case</tt> branch of the function identifier switch).</p>
-<p>Seaplus offers moreover various helpers to facilitate the writing of this C driver (i.e. the filling of said generated template); they are gathered in the Seaplus library (typically <tt class="docutils literal">libseaplus.so</tt>) and available by including the Seaplus C header file, <tt class="docutils literal">seaplus.h</tt> (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h">here</a>).</p>
-<p>Based on these elements, the actual bridging code can be written, like in the following shortened version. The <tt class="docutils literal">FOO_1_ID</tt> case is among the simplest possible call, while the <tt class="docutils literal">BAR_2_ID</tt> one is more complex; for both calls no memory leak is involved (see the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">full source</a> of this test driver, notably for the conversion helpers used for <tt class="docutils literal">bar/2</tt>):</p>
+<p>Seaplus offers moreover various helpers to facilitate the writing of this C driver (i.e. the filling of said generated template); they are gathered in the Seaplus library (typically <tt class="docutils literal">libseaplus.so</tt>) and available by including the Seaplus C header file, <tt class="docutils literal">seaplus.h</tt> (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus.h">here</a>).</p>
+<p>Based on these elements, the actual bridging code can be written, like in the following shortened version. The <tt class="docutils literal">FOO_1_ID</tt> case is among the simplest possible call, while the <tt class="docutils literal">BAR_2_ID</tt> one is more complex; for both calls no memory leak is involved (see the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_seaplus_driver.c">full source</a> of this test driver, notably for the conversion helpers used for <tt class="docutils literal">bar/2</tt>):</p>
 <pre class="code c literal-block">
 <span class="p">[...]</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
@@ -330,20 +334,20 @@
 
 <span class="p">}</span>
 </pre>
-<p>One may finally compare the aforementioned <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">generated template</a> with - once it has been appropriately filled by the service integrator - the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">final version</a> of this driver.</p>
-<p>This version of course compiles, links and allows to run the <tt class="docutils literal">foobar_test</tt> successfully (once Seaplus is built, one may run, from the <tt class="docutils literal"><span class="pre">tests/c-test</span></tt> directory, <tt class="docutils literal">make <span class="pre">integration-test</span></tt> for that).</p>
+<p>One may finally compare the aforementioned <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">generated template</a> with - once it has been appropriately filled by the service integrator - the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_seaplus_driver.c">final version</a> of this driver.</p>
+<p>This version of course compiles, links and allows to run the <tt class="docutils literal">foobar_test</tt> successfully (once Seaplus is built, one may run, from the <tt class="docutils literal"><span class="pre">test/c-test</span></tt> directory, <tt class="docutils literal">make test</tt> for that).</p>
 <p>If wanting to see, beyond this test, what could be an actual, more involved driver (larger, richer, partly interrupt-based), one may refer to the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile_seaplus_driver.c">Ceylan-Mobile driver</a>.</p>
 </div>
 <div class="section" id="wrapping-up">
 <h2><a class="toc-backref" href="#id30">Wrapping Up</a></h2>
 <p>We believe that, in order to make a pre-existing C/C++ library available to Erlang while not going the NIF route (typically when not wanting to jeopardise the Erlang VM for that), Seaplus offers a good option in terms of safety, low overhead and simplicity.</p>
 <p>The overall integration process is quite streamlined, and we tried to reduce as much as possible the size and complexity of the service-specific integration code that remains needed.</p>
-<p>For example one may contrast the few Foobar-specific files (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.hrl">foobar.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar.erl">foobar.erl</a> and the final <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/tests/c-test/foobar_seaplus_driver.c">foobar_seaplus_driver.c</a> - i.e. the ones that shall be written or filled by the service integrator), with:</p>
+<p>For example one may contrast the few Foobar-specific files (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar.hrl">foobar.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar.erl">foobar.erl</a> and the final <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_seaplus_driver.c">foobar_seaplus_driver.c</a> - i.e. the ones that shall be written or filled by the service integrator), with:</p>
 <ul class="simple">
 <li>the generated ones, namely the header file for function identifier mapping (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_api_mapping.h">foobar_seaplus_api_mapping.h</a>) and the original driver template (<a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">foobar_seaplus_driver.c</a>)</li>
-<li>the ones implementing the Seaplus generic support, namely <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.hrl">seaplus.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl">seaplus.erl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.h">seaplus.h</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c">seaplus.c</a> and <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl">seaplus_parse_transform.erl</a></li>
+<li>the ones implementing the Seaplus generic support, namely <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus.hrl">seaplus.hrl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl">seaplus.erl</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus.h">seaplus.h</a>, <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.c">seaplus.c</a> and <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus_parse_transform.erl">seaplus_parse_transform.erl</a></li>
 </ul>
-<p>As mentioned, beside the Seaplus-included <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/tree/master/tests/c-test">Foobar example</a>, one may refer to the <a class="reference external" href="http://mobile.esperide.org">Ceylan-Mobile</a> project for a complete, standalone use of Seaplus.</p>
+<p>As mentioned, beside the Seaplus-included <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/tree/master/test/c-test">Foobar example</a>, one may refer to the <a class="reference external" href="http://mobile.esperide.org">Ceylan-Mobile</a> project for a complete, standalone use of Seaplus.</p>
 <p></p>
 </div>
 <div class="section" id="licence">
@@ -370,7 +374,7 @@
 <p>We try to ensure that the main line (in the <tt class="docutils literal">master</tt> branch) always stays functional. Evolutions are to take place in feature branches.</p>
 <p>This integration layer, <tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt>, relies (only) on:</p>
 <ul class="simple">
-<li><a class="reference external" href="http://www.erlang.org/">Erlang</a>, version 22.0 or higher</li>
+<li><a class="reference external" href="http://www.erlang.org/">Erlang</a>, version 22.1 or higher</li>
 <li>a suitable C/C++ compiler, typically <a class="reference external" href="https://gcc.gnu.org">gcc</a></li>
 <li>the <a class="reference external" href="http://myriad.esperide.org">Ceylan-Myriad</a> base layer</li>
 </ul>
@@ -382,15 +386,15 @@ $ ./install-erlang.sh --doc-install --generate-plt
 <p>One may execute <tt class="docutils literal"><span class="pre">./install-erlang.sh</span> <span class="pre">--help</span></tt> for more details about how to configure it, notably in order to enable all modules of interest (<tt class="docutils literal">crypto</tt>, <tt class="docutils literal">wx</tt>, etc.) even if they are optional in the context of Seaplus.</p>
 <p>As a result, once proper Erlang and C environments are available, the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad repository</a> should be cloned and built, before doing the same with the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus repository</a>, like in:</p>
 <pre class="code bash literal-block">
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad
-$ <span class="nb">cd</span> Ceylan-Myriad <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus
-$ <span class="nb">cd</span> Ceylan-Seaplus <span class="o">&amp;&amp;</span> make all
+$ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad myriad
+$ <span class="nb">cd</span> myriad <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
+$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus seaplus
+$ <span class="nb">cd</span> seaplus <span class="o">&amp;&amp;</span> make all
 </pre>
 <p>One can then test the whole with:</p>
 <pre class="code bash literal-block">
-$ <span class="nb">cd</span> tests/c-test
-$ make integration-test
+$ <span class="nb">cd</span> test/c-test
+$ make <span class="nb">test</span>
 </pre>
 </div>
 </div>
