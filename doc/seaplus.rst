@@ -36,10 +36,10 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 ----------------------------------------------------------------
 
 
-:Organisation: Copyright (C) 2018-2019 Olivier Boudeville
+:Organisation: Copyright (C) 2018-2020 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Sunday, September 22, 2019
+:Lastly updated: Thursday, January 2, 2020
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
