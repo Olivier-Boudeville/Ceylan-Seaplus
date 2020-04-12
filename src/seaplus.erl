@@ -87,7 +87,7 @@
 
 -export([ start/1, start_link/1, start/2, start_link/2,
 		  restart/1, restart/2, stop/1,
-		  call_port_for/3 ]).
+		  call_port_for/3, get_execution_target/0 ]).
 
 
 % The name of a C-based service to make available:
@@ -591,3 +591,27 @@ get_service_port_key_for( ServiceName ) ->
 								   [ ServiceName ] ),
 
 	text_utils:string_to_atom( KeyString ).
+
+
+
+% Returns the execution target this module (hence, probably, that layer as a
+% whole) was compiled with, i.e. either the atom 'development' or 'production'.
+
+% Dispatched in actual clauses, otherwise Dialyzer will detect an
+% underspecification:
+%
+% -spec get_execution_target() -> execution_target().
+
+-ifdef(exec_target_is_production).
+
+-spec get_execution_target() -> 'production'.
+get_execution_target() ->
+	production.
+
+-else. % exec_target_is_production
+
+-spec get_execution_target() -> 'development'.
+get_execution_target() ->
+	development.
+
+-endif. % exec_target_is_production
