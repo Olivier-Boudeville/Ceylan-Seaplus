@@ -21,7 +21,7 @@
 
 :raw-html:`<a name="seaplus_top"></a>`
 
-:raw-html:`<div class="banner"><p><em>Seaplus 1.0 documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus-1.0.html">browse mirror</a> <a href="seaplus-1.0.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_bottom">go to bottom</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus 1.0]%20Remark">email us</a></p></div>`
+:raw-html:`<div class="banner"><p><em>Seaplus 1.0 documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">browse mirror</a> <a href="seaplus.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_bottom">go to bottom</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus%201.0]%20Remark">email us</a></p></div>`
 
 
 
@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2020 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Thursday, January 2, 2020
+:Lastly updated: Monday, May 4, 2020
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -52,9 +52,9 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 
 The latest version of this documentation is to be found at the `official Seaplus website <http://seaplus.esperide.org>`_ (``http://seaplus.esperide.org``).
 
-:raw-html:`This Seaplus documentation is also available in the PDF format (see <a href="seaplus-1.0.pdf">seaplus.pdf</a>), and mirrored <a href="http://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus-1.0.html">here</a>.`
+:raw-html:`This Seaplus documentation is also available in the PDF format (see <a href="seaplus-1.0.pdf">seaplus.pdf</a>), and mirrored <a href="http://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">here</a>.`
 
-:raw-latex:`The documentation is also mirrored \href{https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus-1.0.html}{here}.`
+:raw-latex:`The documentation is also mirrored \href{https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html}{here}.`
 
 
 

@@ -1,31 +1,23 @@
 SEAPLUS_TOP = ..
 
 
-DOCUTILS_TOP = $(SEAPLUS_TOP)
-
-DOC_BASE_NAME := seaplus
-
-# The current, operational version of Seaplus:
-CURRENT_VERSION := 1.0
-
-DOC_NAME := $(DOC_BASE_NAME)-$(CURRENT_VERSION)
-
-OVERALL_DOCUMENT_SOURCE := $(DOC_NAME).rst
+DOC_BASE_NAME := Ceylan-Seaplus-Layer-technical-manual-english
 
 
-CURRENT_SEAPLUS_HTML := $(DOC_NAME).html
+OVERALL_DOCUMENT_SOURCE := $(DOC_BASE_NAME).rst
+
+
+CURRENT_SEAPLUS_HTML := $(DOC_BASE_NAME).html
 
 HTML_TARGET = $(CURRENT_SEAPLUS_HTML)
 
 
-CURRENT_SEAPLUS_PDF := $(DOC_NAME).pdf
+CURRENT_SEAPLUS_PDF := $(DOC_BASE_NAME).pdf
 
 PDF_TARGET = $(CURRENT_SEAPLUS_PDF)
 
 
 DOC_GENERATED_FILES := $(HTML_TARGET) $(PDF_TARGET)
-
-DOC_FILES := $(DOC_GENERATED_FILES) seaplus-example.png
 
 
 
@@ -33,29 +25,31 @@ PROJECT_CSS := pygments-default.css,seaplus.css
 
 PROJECT_ICON := seaplus-icon.png
 
-
-WEB_CONTENT = *.html *.css *.png tmp-rst/*.pdf
+WEB_CONTENT = *.html *.css *.png *.pdf
 
 # Read from the user's environment:
 GITHUB_PAGES_BASE := $(shell basename "$(SEAPLUS_WEB_MIRROR_BRANCH)")
 
 
 
-.PHONY: all doc full-doc html pdf clone-mirror           \
+.PHONY: doc all full-doc html pdf clone-mirror           \
 		export-doc export-to-official export-to-mirror   \
-		info-web clean clean-doc
+		clean clean-doc info info-web
+
 
 
 # Default do-nothing target:
 doc:
 
-
 all:
-	@echo "  Run 'make full-doc' to generate the manual of the SEAPLUS-$(CURRENT_VERSION) layer."
+	@echo "  Run 'make full-doc' to generate the manual of the 'Seaplus' layer."
 
 
 
-full-doc: $(HTML_TARGET)
+full-doc: $(DOC_GENERATED_FILES)
+	@/bin/ln -sf $(CURRENT_SEAPLUS_HTML) seaplus.html
+	@/bin/ln -sf seaplus.html index.html
+	@/bin/ln -sf $(CURRENT_SEAPLUS_PDF) seaplus.pdf
 
 
 html: clean-doc $(HTML_TARGET)
@@ -73,27 +67,37 @@ clone-mirror:
 export-doc: clean-doc full-doc export-to-official export-to-mirror
 
 
+# Drawback: scp will not preserve symlinks, it will duplicate files instead.
+#
+# rsync would not, but requires a different source layout (copies a full tree,
+# not a set of files), so currently not used:
+# rsync -avze "ssh $(SP)" $(SOME_WEB_TREE) $(WEB_SRV):$(WEB_ROOT)/Seaplus/
+#
 export-to-official: $(DOC_GENERATED_FILES)
-	@echo "   Exporting Seaplus documentation to official website"
+	@echo "   Exporting Seaplus documentation to official website ($(WEB_SRV))"
 	@/bin/scp $(SP) $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Seaplus/
 
 
 export-to-mirror: $(DOC_GENERATED_FILES)
 	@echo "   Exporting Seaplus documentation to mirror website in $(SEAPLUS_WEB_MIRROR_BRANCH)"
-	@/bin/cp -f $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
+	@/bin/cp -f $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && ls -l
+
+#git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
+
 
 
 clean: clean-doc
 
+
 clean-doc:
-	-@/bin/rm -f *.aux *.log *.maf *.mtc* *.stc* *.tex *.toc \
-	$(CURRENT_SEAPLUS_PDF) $(DOC_GENERATED_FILES)
+	-@/bin/rm -f *.aux *.log *.maf *.mtc* *.stc* *.tex *.toc $(DOC_GENERATED_FILES)
+
 
 info: info-doc info-web
 
 info-doc:
 	@echo "OVERALL_DOCUMENT_SOURCE = $(OVERALL_DOCUMENT_SOURCE)"
-	@echo "DOC_FILES = $(DOC_FILES)"
+	@echo "DOC_TRACKER = $(DOC_TRACKER)"
 
 
 info-web:
@@ -108,5 +112,4 @@ info-web:
 
 DOCUTILS_TOP = .
 
-# For MYRIAD_TOP:
 include $(SEAPLUS_TOP)/GNUmakesettings.inc
