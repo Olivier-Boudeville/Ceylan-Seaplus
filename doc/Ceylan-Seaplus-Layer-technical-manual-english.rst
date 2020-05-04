@@ -52,7 +52,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 
 The latest version of this documentation is to be found at the `official Seaplus website <http://seaplus.esperide.org>`_ (``http://seaplus.esperide.org``).
 
-:raw-html:`This Seaplus documentation is also available in the PDF format (see <a href="seaplus-1.0.pdf">seaplus.pdf</a>), and mirrored <a href="http://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">here</a>.`
+:raw-html:`This Seaplus documentation is also available in the PDF format (see <a href="seaplus.pdf">seaplus.pdf</a>), and mirrored <a href="http://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">here</a>.`
 
 :raw-latex:`The documentation is also mirrored \href{https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html}{here}.`
 

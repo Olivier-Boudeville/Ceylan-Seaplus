@@ -9,12 +9,12 @@ OVERALL_DOCUMENT_SOURCE := $(DOC_BASE_NAME).rst
 
 CURRENT_SEAPLUS_HTML := $(DOC_BASE_NAME).html
 
-HTML_TARGET = $(CURRENT_SEAPLUS_HTML)
+HTML_TARGET := $(CURRENT_SEAPLUS_HTML)
 
 
 CURRENT_SEAPLUS_PDF := $(DOC_BASE_NAME).pdf
 
-PDF_TARGET = $(CURRENT_SEAPLUS_PDF)
+PDF_TARGET := $(CURRENT_SEAPLUS_PDF)
 
 
 DOC_GENERATED_FILES := $(HTML_TARGET) $(PDF_TARGET)
@@ -80,9 +80,7 @@ export-to-official: $(DOC_GENERATED_FILES)
 
 export-to-mirror: $(DOC_GENERATED_FILES)
 	@echo "   Exporting Seaplus documentation to mirror website in $(SEAPLUS_WEB_MIRROR_BRANCH)"
-	@/bin/cp -f $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && ls -l
-
-#git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
+	@/bin/cp -f $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
 
 
 
