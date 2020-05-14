@@ -34,19 +34,6 @@ ifndef PROJECT_VERSION
 endif
 
 
-# Variable name intentionally not including the current layer, for more generic
-# rules:
-#
-ifndef VERSION_FOR_REBAR3
-	VERSION_FOR_REBAR3 := $(PROJECT_VERSION)
-endif
-
-
-ifndef PACKAGE_NAME
-	PACKAGE_NAME := $(PROJECT_NAME)
-endif
-
-
 ifndef PACKAGE_TOP
 	PACKAGE_TOP = $(SEAPLUS_TOP)
 endif
@@ -131,48 +118,12 @@ endif
 
 # Overall settings section.
 
-
-#EXECUTION_TARGET=production
-
-
-ifndef EXECUTION_TARGET
-
-  # Other possible value: production
-  EXECUTION_TARGET=development
-
-endif
+# One may define here:
+# EXECUTION_TARGET := production / development [the default]
+# ENABLE_DEBUG := false / true [the default]
 
 
-ifeq ($(EXECUTION_TARGET),development)
-
-  #$(info Execution target is development)
-
-  ENABLE_DEBUG := true
-
-else ifeq ($(EXECUTION_TARGET),production)
-
-  #$(info Execution target is production)
-
-  ENABLE_DEBUG := false
-
-else
-
-  $(error Invalid execution target '$(EXECUTION_TARGET)'; expecting either 'development' or 'production')
-
-endif
-
-
-
-#ENABLE_DEBUG=false
-
-# By default, this debug mode is enabled:
-ifndef ENABLE_DEBUG
-	ENABLE_DEBUG := true
-endif
-
-
-
-# Tells whether the debug mode will be activated for the next Seaplus classes to
+# Tells whether the debug mode will be activated for the next Seaplus modules to
 # be built (maximum performance versus extended checkings).
 #
 ifeq ($(ENABLE_DEBUG),true)
@@ -188,7 +139,7 @@ endif
 
 # libtool not used anymore, was making the build degenerate in a mess:
 
-#LIBTOOL = $(shell which libtool)
+#LIBTOOL = $(shell which libtool 2>/dev/null)
 
 # This is a C-based (not C++) example:
 #LIBTOOL_C_OPT += --tag=CC --verbose
@@ -358,16 +309,10 @@ SEAPLUS_PLT_FILE := $(SEAPLUS_TOP)/seaplus.plt
 
 
 # This is the merged PLT of the level just below in the software stack.
-# For 'SEAPLUS', it is the PLT of 'Myriad':
+# For 'Seaplus', it is the PLT of 'Myriad':
 ifndef PREDECESSOR_PLT
 	PREDECESSOR_PLT = $(MYRIAD_PLT_FILE)
 endif
-
-# To use a generic rule to produce it (unless already defined):
-ifndef PLT_FILE
-	PLT_FILE := $(PACKAGE_TOP)/$(PACKAGE_NAME).plt
-endif
-
 
 
 
@@ -384,8 +329,6 @@ FOOBAR_LIB_DIR = $(FOOBAR_ROOT)/lib
 FOOBAR_LIBRARY = libfoobar.so
 
 FOOBAR_LIB_PATH = $(FOOBAR_LIB_DIR)/$(FOOBAR_LIBRARY)
-
-
 
 
 # We define the path to the Myriad layer:
