@@ -2,8 +2,26 @@
 *.beam
 *.o
 *.so
-*.traces
 *.log
 *.plt
 *erlang.log.*
 declared-types-in-*.txt
+.eunit
+erl_crash.dump
+
+# For Emacs temporary files:
+*.#*
+
+*~
+
+# Added in relation to rebar3:
+.rebar
+rebar3.crashdump
+.rebar3
+_*
+
+# Mere symlink:
+src/seaplus.app.src
+
+# Generated:
+conf/rebar.config

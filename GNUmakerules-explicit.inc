@@ -34,5 +34,6 @@ clean-test-exec:
 # Removes the debug files created about ASTs:
 clean-ast-debug: clean-ast-debug-seaplus
 
+
 clean-ast-debug-seaplus:
-	@find . -name 'Seaplus-*put-AST*.txt' -exec /bin/rm '{}' ';'
+	@find . -name 'Seaplus-*put-AST*.txt' -exec /bin/rm -f '{}' ';'

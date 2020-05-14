@@ -1,30 +1,68 @@
 # Prerequisite: SEAPLUS_TOP must be set.
 
+# Useful to target for example the root of the current layer (ex: to locate the
+# relevant, layer-local '_build' directory):
+#
+ifndef LAYER_TOP
+	LAYER_TOP := $(SEAPLUS_TOP)
+endif
+
 
 # Project section.
 
 # PROJECT_NAME should be defined on a per-project basis.
 ifndef PROJECT_NAME
-	PROJECT_NAME = Seaplus
+	PROJECT_NAME := Ceylan-Seaplus
 endif
 
 
-SEAPLUS_VERSION := 1.0.1
+# REBAR3_PROJECT_NAME should be defined on a per-project basis.
+ifndef REBAR3_PROJECT_NAME
+	REBAR3_PROJECT_NAME := seaplus
+endif
+
+
+# The uniquely-defined version of this layer, for all uses (including rebar and
+# hex):
+#
+SEAPLUS_VERSION := 1.0.2
+
 
 # PROJECT_VERSION should be defined on a per-project basis.
 ifndef PROJECT_VERSION
-	PROJECT_VERSION = $(SEAPLUS_VERSION)
+	PROJECT_VERSION := $(SEAPLUS_VERSION)
+endif
+
+
+# Variable name intentionally not including the current layer, for more generic
+# rules:
+#
+ifndef VERSION_FOR_REBAR3
+	VERSION_FOR_REBAR3 := $(PROJECT_VERSION)
 endif
 
 
 ifndef PACKAGE_NAME
-	PACKAGE_NAME = Ceylan-Seaplus
+	PACKAGE_NAME := $(PROJECT_NAME)
 endif
 
 
 ifndef PACKAGE_TOP
 	PACKAGE_TOP = $(SEAPLUS_TOP)
 endif
+
+
+# For any quick, local, non release-packaged update thereof:
+MYRIAD_CHECKOUT_BUILD = $(LAYER_TOP)/_checkouts/myriad
+MYRIAD_SIBLING_BUILD = $(LAYER_TOP)/../myriad
+
+
+# The OTP tree of the Myriad application within a local OTP _build tree:
+MYRIAD_LOCAL_APP := $(LAYER_TOP)/_build/default/lib/myriad
+
+# Where Myriad BEAMs are to lie when used as an OTP application:
+MYRIAD_LOCAL_EBIN := $(MYRIAD_LOCAL_APP)/ebin
+
 
 
 SEAPLUS_RELEASE_BASE := seaplus-$(PROJECT_VERSION)
@@ -44,6 +82,23 @@ SEAPLUS_BEAM := $(SEAPLUS_SRC)
 SEAPLUS_INC = -I$(SEAPLUS_TOP)/include
 
 
+# In an OTP/rebar3-style application layout, at compilation time, libraries
+# making use of Myriad will expect its includes to be located in:
+#
+MYRIAD_OTP_INC := -I$(SEAPLUS_TOP)/../myriad/include/
+
+INC += $(SEAPLUS_INC) $(MYRIAD_OTP_INC)
+
+
+# See Myriad counterpart variable (MYRIAD_BEAM_DIRS) for explanations:
+SEAPLUS_BEAM_DIRS := $(SEAPLUS_BEAM)
+
+
+# For OTP releases and all:
+
+SEAPLUS_REBAR_BUILD_BASE = $(REBAR_BUILD_DIR)/lib/seaplus
+
+
 # Library referencing section.
 
 SEAPLUS_LIB = libseaplus-$(SEAPLUS_VERSION).so
@@ -52,35 +107,9 @@ SEAPLUS_LIB_PATH = $(SEAPLUS_LIB_DIR)/$(SEAPLUS_LIB)
 SEAPLUS_LIB_OPT = -L$(SEAPLUS_LIB_DIR) -lseaplus-$(SEAPLUS_VERSION)
 
 
-DOC_ROOT = $(SEAPLUS_TOP)/doc
-SEAPLUS_DOC_DIR = $(DOC_ROOT)/web/main/documentation/seaplus
-
-
-INC += $(SEAPLUS_INC)
-
-
-
-ifndef VM_TEST_NAME
-
-VM_NAME := seaplus_debug
-
-endif
-
-
-ifndef VM_TEST_NAME
-
-VM_TEST_NAME := seaplus_test
-
-endif
-
-
-
-
-# So that they can be fetched from outside
-# (see the 'list-beam-dirs' target)
-#
 # ($(SEAPLUS_TOP)/examples not included here anymore)
 #
+# See Myriad counterpart variable (MYRIAD_BEAM_DIRS) for explanations:
 SEAPLUS_BEAM_DIRS = $(SEAPLUS_TOP)/src
 
 
@@ -88,10 +117,23 @@ SEAPLUS_BEAM_DIRS = $(SEAPLUS_TOP)/src
 BEAM_DIRS += $(SEAPLUS_BEAM_DIRS)
 
 
+
+ifndef VM_TEST_NAME
+	VM_NAME := seaplus_debug
+endif
+
+
+ifndef VM_TEST_NAME
+	VM_TEST_NAME := seaplus_test
+endif
+
+
+
 # Overall settings section.
 
 
 #EXECUTION_TARGET=production
+
 
 ifndef EXECUTION_TARGET
 
@@ -105,13 +147,13 @@ ifeq ($(EXECUTION_TARGET),development)
 
   #$(info Execution target is development)
 
-  ENABLE_DEBUG=true
+  ENABLE_DEBUG := true
 
 else ifeq ($(EXECUTION_TARGET),production)
 
   #$(info Execution target is production)
 
-  ENABLE_DEBUG=false
+  ENABLE_DEBUG := false
 
 else
 
@@ -125,9 +167,7 @@ endif
 
 # By default, this debug mode is enabled:
 ifndef ENABLE_DEBUG
-
-	ENABLE_DEBUG = true
-
+	ENABLE_DEBUG := true
 endif
 
 
@@ -136,13 +176,9 @@ endif
 # be built (maximum performance versus extended checkings).
 #
 ifeq ($(ENABLE_DEBUG),true)
-
-	SEAPLUS_DEBUG_OPT = -DDEBUG_SEAPLUS -DSEAPLUS_ENABLE_LOG=1
-
+	SEAPLUS_DEBUG_OPT := -DDEBUG_SEAPLUS -DSEAPLUS_ENABLE_LOG=1
 else
-
-	SEAPLUS_DEBUG_OPT = -DSEAPLUS_ENABLE_LOG=0
-
+	SEAPLUS_DEBUG_OPT := -DSEAPLUS_ENABLE_LOG=0
 endif
 
 
@@ -158,6 +194,7 @@ endif
 #LIBTOOL_C_OPT += --tag=CC --verbose
 
 
+
 # Compiler section.
 
 SEAPLUS_BASE_NAME := seaplus
@@ -170,23 +207,19 @@ SEAPLUS_BASE_NAME := seaplus
 ERL_INTERFACE_INC = -I$(ERL_INTERFACE)/include
 ERL_INTERFACE_LIB = -L$(ERL_INTERFACE)/lib
 
-C_COMPILER := $(shell which gcc)
+C_COMPILER := $(shell which gcc 2>/dev/null)
 
 
 C_INC = $(ERL_INTERFACE_INC) -I. $(SEAPLUS_INC)
 C_LIB = $(ERL_INTERFACE_LIB)
 
 ifndef C_COMPILER_OPT
-
 	C_COMPILER_OPT = $(C_INC) $(SEAPLUS_DEBUG_OPT) -Wall -Werror -g
-
 endif
 
 
 ifndef C_COMPILER_OPT_FOR_OBJ
-
 	C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT) -fPIC
-
 endif
 
 
@@ -195,11 +228,10 @@ endif
 
 
 # Base Erlang installation either hardcoded or deduced from selected interpreter:
-#
 #ERL_BASE := $(HOME)/Software/Erlang/Erlang-current-install
 ERL_BASE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/..
 
-# Are version numbers are in the way:
+# As version numbers are in the way:
 ERL_INTERFACE = $(shell /bin/ls -d $(ERL_BASE)/lib/erlang/lib/erl_interface-* 2>/dev/null)
 
 # Allows to ensure that we have a proper base installation (and not for example
@@ -220,11 +252,10 @@ ifndef BOOTSTRAP_MODULES
 	# We want to bootstrap all relevant Seaplus modules (Myriad expected to be
 	# already fully built)
 
-
 	# We list here all the SEAPLUS-level prerequisites of the SEAPLUS
 	# parse-transform:
 	#
-	# - seaplus_info: to manage class-level information
+	# - seaplus_info: to manage layer-level information
 
 	#BOOTSTRAP_MODULES = $(SEAPLUS_TOP)/src/seaplus_info.beam
 
@@ -233,26 +264,26 @@ endif
 
 ifndef COMPILER_OPT_FOR_SEAPLUS_CLASSES
 
-	   COMPILER_OPT_FOR_SEAPLUS_CLASSES =                      \
-			$(ERLANG_COMPILER_OPT_BASE)                        \
-			$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
+	COMPILER_OPT_FOR_SEAPLUS_CLASSES =                     \
+		$(ERLANG_COMPILER_OPT_BASE)                        \
+		$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
 
 endif
 
 
 #ifndef ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES
 
-	   # Standard (non-class) modules in Seaplus shall not be compiled with the
-	   #  Seaplus parse-transform, but with the Myriad one:
-	   #
-	   ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES = \
-				$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
+	# Standard (non-class) modules in Seaplus shall not be compiled with the
+	#  Seaplus parse-transform, but with the Myriad one:
+	#
+	ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES = \
+		$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
 
 #endif
 
 
 # Conditionally defined so that upper layer may update these settings (ex:
-# adding pz directories):
+# by adding pz directories):
 #
 ifndef ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES
 
@@ -272,9 +303,7 @@ endif
 # (to be overridden by each upper layer)
 #
 ifndef PARSE_TRANSFORM_DIRS
-
-	   PARSE_TRANSFORM_DIRS = $(SEAPLUS_TOP)/src
-
+	PARSE_TRANSFORM_DIRS = $(SEAPLUS_TOP)/src
 endif
 
 
@@ -287,11 +316,11 @@ ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MYRIAD)
 # Variable defined to be re-usable by upper layers, so that compiling their own
 # parse transforms can take advantage of the Seaplus one:
 #
-ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS =                \
-					$(OVERALL_PZ_OPT)                            \
-					-DSEAPLUS_ROOT=\"$(SEAPLUS_TOP)\"            \
-					-pz $(SEAPLUS_TOP)/src                       \
-					'+{parse_transform,seaplus_parse_transform}'
+ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS = \
+	$(OVERALL_PZ_OPT)                             \
+	-DSEAPLUS_ROOT=\"$(SEAPLUS_TOP)\"             \
+	-pz $(SEAPLUS_TOP)/src                        \
+	'+{parse_transform,seaplus_parse_transform}'
 
 
 # We conditionally defined this option, as upper layers may want to trigger
@@ -299,9 +328,7 @@ ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS =                \
 # themselves, at the Erlang level, this 'SEAPLUS' parse transform):
 #
 ifndef ERLANG_COMPILER_PARSE_TRANSFORM_OPT
-
-	   ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
-
+	ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
 endif
 
 
@@ -319,7 +346,8 @@ C_LINKER := $(C_COMPILER)
 # -shared probably unwelcome with libtool:
 C_LINKER_OPT := -g
 
-C_LINKER_LIBS = $(ERL_INTERFACE_LIB) -lerl_interface -lei -lpthread
+# Not used anymore since Erl_interface is deprecated: -lerl_interface
+C_LINKER_LIBS = $(ERL_INTERFACE_LIB) -lei -lpthread
 
 
 
@@ -332,12 +360,12 @@ SEAPLUS_PLT_FILE := $(SEAPLUS_TOP)/seaplus.plt
 # This is the merged PLT of the level just below in the software stack.
 # For 'SEAPLUS', it is the PLT of 'Myriad':
 ifndef PREDECESSOR_PLT
-	   PREDECESSOR_PLT = $(MYRIAD_PLT_FILE)
+	PREDECESSOR_PLT = $(MYRIAD_PLT_FILE)
 endif
 
 # To use a generic rule to produce it (unless already defined):
 ifndef PLT_FILE
-	   PLT_FILE = $(PACKAGE_TOP)/$(PACKAGE_NAME).plt
+	PLT_FILE := $(PACKAGE_TOP)/$(PACKAGE_NAME).plt
 endif
 
 
