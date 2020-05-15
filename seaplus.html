@@ -31,7 +31,7 @@
 </tr>
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, December 23, 2018</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Monday, May 4, 2020</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Friday, May 15, 2020</td>
 </tr>
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Seaplus</tt> bridge, version 1.0.</td>
 </tr>
@@ -365,6 +365,14 @@
 </div>
 <div class="section" id="current-stable-version-download">
 <h2><a class="toc-backref" href="#id32">Current Stable Version &amp; Download</a></h2>
+<p>This integration layer, <tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt>, relies (only) on:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://www.erlang.org/">Erlang</a></li>
+<li>a suitable C/C++ compiler, typically <a class="reference external" href="https://gcc.gnu.org">gcc</a></li>
+<li>the <a class="reference external" href="http://myriad.esperide.org">Ceylan-Myriad</a> base layer</li>
+</ul>
+<p>We prefer using GNU/Linux, sticking to the latest stable release of Erlang, and building it from sources, thanks to GNU <tt class="docutils literal">make</tt>.</p>
+<p>Refer to the corresponding <a class="reference external" href="http://myriad.esperide.org#prerequisites">Myriad prerequisite section</a>  for more precise guidelines, knowing that Ceylan-Seaplus does not need modules with conditional support such as <tt class="docutils literal">crypto</tt> or <tt class="docutils literal">wx</tt>.</p>
 <div class="section" id="using-stable-release-archive">
 <h3><a class="toc-backref" href="#id33">Using Stable Release Archive</a></h3>
 <p>Currently no source archive is specifically distributed, please refer to the following section.</p>
@@ -372,19 +380,7 @@
 <div class="section" id="using-cutting-edge-git">
 <h3><a class="toc-backref" href="#id34">Using Cutting-Edge GIT</a></h3>
 <p>We try to ensure that the main line (in the <tt class="docutils literal">master</tt> branch) always stays functional. Evolutions are to take place in feature branches.</p>
-<p>This integration layer, <tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt>, relies (only) on:</p>
-<ul class="simple">
-<li><a class="reference external" href="http://www.erlang.org/">Erlang</a>, version 22.1 or higher</li>
-<li>a suitable C/C++ compiler, typically <a class="reference external" href="https://gcc.gnu.org">gcc</a></li>
-<li>the <a class="reference external" href="http://myriad.esperide.org">Ceylan-Myriad</a> base layer</li>
-</ul>
-<p>We prefer using GNU/Linux, sticking to the latest stable release of Erlang, and building it from sources, thanks to GNU <tt class="docutils literal">make</tt>.</p>
-<p>For that we devised the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/conf/install-erlang.sh">install-erlang.sh</a> script; a simple use of it is:</p>
-<pre class="code bash literal-block">
-$ ./install-erlang.sh --doc-install --generate-plt
-</pre>
-<p>One may execute <tt class="docutils literal"><span class="pre">./install-erlang.sh</span> <span class="pre">--help</span></tt> for more details about how to configure it, notably in order to enable all modules of interest (<tt class="docutils literal">crypto</tt>, <tt class="docutils literal">wx</tt>, etc.) even if they are optional in the context of Seaplus.</p>
-<p>As a result, once proper Erlang and C environments are available, the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad repository</a> should be cloned and built, before doing the same with the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus repository</a>, like in:</p>
+<p>Once proper Erlang and C environments are available, the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad repository</a> should be cloned and built, before doing the same with the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus repository</a>, like in:</p>
 <pre class="code bash literal-block">
 $ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad myriad
 $ <span class="nb">cd</span> myriad <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
@@ -613,7 +609,7 @@ No symbol table info available.
 <h2><a class="toc-backref" href="#id44">Ending Word</a></h2>
 <p>Have fun with Seaplus!</p>
 <div class="figure align-center">
-<img alt="Seaplus logo" src="seaplus-title.png" style="width: 50%;" />
+<img alt="Seaplus logo" src="seaplus-title.png" style="width: 35%;" />
 </div>
 <p><span class="raw-html"><a name="seaplus_bottom"></a></span></p>
 </div>

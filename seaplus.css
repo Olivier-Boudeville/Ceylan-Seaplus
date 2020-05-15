@@ -21,8 +21,20 @@ pre.code {
 
 /* For command printouts: */
 .literal-block {
-  background: #adc0ff;
+  background: #dbdbee;
 }
+
+
+/* Not sufficient to darken the background for C code:
+.c {
+  background: #FF0000;
+}
+
+.code {
+  background: #FF0000;
+}
+
+*/
 
 
 div.box {
@@ -318,7 +330,7 @@ p.top {
 blockquote {
   margin-left: 8%;
   margin-right: 8%;
-  border: thin ridge #DDDDDD;
+  border: thin ridge #BBBBBB;
 }
 
 
