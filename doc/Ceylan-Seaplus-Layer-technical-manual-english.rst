@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2020 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Monday, May 4, 2020
+:Lastly updated: Friday, May 15, 2020
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -427,6 +427,17 @@ We hope that enhancements will be back-contributed (ex: thanks to merge requests
 Current Stable Version & Download
 =================================
 
+This integration layer, ``Ceylan-Seaplus``, relies (only) on:
+
+- `Erlang <http://www.erlang.org/>`_
+- a suitable C/C++ compiler, typically `gcc <https://gcc.gnu.org>`_
+- the `Ceylan-Myriad <http://myriad.esperide.org>`_ base layer
+
+We prefer using GNU/Linux, sticking to the latest stable release of Erlang, and building it from sources, thanks to GNU ``make``.
+
+Refer to the corresponding `Myriad prerequisite section <http://myriad.esperide.org#prerequisites>`_  for more precise guidelines, knowing that Ceylan-Seaplus does not need modules with conditional support such as ``crypto`` or ``wx``.
+
+
 
 Using Stable Release Archive
 ----------------------------
@@ -435,32 +446,12 @@ Currently no source archive is specifically distributed, please refer to the fol
 
 
 
-
 Using Cutting-Edge GIT
 ----------------------
 
 We try to ensure that the main line (in the ``master`` branch) always stays functional. Evolutions are to take place in feature branches.
 
-This integration layer, ``Ceylan-Seaplus``, relies (only) on:
-
-- `Erlang <http://www.erlang.org/>`_, version 22.1 or higher
-- a suitable C/C++ compiler, typically `gcc <https://gcc.gnu.org>`_
-- the `Ceylan-Myriad <http://myriad.esperide.org>`_ base layer
-
-
-We prefer using GNU/Linux, sticking to the latest stable release of Erlang, and building it from sources, thanks to GNU ``make``.
-
-For that we devised the `install-erlang.sh <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/conf/install-erlang.sh>`_ script; a simple use of it is:
-
-.. code:: bash
-
- $ ./install-erlang.sh --doc-install --generate-plt
-
-
-One may execute ``./install-erlang.sh --help`` for more details about how to configure it, notably in order to enable all modules of interest (``crypto``, ``wx``, etc.) even if they are optional in the context of Seaplus.
-
-
-As a result, once proper Erlang and C environments are available, the `Ceylan-Myriad repository <https://github.com/Olivier-Boudeville/Ceylan-Myriad>`_ should be cloned and built, before doing the same with the `Ceylan-Seaplus repository <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_, like in:
+Once proper Erlang and C environments are available, the `Ceylan-Myriad repository <https://github.com/Olivier-Boudeville/Ceylan-Myriad>`_ should be cloned and built, before doing the same with the `Ceylan-Seaplus repository <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_, like in:
 
 .. code:: bash
 
@@ -758,7 +749,7 @@ Have fun with Seaplus!
 
 .. figure:: seaplus-title.png
    :alt: Seaplus logo
-   :width: 50 %
+   :width: 35%
    :align: center
 
 :raw-html:`<a name="seaplus_bottom"></a>`
