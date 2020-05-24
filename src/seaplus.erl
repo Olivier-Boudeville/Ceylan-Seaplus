@@ -118,6 +118,8 @@
 -export_type([ function_driver_id/0, function_params/0, function_result/0 ]).
 
 
+% To define get_execution_target/0:
+-include_lib("myriad/include/utils/basic_utils.hrl").
 
 
 % Thanks to the service_integration parse transform, a right, minimal, optimal
@@ -591,27 +593,3 @@ get_service_port_key_for( ServiceName ) ->
 								   [ ServiceName ] ),
 
 	text_utils:string_to_atom( KeyString ).
-
-
-
-% Returns the execution target this module (hence, probably, that layer as a
-% whole) was compiled with, i.e. either the atom 'development' or 'production'.
-
-% Dispatched in actual clauses, otherwise Dialyzer will detect an
-% underspecification:
-%
-% -spec get_execution_target() -> execution_target().
-
--ifdef(exec_target_is_production).
-
--spec get_execution_target() -> 'production'.
-get_execution_target() ->
-	production.
-
--else. % exec_target_is_production
-
--spec get_execution_target() -> 'development'.
-get_execution_target() ->
-	development.
-
--endif. % exec_target_is_production
