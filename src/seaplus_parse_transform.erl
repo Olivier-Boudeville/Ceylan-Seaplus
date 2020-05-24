@@ -83,11 +83,11 @@
 
 
 % For function_info:
--include("ast_info.hrl").
+-include_lib("myriad/include/ast_info.hrl").
 
 
 % For ast_transforms undefined record:
--include("ast_transform.hrl").
+-include_lib("myriad/include/ast_transform.hrl").
 
 -type dict_key() :: atom().
 
