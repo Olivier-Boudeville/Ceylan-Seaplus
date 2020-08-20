@@ -21,10 +21,6 @@ SEAPLUS_RELEASES = $(SEAPLUS_RELEASE_ARCHIVE_BZ2) \
 				   $(SEAPLUS_RELEASE_ARCHIVE_XZ)
 
 
-# Sourceforge is mostly obsolete now:
-SF_USER = wondersye
-
-
 # First target for default:
 help: help-intro help-seaplus
 
@@ -58,19 +54,6 @@ add-prerequisite-plts: link-plt
 # As upper layers may rely on the 'seaplus' naming:
 link-plt:
 	@/bin/ln -s --force $(PLT_FILE) $(SEAPLUS_PLT_FILE)
-
-
-# Note: the source archives are not produced in this directory, but in its
-# parent, so that everything related to Seaplus (including these rules) remains
-# self-contained.
-
-send-release: send-release-sourceforge
-
-
-send-release-sourceforge: release
-	@echo "     Sending Seaplus releases $(SEAPLUS_RELEASES) to Sourceforge"
-	@cd .. && rsync -avP -e ssh $(SEAPLUS_RELEASES) \
-	$(SF_USER)@frs.sourceforge.net:uploads/
 
 
 release: release-zip release-bz2 release-xz
