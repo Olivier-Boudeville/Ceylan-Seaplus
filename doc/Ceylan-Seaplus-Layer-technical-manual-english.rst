@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2020 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Friday, May 15, 2020
+:Lastly updated: Wednesday, October 21, 2020
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -504,6 +504,8 @@ Example content::
 
 
 .. [#] Including the PID in the filename allows notably, in case of driver restart, to ensure that the logs of the new instance do not overwrite the ones of the restarted one.
+
+Beyond being able to collect traces about the behaviour of the driver, Seaplus more generally supports **general-purpose logging** thanks to its use of Myriad's `trace_bridge <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/src/utils/trace_bridge.erl>`_ (see `trace_bridge_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/test/utils/trace_bridge_test.erl>`_ for an usage example thereof). This means that by default these messages will be output on the console (thanks to ``trace_utils``), yet that any more advanced compliant trace system can be used instead (see `trace_bridging_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Traces/blob/master/test/trace_bridging_test.erl>`_ for an usage example thereof). So any library made available through Seaplus should be able to integrate nicely into one's logging system of choice.
 
 
 
