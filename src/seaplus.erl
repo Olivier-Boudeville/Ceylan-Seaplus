@@ -30,7 +30,7 @@
 % The main Seaplus module gathers the generic elements useful to integrate any
 % kind of C-based service to Erlang.
 %
-% Relies on Ceylan-Myriad.
+% Relies (only) on Ceylan-Myriad.
 %
 -module(seaplus).
 
@@ -292,34 +292,33 @@ restart( ServiceName, DriverExecutableName ) ->
 -spec stop( service_name() ) -> void().
 stop( ServiceName ) when is_atom( ServiceName ) ->
 
-	%trace_utils:trace_fmt( "Stopping the '~s' service.", [ ServiceName ] ),
+	%trace_bridge:trace_fmt( "Stopping the '~s' service.", [ ServiceName ] ),
 
 	ServiceKey = get_service_port_key_for( ServiceName ),
 
 	case process_dictionary:get( ServiceKey ) of
 
 		undefined ->
-			trace_utils:warning_fmt( "Service key '~s', for service '~s', "
-									 "not found, so service is supposed not "
-									 "to be running - hence not to be stopped.",
-									 [ ServiceKey, ServiceName ] ),
+			trace_bridge:warning_fmt( "Service key '~s', for service '~s', "
+				"not found, so service is supposed not to be running - "
+				"hence not to be stopped.", [ ServiceKey, ServiceName ] ),
 			ok;
 
 		TargetPort ->
-			%trace_utils:trace( "Stopping Seaplus." ),
+			%trace_bridge:trace( "Stopping Seaplus." ),
 			process_dictionary:remove( ServiceKey ),
 			TargetPort ! { self(), close },
 
 			receive
 
 				{ TargetPort, closed } ->
-					%trace_utils:debug( "Port stopped." )
+					%trace_bridge:debug( "Port stopped." )
 					ok
 
 			after 5000 ->
 
-					trace_utils:error_fmt( "Time-out after waiting for the "
-										   "stop of port ~w.", [ TargetPort ] )
+					trace_bridge:error_fmt( "Time-out after waiting for the "
+											"stop of port ~w.", [ TargetPort ] )
 
 		end
 
@@ -352,9 +351,8 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 					  DriverExecutableName ) of
 
 		false ->
-			trace_utils:error_fmt( "Unable to find executable '~s' "
-								   "for service '~s'.",
-								   [ DriverExecutableName, ServiceName ] ),
+			trace_bridge:error_fmt( "Unable to find executable '~s' "
+				"for service '~s'.", [ DriverExecutableName, ServiceName ] ),
 			throw( { executable_not_found, DriverExecutableName,
 					 ServiceName } );
 
@@ -363,7 +361,7 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 
 	end,
 
-	%trace_utils:debug_fmt( "Initializing service '~s', using executable '~s'.",
+	%trace_bridge:debug_fmt( "Initializing service '~s', using executable '~s'.",
 	%					   [ ServiceName, ExecPath ] ),
 
 	ExecPath.
@@ -407,14 +405,14 @@ launch_link( ServiceName, DriverExecPath ) ->
 %
 init_driver( ServiceName, DriverExecPath ) ->
 
-	%trace_utils:debug_fmt( "For service '~s', launching driver '~s'.",
+	%trace_bridge:debug_fmt( "For service '~s', launching driver '~s'.",
 	%					   [ ServiceName, DriverExecPath ] ),
 
 	% Used to intercept driver crashes, when was a spawned process:
 	%process_flag( trap_exit, true ),
 
 	% Now relying on the process dictionary:
-	%trace_utils:debug_fmt( "Registering (locally) as '~s'.", [ ServiceName ] ),
+	%trace_bridge:debug_fmt( "Registering (locally) as '~s'.", [ ServiceName ] ),
 
 	% Not using anymore an intermediate process:
 	%naming_utils:register_as( _Pid=self(), _RegistrationName=ServiceName,
@@ -431,10 +429,9 @@ init_driver( ServiceName, DriverExecPath ) ->
 			ok;
 
 		_ ->
-			trace_utils:error_fmt( "Service key '~s', for service '~s', "
-								   "already registered; service already "
-								   "started?",
-								   [ ServiceKey, ServiceName ] ),
+			trace_bridge:error_fmt( "Service key '~s', for service '~s', "
+				"already registered; service already started?",
+				[ ServiceKey, ServiceName ] ),
 			throw( { service_key_already_set, ServiceKey } )
 
 	end,
@@ -449,7 +446,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%NewEnv = text_utils:format( "~s:~s", [ LibDebugPath, BaseEnv ] ),
 	%EnvOpt = { env, [ { LibPath, NewEnv } ] },
 
-	%trace_utils:debug_fmt( "EnvOpt: ~p", [ EnvOpt ] ),
+	%trace_bridge:debug_fmt( "EnvOpt: ~p", [ EnvOpt ] ),
 
 	%PortOptions = [ { packet, 2 }, binary, EnvOpt ]
 	PortOptions = [ { packet, 2 }, binary ],
@@ -463,7 +460,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%				  "valgrind --log-file=/tmp/seaplus-valgrind.log ~s",
 	%				  [ DriverExecPath ] ),
 
-	%trace_utils:debug_fmt( "DriverCommand: ~s", [ DriverCommand ] ),
+	%trace_bridge:debug_fmt( "DriverCommand: ~s", [ DriverCommand ] ),
 
 
 	% Respect the erl_interface conventions:
@@ -472,9 +469,8 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%
 	Port = open_port( { spawn, DriverCommand }, PortOptions ),
 
-	%trace_utils:debug_fmt( "Storing port ~w under the service key '~s' in the "
-	%					   "process dictionary of ~p.",
-	%					   [ Port, ServiceKey, self() ] ),
+	%trace_bridge:debug_fmt( "Storing port ~w under the service key '~s' in the "
+	%	"process dictionary of ~p.", [ Port, ServiceKey, self() ] ),
 
 	process_dictionary:put( ServiceKey, Port ).
 
@@ -501,7 +497,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 	TargetPort = case process_dictionary:get( ServiceKey ) of
 
 		undefined ->
-			trace_utils:error_fmt( "Service key '~s' not set in process "
+			trace_bridge:error_fmt( "Service key '~s' not set in process "
 				"dictionary of ~p; has the corresponding service been started?",
 				[ ServiceKey, self() ] ),
 
@@ -517,9 +513,8 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 	BinMessage = term_to_binary( Message ),
 
-	%trace_utils:debug_fmt( "Sending command message '~p' (size: ~B bytes) "
-	%					   "to port ~w.",
-	%					   [ Message, size( BinMessage ), TargetPort ] ),
+	%trace_bridge:debug_fmt( "Sending command message '~p' (size: ~B bytes) "
+	%	"to port ~w.", [ Message, size( BinMessage ), TargetPort ] ),
 
 	% To be handled by the (C-based) driver:
 	%
@@ -541,7 +536,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 		% Normal case, receiving the corresponding result:
 		{ TargetPort, { data, BinAnswer } } ->
-			%trace_utils:debug_fmt( "Term received from C side: '~p'.",
+			%trace_bridge:debug_fmt( "Term received from C side: '~p'.",
 			%					   [ BinAnswer ] ),
 			binary_to_term( BinAnswer );
 
@@ -553,10 +548,10 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			% Actually even when hard crashing (zero division), a 'normal'
 			% reason is thrown:
 			%
-			%trace_utils:warning_fmt( "Normal EXIT of port ~p.",
+			%trace_bridge:warning_fmt( "Normal EXIT of port ~p.",
 			%						 [ TargetPort ] ),
 
-			trace_utils:error_fmt( "Crash of the driver port (~w) reported.",
+			trace_bridge:error_fmt( "Crash of the driver port (~w) reported.",
 								   [ TargetPort ] ),
 
 			throw( { driver_crashed, unknown_reason } );
@@ -566,19 +561,19 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 			process_dictionary:remove( ServiceKey ),
 
-			trace_utils:error_fmt( "Received exit failure from driver port ~p, "
+			trace_bridge:error_fmt( "Received exit failure from driver port ~p, "
 					"reason: ~p", [ TargetPort, Reason ] ),
 
 			throw( { driver_crashed, Reason } );
 
 
 		Unexpected ->
-			trace_utils:error_fmt(
-			  "Driver call: unexpected message received: ~p~n",
-			  [ Unexpected ] ),
+			trace_bridge:error_fmt( "Driver call: unexpected message "
+				"received: ~p~n", [ Unexpected ] ),
 			throw( { unexpected_driver_message, Unexpected } )
 
 	end.
+
 
 
 % Returns the key that shall be used to store information in the process

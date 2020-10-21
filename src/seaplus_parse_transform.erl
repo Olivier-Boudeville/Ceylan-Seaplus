@@ -106,7 +106,7 @@
 
 -ifdef(enable_seaplus_traces).
 
--define( display_trace( S ), trace_utils:trace( "[Seaplus] " ++ S ) ).
+-define( display_trace( S ), trace_bridge:trace( "[Seaplus] " ++ S ) ).
 
 -define( display_trace( S, F ),
 		 ast_utils:trace_fmt( "[Seaplus] " ++ S, F ) ).
@@ -130,7 +130,7 @@
 % Implementation notes:
 
 % For log output, even if io:format/{1,2} and ast_utils:display_*/* work, we
-% recommend using trace_utils:*/*.
+% recommend using trace_bridge:*/*.
 
 
 
@@ -179,9 +179,9 @@ run_standalone( FileToTransform, PreprocessorOptions ) ->
 -spec parse_transform( ast(), list() ) -> ast().
 parse_transform( InputAST, Options ) ->
 
-	%trace_utils:trace_fmt( "Seaplus input AST:~n~p~n", [ InputAST ] ),
+	%trace_bridge:trace_fmt( "Seaplus input AST:~n~p~n", [ InputAST ] ),
 
-	%trace_utils:trace_fmt( "Seaplus options:~n~p~n", [ Options ] ),
+	%trace_bridge:trace_fmt( "Seaplus options:~n~p~n", [ Options ] ),
 
 	% Necessary to fetch resources:
 	SeaplusRootDir = get_seaplus_root( Options ),
@@ -194,7 +194,7 @@ parse_transform( InputAST, Options ) ->
 	{ SeaplusAST, _ModuleInfo } =
 		apply_seaplus_transform( InputAST, SeaplusRootDir ),
 
-	%trace_utils:trace_fmt( "Seaplus output AST:~n~p~n", [ SeaplusAST ] ),
+	%trace_bridge:trace_fmt( "Seaplus output AST:~n~p~n", [ SeaplusAST ] ),
 
 	%ast_utils:write_ast_to_file( SeaplusAST, "Seaplus-output-AST.txt" ),
 
@@ -211,12 +211,12 @@ get_seaplus_root( Options ) ->
 			case file_utils:is_existing_directory( RootDirectory ) of
 
 				true ->
-					%trace_utils:debug_fmt( "Seaplus directory is '~s'.",
+					%trace_bridge:debug_fmt( "Seaplus directory is '~s'.",
 					%					   [ RootDirectory ] ),
 					RootDirectory;
 
 				false ->
-					trace_utils:error_fmt(
+					trace_bridge:error_fmt(
 					  "Seaplus directory '~s' does not exist.",
 					  [ RootDirectory ] ),
 					throw( { seaplus_directory_not_found, RootDirectory } )
@@ -224,12 +224,12 @@ get_seaplus_root( Options ) ->
 			end;
 
 		[] ->
-			trace_utils:error( "Seaplus directory not set in build." ),
+			trace_bridge:error( "Seaplus directory not set in build." ),
 			throw( seaplus_directory_not_set );
 
 		Others ->
-			trace_utils:error( "Multiple Seaplus directories set: ~p.",
-							   [ Others ] ),
+			trace_bridge:error_fmt( "Multiple Seaplus directories set: ~p.",
+									[ Others ] ),
 			throw( multiple_seaplus_directories )
 
 	end.
@@ -243,10 +243,10 @@ get_seaplus_root( Options ) ->
 									 { ast(), module_info() }.
 apply_seaplus_transform( InputAST, SeaplusRootDir ) ->
 
-	%trace_utils:debug_fmt( "  (applying parse transform '~p')", [ ?MODULE ] ),
+	%trace_bridge:debug_fmt( "  (applying parse transform '~p')", [ ?MODULE ] ),
 
-	%trace_utils:debug_fmt( "~n## INPUT ####################################" ),
-	%trace_utils:debug_fmt( "Seaplus input AST:~n~p~n~n", [ InputAST ] ),
+	%trace_bridge:debug_fmt( "~n## INPUT ####################################" ),
+	%trace_bridge:debug_fmt( "Seaplus input AST:~n~p~n~n", [ InputAST ] ),
 
 	%ast_utils:write_ast_to_file( InputAST, "Seaplus-input-AST.txt" ),
 
@@ -290,7 +290,7 @@ apply_seaplus_transform( InputAST, SeaplusRootDir ) ->
 		myriad_parse_transform:transform_module_info( ProcessedModuleInfo ),
 
 
-	%trace_utils:debug_fmt(
+	%trace_bridge:debug_fmt(
 	%  "Module information after Seaplus: ~s",
 	%  [ ast_info:module_info_to_string( FinalModuleInfo ) ] ),
 
@@ -300,7 +300,7 @@ apply_seaplus_transform( InputAST, SeaplusRootDir ) ->
 	OutputAST = ast_info:recompose_ast_from_module_info(
 				  FinalModuleInfo ),
 
-	%trace_utils:debug_fmt( "Seaplus output AST:~n~p", [ OutputAST ] ),
+	%trace_bridge:debug_fmt( "Seaplus output AST:~n~p", [ OutputAST ] ),
 
 	%OutputASTFilename = text_utils:format(
 	%		   "Seaplus-output-AST-for-module-~s.txt",
@@ -336,13 +336,13 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 	case table:extract_entry_if_existing( MarkerFunId, FunctionTable ) of
 
 		false ->
-			%trace_utils:debug(
+			%trace_bridge:debug(
 			%  "(not detected as a service-integration module)" ),
 			false;
 
 		{ #function_info{ exported=ExportLocs }, ShrunkFunctionTable } ->
 
-			%trace_utils:debug( "(detected as a service-integration module)" ),
+			%trace_bridge:debug( "(detected as a service-integration module)" ),
 
 			% It must also be un-exported:
 
@@ -367,7 +367,7 @@ process_module_info_from(
 	% Should start, stop, etc. be specifically defined by the integration module:
 	ControleModuleInfo = handle_control_functions( ModuleInfo ),
 
-	trace_utils:debug_fmt( "Control-augmented module: ~s",
+	trace_bridge:debug_fmt( "Control-augmented module: ~s",
 			   [ ast_info:module_info_to_string( ControleModuleInfo ) ] ),
 
 	ReadyFunInfos = prepare_api_functions( ControleModuleInfo ),
@@ -379,11 +379,11 @@ process_module_info_from(
 
 		[] ->
 			% We nevertheless may want a (empty) header file to be produced:
-			trace_utils:debug( "No API function detected." ),
+			trace_bridge:debug( "No API function detected." ),
 			ControleModuleInfo;
 
 		_ ->
-			trace_utils:debug_fmt( "Selected ~B function(s) for API: ~s",
+			trace_bridge:debug_fmt( "Selected ~B function(s) for API: ~s",
 				[ length( SelectFunIds ), text_utils:strings_to_string(
 					[ ast_info:function_id_to_string( Id )
 					  || Id <- SelectFunIds ] ) ] ),
@@ -432,7 +432,7 @@ handle_start_function( ModuleInfo=#module_info{
 	SeaplusStartCall = { call, Line, { remote, Line, {atom,Line,seaplus},
 								{atom,Line,start} }, [ {atom,Line,ModName} ] },
 
-	%trace_utils:debug_fmt( "Start call: '~p'.", [ SeaplusStartCall ] ),
+	%trace_bridge:debug_fmt( "Start call: '~p'.", [ SeaplusStartCall ] ),
 
 	case table:extract_entry_if_existing( StartFunId, FunctionTable ) of
 
@@ -441,8 +441,8 @@ handle_start_function( ModuleInfo=#module_info{
 		%
 		{ #function_info{ clauses=[] }, ShrunkTable } ->
 
-			trace_utils:debug( "No user-defined start/0 found "
-							   "(yet was exported), generating it." ),
+			trace_bridge:debug( "No user-defined start/0 found "
+								"(yet was exported), generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
 					   [ SeaplusStartCall ] },
@@ -454,8 +454,8 @@ handle_start_function( ModuleInfo=#module_info{
 
 		% Mostly the same:
 		false ->
-			trace_utils:debug( "No user-defined start/0 found, "
-							   "generating it." ),
+			trace_bridge:debug( "No user-defined start/0 found, "
+								"generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
 					   [ SeaplusStartCall ] },
@@ -469,7 +469,7 @@ handle_start_function( ModuleInfo=#module_info{
 		{ FunInfo=#function_info{ clauses=Clauses,
 								  exported=Exports }, ShrunkTable } ->
 
-			trace_utils:debug( "User-defined start/0 found, enriching it." ),
+			trace_bridge:debug( "User-defined start/0 found, enriching it." ),
 
 			% We just ensure that (all clauses of) this function call first
 			% seaplus:start( ?MODULE ), and then continue with the pre-existing
@@ -515,7 +515,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 	SeaplusStartLinkCall = { call, Line, { remote, Line, {atom,Line,seaplus},
 						   {atom,Line,start_link} }, [ {atom,Line,ModName} ] },
 
-	%trace_utils:debug_fmt( "Start link call: '~p'.",
+	%trace_bridge:debug_fmt( "Start link call: '~p'.",
 	%						[ SeaplusStartLinkCall ] ),
 
 	case table:extract_entry_if_existing( StartLinkFunId, FunctionTable ) of
@@ -525,8 +525,8 @@ handle_start_link_function( ModuleInfo=#module_info{
 		%
 		{ #function_info{ clauses=[] }, ShrunkTable } ->
 
-			trace_utils:debug( "No user-defined start_link/0 found "
-							   "(yet was exported), generating it." ),
+			trace_bridge:debug( "No user-defined start_link/0 found "
+								"(yet was exported), generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
 					   [ SeaplusStartLinkCall ] },
@@ -538,7 +538,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 
 		% Mostly the same:
 		false ->
-			trace_utils:debug( "No user-defined start_link/0 found, "
+			trace_bridge:debug( "No user-defined start_link/0 found, "
 							   "generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
@@ -553,8 +553,8 @@ handle_start_link_function( ModuleInfo=#module_info{
 		{ FunInfo=#function_info{ clauses=Clauses,
 								  exported=Exports }, ShrunkTable } ->
 
-			trace_utils:debug( "User-defined start_link/0 found, "
-							   "enriching it." ),
+			trace_bridge:debug( "User-defined start_link/0 found, "
+								"enriching it." ),
 
 			% We just ensure that (all clauses of) this function call first
 			% seaplus:start_link( ?MODULE ), and then continue with the
@@ -599,7 +599,7 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 	SeaplusStopCall = { call, Line, { remote, Line, {atom,Line,seaplus},
 								  {atom,Line,stop} }, [ {atom,Line,ModName} ] },
 
-	%trace_utils:debug_fmt( "Stop call: ~p", [ SeaplusStopCall ] ),
+	%trace_bridge:debug_fmt( "Stop call: ~p", [ SeaplusStopCall ] ),
 
 	case table:extract_entry_if_existing( StopFunId, FunctionTable ) of
 
@@ -608,8 +608,8 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 		%
 		{ #function_info{ clauses=[] }, ShrunkTable } ->
 
-		trace_utils:debug( "No user-defined stop/0 found "
-						   "(yet was exported), generating it." ),
+		trace_bridge:debug( "No user-defined stop/0 found "
+							"(yet was exported), generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
 					   [ SeaplusStopCall ] },
@@ -622,7 +622,7 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 		% Mostly the same:
 		false ->
 
-			trace_utils:debug(
+			trace_bridge:debug(
 			  "No user-defined stop/0 found, generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
@@ -637,7 +637,7 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 		{ FunInfo=#function_info{ clauses=Clauses,
 								  exported=Exports }, ShrunkTable } ->
 
-			trace_utils:debug( "User-defined stop/0 found, enriching it." ),
+			trace_bridge:debug( "User-defined stop/0 found, enriching it." ),
 
 			% We just ensure that (all clauses of) this function starts with the
 			% pre-existing user code and then finishes with a call to
@@ -676,7 +676,7 @@ generate_driver_header( ServiceModuleName, FunIds ) ->
 	HeaderFilename = text_utils:format( "~s_seaplus_api_mapping.h",
 										[ ServiceModuleName ] ),
 
-	trace_utils:trace_fmt( "Generating the '~s' header file, comprising ~B "
+	trace_bridge:trace_fmt( "Generating the '~s' header file, comprising ~B "
 						   "function mappings.",
 						   [ HeaderFilename, length( FunIds ) ] ),
 
@@ -746,14 +746,12 @@ manage_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 	case file_utils:is_existing_file_or_link( SourceFilename ) of
 
 		true ->
-			trace_utils:info_fmt( "Driver implementation ('~s') already "
-								  "existing, not generating it.",
-								  [ SourceFilename ] );
+			trace_bridge:info_fmt( "Driver implementation ('~s') already "
+				"existing, not generating it.", [ SourceFilename ] );
 
 		false ->
-			trace_utils:info_fmt( "No driver implementation ('~s') found, "
-								  "generating it.",
-								  [ SourceFilename ] ),
+			trace_bridge:info_fmt( "No driver implementation ('~s') found, "
+				"generating it.", [ SourceFilename ] ),
 			generate_driver_implementation( ServiceModuleName, FunIds,
 						HeaderFilename, SourceFilename, SeaplusRootDir )
 
@@ -767,8 +765,8 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 
 	TemplateBaseDir = file_utils:join( SeaplusRootDir, "src" ),
 
-	DriverHeaderFilename = file_utils:join( TemplateBaseDir,
-											"seaplus_driver_header.c" ),
+	DriverHeaderFilename =
+		file_utils:join( TemplateBaseDir, "seaplus_driver_header.c" ),
 
 	case file_utils:is_existing_file( DriverHeaderFilename ) of
 
@@ -782,13 +780,13 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 
 	HeaderContent = file_utils:read_whole( DriverHeaderFilename ),
 
-	%trace_utils:debug_fmt( "Read content:~n~s",
+	%trace_bridge:debug_fmt( "Read content:~n~s",
 	%					   [ HeaderContent ] ),
 
 	HHeaderContent = string:replace(  HeaderContent,
 	   "##SEAPLUS_SERVICE_HEADER_FILE##", HeaderFilename, all ),
 
-	%trace_utils:debug_fmt( "New content:~n~s", [ HHeaderContent ] ),
+	%trace_bridge:debug_fmt( "New content:~n~s", [ HHeaderContent ] ),
 
 	StringServiceModuleName = text_utils:atom_to_string( ServiceModuleName ),
 
@@ -796,11 +794,11 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 				   "##SEAPLUS_SERVICE_NAME##", StringServiceModuleName, all ),
 
 
-	%trace_utils:debug_fmt( "Generated driver header:~n~s",
+	%trace_bridge:debug_fmt( "Generated driver header:~n~s",
 	%                      [ NHeaderContent ] ),
 
-	DriverFooterFilename = file_utils:join( TemplateBaseDir,
-											"seaplus_driver_footer.c" ),
+	DriverFooterFilename =
+		file_utils:join( TemplateBaseDir, "seaplus_driver_footer.c" ),
 
 	case file_utils:is_existing_file( DriverFooterFilename ) of
 
@@ -896,7 +894,7 @@ prepare_api_functions( ModuleInfo=#module_info{ functions=FunctionTable,
 	% Key in the process dictionary under which the service port will be stored:
 	PortDictKey = get_port_dict_key_for( ModuleInfo ),
 
-	%trace_utils:debug_fmt( "Will store the service port under the "
+	%trace_bridge:debug_fmt( "Will store the service port under the "
 	%   "'~s' key in the process dictionary.", [ PortDictKey ] ),
 
 	MarkerTable = ModuleInfo#module_info.markers,
@@ -929,7 +927,7 @@ select_for_binding( [ #function_info{ %name=Name,
 									  spec=undefined } | T ],
 					SeaplusFunIds, Acc ) ->
 
-	%trace_utils:debug_fmt( "~s/~B skipped for binding (no spec).",
+	%trace_bridge:debug_fmt( "~s/~B skipped for binding (no spec).",
 	%					   [ Name, Arity ] ),
 
 	select_for_binding( T, SeaplusFunIds, Acc );
@@ -945,13 +943,13 @@ select_for_binding( [ FInfo=#function_info{ name=Name,
 	case lists:member( FunId, SeaplusFunIds ) of
 
 		true ->
-			%trace_utils:debug_fmt(
+			%trace_bridge:debug_fmt(
 			%  "Seaplus-defined ~s/~B not selected in binding.",
 			%  [ Name, Arity ] ),
 			select_for_binding( T, SeaplusFunIds, Acc );
 
 		false ->
-			%trace_utils:debug_fmt( "~s/~B selected in binding.",
+			%trace_bridge:debug_fmt( "~s/~B selected in binding.",
 			%					   [ Name, Arity ] ),
 			select_for_binding( T, SeaplusFunIds, [ FInfo | Acc ] )
 
@@ -991,12 +989,12 @@ post_process_fun_infos( [ FInfo=#function_info{ %name=Name,
 
 	FunDriverId = Count,
 
-	%trace_utils:debug_fmt( "Assigning Driver ID #~B to ~s/~B.",
-	%					   [ FunDriverId, Name, Arity ] ),
+	%trace_bridge:debug_fmt( "Assigning Driver ID #~B to ~s/~B.",
+	%						[ FunDriverId, Name, Arity ] ),
 
 	Clauses = generate_clauses_for( FunDriverId, Arity, PortDictKey ),
 
-	%trace_utils:debug_fmt( "Generated clauses:~n~p", [ Clauses ] ),
+	%trace_bridge:debug_fmt( "Generated clauses:~n~p", [ Clauses ] ),
 
 	NewFInfo = FInfo#function_info{
 
