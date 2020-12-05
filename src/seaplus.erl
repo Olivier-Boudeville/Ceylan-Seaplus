@@ -122,12 +122,18 @@
 -include_lib("myriad/include/utils/basic_utils.hrl").
 
 
+% Shorthands:
+
+-type executable_name() :: file_utils:executable_name().
+-type executable_path() :: file_utils:executable_path().
+
+
+
 % Thanks to the service_integration parse transform, a right, minimal, optimal
 % API is automatically generated.
 %
 % More precisely, from the type specifications of the API functions, the Seaplus
 % transform automatically generates:
-%
 % - their export: -export([ foo/1, bar/2, baz/2, tur/0, frob/1 ]).
 % - their definition, like in:
 %
@@ -244,7 +250,7 @@ start_link( ServiceName ) when is_atom( ServiceName ) ->
 % call being triggered), the service user process will receive an
 % {'EXIT',FromPort,Reason} message.
 %
--spec start( service_name(), file_utils:executable_name() ) -> void().
+-spec start( service_name(), executable_name() ) -> void().
 start( ServiceName, DriverExecutableName )
   when is_atom( ServiceName ) andalso is_list( DriverExecutableName ) ->
 
@@ -261,7 +267,7 @@ start( ServiceName, DriverExecutableName )
 % call being triggered), the service user process will receive an exit signal
 % with an exit reason other than normal.
 %
--spec start_link( service_name(), file_utils:executable_name() ) -> void().
+-spec start_link( service_name(), executable_name() ) -> void().
 start_link( ServiceName, DriverExecutableName )
   when is_atom( ServiceName ) andalso is_list( DriverExecutableName ) ->
 
@@ -282,7 +288,7 @@ restart( ServiceName ) ->
 % Restarts the specific service support (ex: to overcome a detected crash
 % thereof).
 %
--spec restart( service_name(), file_utils:executable_name() ) -> void().
+-spec restart( service_name(), executable_name() ) -> void().
 restart( ServiceName, DriverExecutableName ) ->
 	stop( ServiceName ),
 	start( ServiceName, DriverExecutableName ).
@@ -292,7 +298,7 @@ restart( ServiceName, DriverExecutableName ) ->
 -spec stop( service_name() ) -> void().
 stop( ServiceName ) when is_atom( ServiceName ) ->
 
-	%trace_bridge:trace_fmt( "Stopping the '~s' service.", [ ServiceName ] ),
+	%trace_bridge:debug_fmt( "Stopping the '~s' service.", [ ServiceName ] ),
 
 	ServiceKey = get_service_port_key_for( ServiceName ),
 
@@ -305,7 +311,7 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 			ok;
 
 		TargetPort ->
-			%trace_bridge:trace( "Stopping Seaplus." ),
+			%trace_bridge:debug( "Stopping Seaplus." ),
 			process_dictionary:remove( ServiceKey ),
 			TargetPort ! { self(), close },
 
@@ -316,7 +322,6 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 					ok
 
 			after 5000 ->
-
 					trace_bridge:error_fmt( "Time-out after waiting for the "
 											"stop of port ~w.", [ TargetPort ] )
 
@@ -333,7 +338,7 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 %
 % (helper)
 %
--spec get_driver_name( service_name() ) -> file_utils:executable_name().
+-spec get_driver_name( service_name() ) -> executable_name().
 get_driver_name( ServiceName ) ->
 	text_utils:format( "~s_seaplus_driver", [ ServiceName ] ).
 
@@ -343,12 +348,11 @@ get_driver_name( ServiceName ) ->
 %
 % (helper)
 %
--spec get_driver_path( service_name(), file_utils:executable_name() ) ->
-							 file_utils:executable_path().
+-spec get_driver_path( service_name(), executable_name() ) -> executable_path().
 get_driver_path( ServiceName, DriverExecutableName ) ->
 
 	ExecPath = case executable_utils:lookup_executable(
-					  DriverExecutableName ) of
+					DriverExecutableName ) of
 
 		false ->
 			trace_bridge:error_fmt( "Unable to find executable '~s' "
@@ -374,7 +378,7 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 %
 % (helper)
 %
--spec launch( service_name(), file_utils:executable_name() ) -> void().
+-spec launch( service_name(), executable_name() ) -> void().
 launch( ServiceName, DriverExecPath ) ->
 
 	% To receive EXIT messages, should the port fail (best option):
@@ -491,7 +495,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 % Will return the result of the corresponding call, or will raise an exception.
 %
 -spec call_port_for( service_key(), function_driver_id(), function_params() ) ->
-						   function_result().
+						function_result().
 call_port_for( ServiceKey, FunctionId, Params ) ->
 
 	TargetPort = case process_dictionary:get( ServiceKey ) of

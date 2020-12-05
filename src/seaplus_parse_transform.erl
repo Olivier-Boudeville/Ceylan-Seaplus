@@ -31,9 +31,7 @@
 % integration of any C-based service.
 %
 % Meant, for a Foobar service, to operate on a foobar.erl stub, so that:
-%
 % - a fully-functional foobar module becomes available
-%
 % - a corresponding foobar_seaplus_api_mapping.h C header is generated in order
 % to ease the development of the corresponding C-side driver
 %
@@ -99,6 +97,11 @@
 -type module_info() :: ast_info:module_info().
 -type function_info() :: ast_info:function_info().
 -type ast_transforms() :: ast_transform:ast_transforms().
+-type preprocessor_option() :: ast_utils:preprocessor_option().
+
+-type file_name() :: file_utils:file_name().
+-type directory_name() :: file_utils:directory_name().
+-type directory_path() :: file_utils:directory_path().
 
 -type function_driver_id() :: seaplus:function_driver_id().
 
@@ -106,10 +109,10 @@
 
 -ifdef(enable_seaplus_traces).
 
--define( display_trace( S ), trace_bridge:trace( "[Seaplus] " ++ S ) ).
+-define( display_trace( S ), trace_bridge:debug( "[Seaplus] " ++ S ) ).
 
 -define( display_trace( S, F ),
-		 ast_utils:trace_fmt( "[Seaplus] " ++ S, F ) ).
+		 ast_utils:debug_fmt( "[Seaplus] " ++ S, F ) ).
 
 -else. % enable_seaplus_traces
 
@@ -143,7 +146,7 @@
 % transform (ex: 'undefined parse transform 'foobar'' as soon as a function or a
 % module is not found).
 %
--spec run_standalone( file_utils:file_name() ) -> { ast(), module_info() }.
+-spec run_standalone( file_name() ) -> { ast(), module_info() }.
 run_standalone( FileToTransform ) ->
 	run_standalone( FileToTransform, _PreprocessorOptions=[] ).
 
@@ -158,8 +161,8 @@ run_standalone( FileToTransform ) ->
 % transform (ex: 'undefined parse transform 'foobar'' as soon as a function or a
 % module is not found).
 %
--spec run_standalone( file_utils:file_name(),
-			  [ ast_utils:preprocessor_option() ] ) -> { ast(), module_info() }.
+-spec run_standalone( file_name(), [ preprocessor_option() ] ) ->
+							{ ast(), module_info() }.
 run_standalone( FileToTransform, PreprocessorOptions ) ->
 
 	InputAST = ast_utils:erl_to_ast( FileToTransform, PreprocessorOptions ),
@@ -179,9 +182,9 @@ run_standalone( FileToTransform, PreprocessorOptions ) ->
 -spec parse_transform( ast(), list() ) -> ast().
 parse_transform( InputAST, Options ) ->
 
-	%trace_bridge:trace_fmt( "Seaplus input AST:~n~p~n", [ InputAST ] ),
+	%trace_bridge:debug_fmt( "Seaplus input AST:~n~p~n", [ InputAST ] ),
 
-	%trace_bridge:trace_fmt( "Seaplus options:~n~p~n", [ Options ] ),
+	%trace_bridge:debug_fmt( "Seaplus options:~n~p~n", [ Options ] ),
 
 	% Necessary to fetch resources:
 	SeaplusRootDir = get_seaplus_root( Options ),
@@ -194,7 +197,7 @@ parse_transform( InputAST, Options ) ->
 	{ SeaplusAST, _ModuleInfo } =
 		apply_seaplus_transform( InputAST, SeaplusRootDir ),
 
-	%trace_bridge:trace_fmt( "Seaplus output AST:~n~p~n", [ SeaplusAST ] ),
+	%trace_bridge:debug_fmt( "Seaplus output AST:~n~p~n", [ SeaplusAST ] ),
 
 	%ast_utils:write_ast_to_file( SeaplusAST, "Seaplus-output-AST.txt" ),
 
@@ -239,7 +242,7 @@ get_seaplus_root( Options ) ->
 
 
 % Transforms specified AST for Seaplus.
--spec apply_seaplus_transform( ast(), file_utils:directory_path() ) ->
+-spec apply_seaplus_transform( ast(), directory_path() ) ->
 									 { ast(), module_info() }.
 apply_seaplus_transform( InputAST, SeaplusRootDir ) ->
 
@@ -359,8 +362,8 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 
 
 % Applies the actual Seaplus transformations.
--spec process_module_info_from( module_info(), file_utils:directory_name() ) ->
-									  module_info().
+-spec process_module_info_from( module_info(), directory_name() ) ->
+									module_info().
 process_module_info_from(
   ModuleInfo=#module_info{ module={ ModName, _Loc } }, SeaplusRootDir ) ->
 
@@ -421,8 +424,8 @@ handle_control_functions( ModuleInfo ) ->
 
 % Ensures that the start/0 function starts Seaplus as well.
 handle_start_function( ModuleInfo=#module_info{
-									 module={ ModName, _LocForm },
-									 functions=FunctionTable } ) ->
+									module={ ModName, _LocForm },
+									functions=FunctionTable } ) ->
 
 	StartFunId = { start, 0 },
 
@@ -504,8 +507,8 @@ handle_start_function( ModuleInfo=#module_info{
 
 % Ensures that the start_link/0 function starts Seaplus as well.
 handle_start_link_function( ModuleInfo=#module_info{
-										  module={ ModName, _LocForm },
-										  functions=FunctionTable } ) ->
+										module={ ModName, _LocForm },
+										functions=FunctionTable } ) ->
 
 	StartLinkFunId = { start_link, 0 },
 
@@ -676,9 +679,8 @@ generate_driver_header( ServiceModuleName, FunIds ) ->
 	HeaderFilename = text_utils:format( "~s_seaplus_api_mapping.h",
 										[ ServiceModuleName ] ),
 
-	trace_bridge:trace_fmt( "Generating the '~s' header file, comprising ~B "
-						   "function mappings.",
-						   [ HeaderFilename, length( FunIds ) ] ),
+	trace_bridge:debug_fmt( "Generating the '~s' header file, comprising ~B "
+		"function mappings.", [ HeaderFilename, length( FunIds ) ] ),
 
 	% Being a generated file, it can be overwritten with no regret:
 	HeaderFile = file_utils:open( HeaderFilename, _Opts=[ write, raw ] ),
@@ -686,24 +688,24 @@ generate_driver_header( ServiceModuleName, FunIds ) ->
 	StringModName = text_utils:atom_to_string( ServiceModuleName ),
 
 	IncGuard = text_utils:format( "_~s_SEAPLUS_API_MAPPING_H_",
-						  [ text_utils:to_uppercase( StringModName ) ] ),
+						[ text_utils:to_uppercase( StringModName ) ] ),
 
 	file_utils:write( HeaderFile, "#ifndef ~s~n", [ IncGuard ] ),
 	file_utils:write( HeaderFile, "#define ~s~n~n", [ IncGuard ] ),
 
 	file_utils:write( HeaderFile,
-		  "/* This header file has been generated by the Seaplus integration~n"
-		  " * bridge for the '~s' service, on ~s.~n"
-		  " */~n~n",
-		  [ StringModName, time_utils:get_textual_timestamp() ] ),
+		"/* This header file has been generated by the Seaplus integration~n"
+		" * bridge for the '~s' service, on ~s.~n"
+		" */~n~n",
+		[ StringModName, time_utils:get_textual_timestamp() ] ),
 
 	file_utils:write( HeaderFile,
-					  "/* For each of the exposed functions of the API, "
-					  "a Seaplus identifier is~n"
-					  " * generated to ensure that the C code of the driver "
-					  "can stay in sync with~n"
-					  " * the Erlang view on said API, regardless of its "
-					  "changes.~n */~n~n", [] ),
+		"/* For each of the exposed functions of the API, "
+		"a Seaplus identifier is~n"
+		" * generated to ensure that the C code of the driver "
+		"can stay in sync with~n"
+		" * the Erlang view on said API, regardless of its "
+		"changes.~n */~n~n", [] ),
 
 	write_mapping( HeaderFile, FunIds, _Count=1 ),
 
