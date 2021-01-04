@@ -243,7 +243,7 @@ get_seaplus_root( Options ) ->
 
 % Transforms specified AST for Seaplus.
 -spec apply_seaplus_transform( ast(), directory_path() ) ->
-									 { ast(), module_info() }.
+									{ ast(), module_info() }.
 apply_seaplus_transform( InputAST, SeaplusRootDir ) ->
 
 	%trace_bridge:debug_fmt( "  (applying parse transform '~p')", [ ?MODULE ] ),
@@ -452,7 +452,7 @@ handle_start_function( ModuleInfo=#module_info{
 
 			% Auto-exports:
 			meta_utils:add_function( StartFunId, _Clauses=[ Clause ],
-					 ModuleInfo#module_info{ functions=ShrunkTable } );
+					ModuleInfo#module_info{ functions=ShrunkTable } );
 
 
 		% Mostly the same:
@@ -542,7 +542,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 		% Mostly the same:
 		false ->
 			trace_bridge:debug( "No user-defined start_link/0 found, "
-							   "generating it." ),
+								"generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
 					   [ SeaplusStartLinkCall ] },

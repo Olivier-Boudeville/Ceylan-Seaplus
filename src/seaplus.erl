@@ -556,7 +556,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			%						 [ TargetPort ] ),
 
 			trace_bridge:error_fmt( "Crash of the driver port (~w) reported.",
-								   [ TargetPort ] ),
+									[ TargetPort ] ),
 
 			throw( { driver_crashed, unknown_reason } );
 
