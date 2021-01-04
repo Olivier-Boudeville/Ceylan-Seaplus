@@ -1,4 +1,4 @@
-% Copyright (C) 2018-2020 Olivier Boudeville
+% Copyright (C) 2018-2021 Olivier Boudeville
 %
 % This file is part of the Ceylan-Seaplus library.
 %
