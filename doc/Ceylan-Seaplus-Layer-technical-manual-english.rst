@@ -36,10 +36,10 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 ----------------------------------------------------------------
 
 
-:Organisation: Copyright (C) 2018-2020 Olivier Boudeville
+:Organisation: Copyright (C) 2018-2021 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Wednesday, October 21, 2020
+:Lastly updated: Saturday, January 23, 2021
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -539,12 +539,16 @@ So the following code will trigger a call through the port and the driver, and r
 	  [...]
 
 
-Of course, should we have instead of::
+Of course, should we have instead of:
+
+.. code:: erlang
 
   -spec get_backend_information() -> {backend_type(), backend_version()}.
 
 
-a function like::
+a function like:
+
+.. code:: erlang
 
   -spec compute_sum(integer(), float()) -> float().
 
@@ -582,7 +586,9 @@ Integrating C code is not so easy; more often than not, a SEGV will be encounter
 
 The situation is never hopeless, though; we will take the integration of the `libgammu <https://wammu.eu/libgammu/>`_ library done by `Ceylan-Mobile <http://mobile.esperide.org>`_ on Arch Linux as a mini-tutorial.
 
-The type of errors that we want to track down are reported as such (real-life example of the execution of ``mobile_test`` while the Seaplus driver-level facilities was incorrectly dealing, memory-wise, with the parameters that were binary strings)::
+The type of errors that we want to track down are reported as such (real-life example of the execution of ``mobile_test`` while the Seaplus driver-level facilities was incorrectly dealing, memory-wise, with the parameters that were binary strings):
+
+.. code:: shell-session
 
   Sent first SMS whose report is: {success,255}.
 
@@ -595,7 +601,9 @@ The type of errors that we want to track down are reported as such (real-life ex
 
 So the driver crashed, we do not know why, and often, with such problems, nothing very relevant can be found in the Seaplus log (i.e. in ``seaplus-driver.*.log``), except which API function was called when the crash happened (should you have left the corresponding ``LOG_DEBUG`` calls in your driver of course).
 
-A first difficulty is that generally a (Linux) distribution will, at least by default, only include prebuilt binary packages whose libraries are stripped. For example::
+A first difficulty is that generally a (Linux) distribution will, at least by default, only include prebuilt binary packages whose libraries are stripped. For example:
+
+.. code:: bash
 
  $ file /usr/lib/libGammu.so.8.1.40.0
  /usr/lib/libGammu.so.8.1.40.0: ELF 64-bit LSB shared object, x86-64, \
@@ -603,7 +611,9 @@ A first difficulty is that generally a (Linux) distribution will, at least by de
 
 We *need* the debug symbols, otherwise we will lack much crucial information. Either your distribution provides a way of having unstripped, debug/development versions of some libraries, or you find it simpler and less system-jeopardizing to recompile your own unstripped versions, directly in your user account.
 
-We go for the latter, for example with::
+We go for the latter, for example with:
+
+.. code:: bash
 
  $ mkdir ~/Software/libgammu
  $ cd ~/Software/libgammu
@@ -624,14 +634,18 @@ A first option would be to run the driver through `gdb <https://www.gnu.org/soft
 
 Examining instead the core dump corresponding to the driver crash may offer relevant insights; provided that we find it and manage to study it.
 
-In our case we used (as a one-liner), from the test directory, once a crash had been triggered, the following commands::
+In our case we used (as a one-liner), from the test directory, once a crash had been triggered, the following commands:
+
+.. code:: bash
 
  $ rm -f mobile_seaplus.core*
  $ cp /var/lib/systemd/coredump/core.mobile_seaplus* mobile_seaplus.core.lz4
  $ lz4 mobile_seaplus.core.lz4
  $ gdb mobile_seaplus_driver
 
-Following gdb command would then bring new information::
+Following gdb command would then bring new information:
+
+.. code:: shell-session
 
   (gdb) core mobile_seaplus.core
   warning: core file may not match specified executable file.
@@ -665,7 +679,9 @@ So now it is time to use use `Valgrind <http://valgrind.org/>`_ in order to inve
 
 One should then have a look to the ``init_driver/2`` function of the `seaplus.erl <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl>`_ module, to uncomment the ``DriverCommand`` variation involving Valgrind.
 
-Once using a Valgrind-based driver command and an updated environment (to select your debug library rather than the system's one), when looking at the specified log file (``/tmp/seaplus-valgrind.log``) you should end up with a report like::
+Once using a Valgrind-based driver command and an updated environment (to select your debug library rather than the system's one), when looking at the specified log file (``/tmp/seaplus-valgrind.log``) you should end up with a report like:
+
+.. code:: shell-session
 
  ==12257== Invalid read of size 1
  ==12257==    at 0x483AC74: strlen (vg_replace_strmem.c:460)

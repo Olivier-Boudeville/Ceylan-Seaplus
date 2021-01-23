@@ -1,17 +1,17 @@
-/* This document is a part of the Ceylan-Myriad Project */
+/* This document is a part of the Ceylan-Seaplus Project */
 /* Standard Cascading Style Sheet File */
 
 
-/* Created : 24 May 2003 */
+/* Created: 24 May 2003 */
 
-/* Author : Olivier Boudeville (olivier (dot) boudeville (at) esperide (dot) com) */
-/* Updated : Michal Guerquin (michalg@gmail.com) */
+/* Author: Olivier Boudeville (olivier (dot) boudeville (at) esperide (dot) com) */
+/* Updated: Michal Guerquin (michalg@gmail.com) */
 
-/*
+
 pre.code {
- background: #FF0000;
+ background: #f1f1ff;
 }
-*/
+
 
 .literal {
   color: #162143;
@@ -41,7 +41,7 @@ div.box {
   color: #FF0000;
   background: #FFFFFF;
   border: solid;
-  padding : 5px;
+  padding: 5px;
   border-width: thin;
   text-align: left;
 }
@@ -130,7 +130,7 @@ h3 {
 
 
 h4 {
-  color : #3161fc;
+  color: #3161fc;
   font-size: 21px;
   margin-left: 10%;
   margin-right: 7%;
@@ -139,7 +139,7 @@ h4 {
 
 
 h5 {
-  color : #1c3071;
+  color: #1c3071;
   font-size: 16px;
   margin-left: 15%;
   margin-right: 15%;
@@ -150,7 +150,7 @@ h5 {
 
 
 h6 {
-  color : #FF0000;
+  color: #FF0000;
   font-size: 15px;
   margin-left: 30%;
   margin-right: 5%;
@@ -161,7 +161,7 @@ h6 {
 
 
 h7 {
-  color : #555555;
+  color: #555555;
   font-size: 15px;
   margin-left: 10%;
   margin-right: 5%;
@@ -298,6 +298,62 @@ table p, table dl, ol p, ul p, dl p, blockquote p, .note p, .note ul, .note ol, 
 }
 
 
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+
 tr {
    font-family: arial, helvetica, sans-serif;
    font-size: 15px;
@@ -315,7 +371,7 @@ th {
 
 
 td {
-   background : #a0add4;
+   background: #a0add4;
    font-size: 15px;
 }
 
@@ -395,7 +451,7 @@ code {
   font-weight: normal;
   font-family: Courier, serif;
   background: #00FF00;
-  /* disabled :
+  /* disabled:
   border-left-style: solid;
   border-left-width: 3px;
   border-right-style: none;
