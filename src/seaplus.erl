@@ -365,8 +365,8 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 
 	end,
 
-	%trace_bridge:debug_fmt( "Initializing service '~s', using executable '~s'.",
-	%					   [ ServiceName, ExecPath ] ),
+	%trace_bridge:debug_fmt( "Initializing service '~s', "
+	%     "using executable '~s'.", [ ServiceName, ExecPath ] ),
 
 	ExecPath.
 
@@ -416,7 +416,8 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%process_flag( trap_exit, true ),
 
 	% Now relying on the process dictionary:
-	%trace_bridge:debug_fmt( "Registering (locally) as '~s'.", [ ServiceName ] ),
+	%trace_bridge:debug_fmt( "Registering (locally) as '~s'.",
+	%    [ ServiceName ] ),
 
 	% Not using anymore an intermediate process:
 	%naming_utils:register_as( _Pid=self(), _RegistrationName=ServiceName,
@@ -473,8 +474,8 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%
 	Port = open_port( { spawn, DriverCommand }, PortOptions ),
 
-	%trace_bridge:debug_fmt( "Storing port ~w under the service key '~s' in the "
-	%	"process dictionary of ~p.", [ Port, ServiceKey, self() ] ),
+	%trace_bridge:debug_fmt( "Storing port ~w under the service key '~s' "
+	%  "in the process dictionary of ~p.", [ Port, ServiceKey, self() ] ),
 
 	process_dictionary:put( ServiceKey, Port ).
 
@@ -565,8 +566,8 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 			process_dictionary:remove( ServiceKey ),
 
-			trace_bridge:error_fmt( "Received exit failure from driver port ~p, "
-					"reason: ~p", [ TargetPort, Reason ] ),
+			trace_bridge:error_fmt( "Received exit failure from driver "
+				"port ~p, reason: ~p", [ TargetPort, Reason ] ),
 
 			throw( { driver_crashed, Reason } );
 

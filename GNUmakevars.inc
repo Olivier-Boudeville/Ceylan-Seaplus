@@ -1,5 +1,71 @@
 # Prerequisite: SEAPLUS_TOP must be set.
 
+
+# To understand why taking into account such conditionals requires to specify
+# them first, and in each layer, rather than at the end of the last one, refer
+# to the section about conditionals at the top of the GNUmakevars.inc of Myriad.
+
+
+# Overall settings section.
+
+#EXECUTION_TARGET = production
+
+ifndef EXECUTION_TARGET
+
+	# Other possible value: production
+	EXECUTION_TARGET = development
+
+endif
+
+
+ifeq ($(EXECUTION_TARGET),development)
+
+	#$(info Execution target is development)
+
+	ENABLE_DEBUG = true
+
+else ifeq ($(EXECUTION_TARGET),production)
+
+	#$(info Execution target is production)
+
+	ENABLE_DEBUG = false
+
+else
+
+	$(error Invalid Seaplus execution target '$(EXECUTION_TARGET)'; expecting either 'development' or 'production')
+
+endif
+
+
+
+ifeq ($(ENABLE_DEBUG),true)
+	ENABLE_SEAPLUS_DEBUG_OPT = -Dseaplus_debug_mode
+else
+	ENABLE_SEAPLUS_DEBUG_OPT =
+endif
+
+
+
+# Defining (optional) layer-specific flags, typically used by in-code
+# conditional compilation primitives (see cond_utils for their management):
+
+# Topics covered by flags:
+#  - xx (none yet)
+
+# Defining debug flags (at least the most verbose are by default commented-out):
+ifeq ($(ENABLE_DEBUG),true)
+	#SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_xx
+endif
+
+# Defining check flags:
+ifeq ($(EXECUTION_TARGET),development)
+	# Does not exist: SEAPLUS_CHECK_FLAGS += -Dseaplus_check_xx
+endif
+
+
+
+
+
 # Useful to target for example the root of the current layer (ex: to locate the
 # relevant, layer-local '_build' directory):
 #
@@ -16,22 +82,23 @@ ifndef PROJECT_NAME
 endif
 
 
-# REBAR3_PROJECT_NAME should be defined on a per-project basis.
-ifndef REBAR3_PROJECT_NAME
-	REBAR3_PROJECT_NAME := seaplus
+# PROJECT_NAME_FOR_REBAR should be defined on a per-project basis.
+ifndef PROJECT_NAME_FOR_REBAR
+	PROJECT_NAME_FOR_REBAR := seaplus
 endif
 
 
 # The uniquely-defined version of this layer, for all uses (including rebar and
 # hex):
 #
-SEAPLUS_VERSION := 1.0.2
+SEAPLUS_VERSION := 1.0.3
 
 
 # PROJECT_VERSION should be defined on a per-project basis.
 ifndef PROJECT_VERSION
 	PROJECT_VERSION := $(SEAPLUS_VERSION)
 endif
+
 
 
 ifndef PACKAGE_TOP
@@ -178,7 +245,9 @@ endif
 # Erlang subsection.
 
 
-# Base Erlang installation either hardcoded or deduced from selected interpreter:
+# Base Erlang installation either hardcoded or deduced from selected
+# interpreter:
+#
 #ERL_BASE := $(HOME)/Software/Erlang/Erlang-current-install
 ERL_BASE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/..
 
@@ -271,6 +340,7 @@ ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS = \
 	$(OVERALL_PZ_OPT)                             \
 	-DSEAPLUS_ROOT=\"$(SEAPLUS_TOP)\"             \
 	-pz $(SEAPLUS_TOP)/src                        \
+	$(MYRIAD_PARSE_TRANSFORMS_PZ_OPT)            \
 	'+{parse_transform,seaplus_parse_transform}'
 
 
@@ -305,7 +375,7 @@ C_LINKER_LIBS = $(ERL_INTERFACE_LIB) -lei -lpthread
 # Checking section.
 
 # For later reuse in the next layer of the software stack:
-SEAPLUS_PLT_FILE := $(SEAPLUS_TOP)/seaplus.plt
+SEAPLUS_PLT_FILE := $(SEAPLUS_TOP)/Ceylan-Seaplus.plt
 
 
 # This is the merged PLT of the level just below in the software stack.
@@ -334,10 +404,12 @@ FOOBAR_LIB_PATH = $(FOOBAR_LIB_DIR)/$(FOOBAR_LIBRARY)
 # We define the path to the Myriad layer (possibly available as a symbolic
 # link).
 #
-# For the sake of these build-related makefiles, dependencies may be found
-# either in a local _checkouts child directory (if checkout directories are used
-# and if the top-level package of interest is the current one), or in sibling
-# directories (i.e. whose build root is at the same level as this one).
+# For the sake of these build-related makefiles, Ceylan dependencies will be
+# searched (in that order, the one enforced in otp_utils) in a local _checkouts
+# child directory (if checkout directories are used and if the top-level package
+# of interest is the current one), otherwise in sibling directories (i.e. whose
+# build root is at the same level as this one).
+#
 # This last case happens notably if not using checkout directories, or if using
 # them and if all the packages mentioned here are themselves dependencies (in
 # which case they are all sitting together in the _checkouts child directory).
@@ -345,22 +417,19 @@ FOOBAR_LIB_PATH = $(FOOBAR_LIB_DIR)/$(FOOBAR_LIBRARY)
 # Note also we rely on the names of build roots (ex: myriad) as opposed to
 # project/repository names (ex: Ceylan-Myriad):
 #
-ifneq ($(wildcard $(SEAPLUS_TOP)/../myriad),)
-
-	# By default, expect sibling directories:
-	MYRIAD_TOP = $(SEAPLUS_TOP)/../myriad
-
+# First priority is an existing checkout directory:
+ifneq ($(wildcard $(SEAPLUS_TOP)/_checkouts/myriad/.),)
+	MYRIAD_TOP = $(SEAPLUS_TOP)/_checkouts/myriad
 else
-
-	# Otherwise assume a checkout one:
-	ifneq ($(wildcard $(SEAPLUS_TOP)/_checkouts/myriad),)
-
-		MYRIAD_TOP = $(SEAPLUS_TOP)/_checkouts/myriad
-
+	# Second, a sibling one is searched for:
+	ifneq ($(wildcard $(SEAPLUS_TOP)/../myriad/.),)
+		MYRIAD_TOP = $(SEAPLUS_TOP)/../myriad
    else
-
-		FORCE_EVAL := $(error Unable to find the build root of Ceylan-Myriad)
-
+		# Otherwise most probably in a 'rebar3 compile' context:
+		ifneq ($(wildcard $(SEAPLUS_TOP)/_build/default/lib/myriad/.),)
+			MYRIAD_TOP = $(SEAPLUS_TOP)/_build/default/lib/myriad
+		else
+			FORCE_EVAL := $(error Unable to find the build root of Ceylan-Myriad from $(realpath .).)
+		endif
 	endif
-
 endif

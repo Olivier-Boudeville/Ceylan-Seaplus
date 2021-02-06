@@ -137,9 +137,9 @@
 
 
 
-% Runs the Seaplus parse transform defined here in a standalone way (i.e. without
-% being triggered by the usual, integrated compilation process), with no
-% specific preprocessor option.
+% Runs the Seaplus parse transform defined here in a standalone way
+% (i.e. without being triggered by the usual, integrated compilation process),
+% with no specific preprocessor option.
 %
 % This allows to benefit from all compilation error and warning messages,
 % whereas they are seldom available from a code directly run as a parse
@@ -152,9 +152,9 @@ run_standalone( FileToTransform ) ->
 
 
 
-% Runs the Seaplus parse transform defined here in a standalone way (i.e. without
-% being triggered by the usual, integrated compilation process), with specified
-% preprocessor options.
+% Runs the Seaplus parse transform defined here in a standalone way
+% (i.e. without being triggered by the usual, integrated compilation process),
+% with specified preprocessor options.
 %
 % This allows to benefit from all compilation error and warning messages,
 % whereas they are seldom available from a code directly run as a parse
@@ -248,7 +248,7 @@ apply_seaplus_transform( InputAST, SeaplusRootDir ) ->
 
 	%trace_bridge:debug_fmt( "  (applying parse transform '~p')", [ ?MODULE ] ),
 
-	%trace_bridge:debug_fmt( "~n## INPUT ####################################" ),
+	%trace_bridge:debug_fmt( "~n## INPUT ###################################" ),
 	%trace_bridge:debug_fmt( "Seaplus input AST:~n~p~n~n", [ InputAST ] ),
 
 	%ast_utils:write_ast_to_file( InputAST, "Seaplus-input-AST.txt" ),
@@ -367,11 +367,13 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 process_module_info_from(
   ModuleInfo=#module_info{ module={ ModName, _Loc } }, SeaplusRootDir ) ->
 
-	% Should start, stop, etc. be specifically defined by the integration module:
+	% Should start, stop, etc. be specifically defined by the integration
+	% module:
+	%
 	ControleModuleInfo = handle_control_functions( ModuleInfo ),
 
 	trace_bridge:debug_fmt( "Control-augmented module: ~s",
-			   [ ast_info:module_info_to_string( ControleModuleInfo ) ] ),
+		[ ast_info:module_info_to_string( ControleModuleInfo ) ] ),
 
 	ReadyFunInfos = prepare_api_functions( ControleModuleInfo ),
 
@@ -793,7 +795,7 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 	StringServiceModuleName = text_utils:atom_to_string( ServiceModuleName ),
 
 	NHeaderContent = string:replace( HHeaderContent,
-				   "##SEAPLUS_SERVICE_NAME##", StringServiceModuleName, all ),
+				"##SEAPLUS_SERVICE_NAME##", StringServiceModuleName, all ),
 
 
 	%trace_bridge:debug_fmt( "Generated driver header:~n~s",
@@ -881,7 +883,8 @@ prepare_api_functions( ModuleInfo=#module_info{ functions=FunctionTable,
 	SeaplusFunIds = get_seaplus_function_ids(),
 
 	% All the functions selected to form the binding API:
-	SelectedFunInfos = select_for_binding( AllFunInfos, SeaplusFunIds, _Acc=[] ),
+	SelectedFunInfos =
+		select_for_binding( AllFunInfos, SeaplusFunIds, _Acc=[] ),
 
 	% We then order the returned function_info records based on the location of
 	% their spec (so that their IDs correspond to their in-source order):
@@ -1065,7 +1068,7 @@ post_process_fun_infos( [ FInfo=#function_info{ name=Name,
 -spec call_transformer( ast_base:line(),
 				ast_expression:function_ref_expression(),
 				ast_expression:params_expression(), ast_transforms() ) ->
-					  { [ ast_expression:ast_expression() ], ast_transforms() }.
+					{ [ ast_expression:ast_expression() ], ast_transforms() }.
 % Replacing here seaplus:get_service_port_key() with PortDictKey value:
 call_transformer( _LineCall, _FunctionRef={ remote, _, {atom,_,seaplus},
 											{atom,Line,get_service_port_key} },
