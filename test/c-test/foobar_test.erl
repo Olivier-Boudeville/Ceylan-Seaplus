@@ -82,15 +82,14 @@ run() ->
 
 	test_facilities:display( "Now, some more extensive, extra testing." ),
 
-	% Better than { ok, 4 }, as we rely on exception support:
+	% Better than {ok, 4}, as we rely on exception support:
 	4 = foobar:foo( 3 ),
 
 	test_facilities:display( "Base testing successful.~nNow triggering on "
-							 "purpose a crash of the integrated service "
-							 "(so an error report should be displayed just "
-							 "next)." ),
+		"purpose a crash of the integrated service "
+		"(so an error report should be displayed just next)." ),
 
-	% Throwing an exception is better than returning { error, FailReason }:
+	% Throwing an exception is better than returning {error, FailReason}:
 	FooCrashed = try
 
 		% Expected to crash:
@@ -120,7 +119,7 @@ run() ->
 	end,
 
 	test_facilities:display( "Next restart supposed to discover that this "
-					 "(just crashed) service is not registered anymore." ),
+		"(just crashed) service is not registered anymore." ),
 
 	foobar:restart(),
 
