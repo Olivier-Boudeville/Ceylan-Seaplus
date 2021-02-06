@@ -351,12 +351,27 @@ get_driver_name( ServiceName ) ->
 -spec get_driver_path( service_name(), executable_name() ) -> executable_path().
 get_driver_path( ServiceName, DriverExecutableName ) ->
 
+	% Current directory may not be in user PATH:
 	ExecPath = case executable_utils:lookup_executable(
-					DriverExecutableName ) of
+					DriverExecutableName, [ "." ] ) of
 
 		false ->
+			PathStr = case system_utils:get_environment_variable( "PATH" ) of
+
+				false ->
+					"no PATH environment variable being set";
+
+				PathValue ->
+					text_utils:format( "the PATH environment variable being "
+						"set to '.:~s'", [ PathValue ] )
+
+			end,
+
 			trace_bridge:error_fmt( "Unable to find executable '~s' "
-				"for service '~s'.", [ DriverExecutableName, ServiceName ] ),
+				"for service '~s' from '~s' (~s).",
+				[ DriverExecutableName, ServiceName,
+				  file_utils:get_current_directory(), PathStr ] ),
+
 			throw( { executable_not_found, DriverExecutableName,
 					 ServiceName } );
 
