@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2021 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Saturday, January 23, 2021
+:Lastly updated: Saturday, February 6, 2021
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -702,6 +702,17 @@ We were reading the content of a binary like if it was a zero-terminated char * 
 So neither the Ceylan-Mobile integration nor Gammu were the culprits, it was a Seaplus bug (of course fixed since then)!
 
 Hopefully with this example one will be less afraid to hack around shared libraries (especially if they are open source): for each problem there are surely means of investigation - no rocket science involved.
+
+
+
+Building Seaplus with Rebar
+---------------------------
+
+The usual rebar3 machinery is in place and functional.
+
+As shown in our `configuration for continuous integration <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/.github/workflows/erlang-ci.yml>`_, cloning and executing ``rebar3 compile`` shall be enough to have Seaplus and its tests ready for a successful execution.
+
+Note that rebar3 is an alternate way of building Seaplus, as one may rely directly on our make-based system instead.
 
 
 
