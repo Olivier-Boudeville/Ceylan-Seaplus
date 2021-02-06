@@ -43,7 +43,7 @@ link-foobar-lib: $(TARGET_LIB)
 $(TARGET_LIB): $(TARGET_SERVICE_OBJ)
 	@echo "   Linking, in service library $@, $^"
 	@mkdir -p lib
-	$(C_LINKER) $^ $(C_LINKER_OPT) -shared -o $@
+	@$(C_LINKER) $^ $(C_LINKER_OPT) -shared -o $@
 
 
 TARGET_SERVICE_TEST := foobar_test
