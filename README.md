@@ -1,3 +1,5 @@
+![Erlang CI](https://github.com/Olivier-Boudeville/Ceylan-Seaplus/workflows/Erlang%20CI/badge.svg)
+
 # Ceylan-Seaplus
 
 ![](/doc/seaplus-title.png)
