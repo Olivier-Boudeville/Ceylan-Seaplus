@@ -91,7 +91,6 @@ prepare-release: clean clean-release
 
 clean: clean-release clean-archive
 
-
 clean-release:
 	@echo "   Cleaning release archive for Seaplus"
 	-@cd .. && /bin/rm -rf $(SEAPLUS_RELEASE_BASE)
@@ -127,6 +126,11 @@ info-erlang-compile:
 
 
 info-c-compile:
+	@echo "ERL_BASE_FIRST_CANDIDATE = $(ERL_BASE_FIRST_CANDIDATE)"
+	@echo "ERL_BASE_SECOND_CANDIDATE = $(ERL_BASE_SECOND_CANDIDATE)"
+	@echo "ERL_BASE = $(ERL_BASE)"
+	@echo "ERL_INTERFACE = $(ERL_INTERFACE)"
+	@echo "ERL_INTERFACE_LIB = $(ERL_INTERFACE_LIB)"
 	@echo "C_COMPILER = $(C_COMPILER)"
 	@echo "C_LINKER = $(C_LINKER)"
 	@echo "C_INC = $(C_INC)"
@@ -134,9 +138,6 @@ info-c-compile:
 	@echo "C_COMPILER_OPT = $(C_COMPILER_OPT)"
 	@echo "C_LINKER_OPT = $(C_LINKER_OPT)"
 	@echo "ERL_COMPILER  = $(ERL_COMPILER)"
-	@echo "ERL_BASE = $(ERL_BASE)"
-	@echo "ERL_INTERFACE = $(ERL_INTERFACE)"
-	@echo "ERL_INTERFACE_LIB = $(ERL_INTERFACE_LIB)"
 	@echo "C_LINKER_LIBS = $(C_LINKER_LIBS)"
 
 
@@ -147,6 +148,8 @@ info-parse-transform:
 	@echo "ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT)"
 
 all: all-check
+
+
 
 
 all-check:

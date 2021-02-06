@@ -78,7 +78,7 @@ clean: clean-local
 clean-local:
 	-@/bin/rm -rf .libs
 	-@/bin/rm -f *.lo $(SEAPLUS_OBJ) $(SEAPLUS_LIB) seaplus_test \
-		seaplus.o $(SEAPLUS_TEST_OBJ) seaplus_test.log
+		$(SEAPLUS_TEST_OBJ) seaplus_test.log
 
 
 info: info-bin

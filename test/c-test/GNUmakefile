@@ -64,9 +64,12 @@ $(TARGET_DRIVER_OBJ): foobar.beam
 # is not found:
 #
 $(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB_PATH)
-	@$(MAKE) $(TARGET_DRIVER_OBJ)
+	@$(MAKE) -s $(TARGET_DRIVER_OBJ)
 	@echo "   Linking driver $(TARGET_DRIVER)"
-	@$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) \
+	@ls -l $(FOOBAR_LIB_DIR)/libfoobar.so
+	@file $(FOOBAR_LIB_DIR)/libfoobar.so
+	@nm -D $(FOOBAR_LIB_DIR)/libfoobar.so
+	$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) \
 	 $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT) -L$(FOOBAR_LIB_DIR) -lfoobar
 
 
@@ -90,8 +93,8 @@ clean: clean-local
 
 
 clean-local: clean-log
-	-@/bin/rm -f $(TARGET_SERVICE_TESTER_EXEC) $(TARGET_SERVICE_LIBRARY) \
-$(TARGET_DRIVER) $(TARGET_DRIVER_OBJ) *_seaplus_api_mapping.h
+	-@/bin/rm -f $(TARGET_SERVICE_TESTER_EXEC) $(TARGET_SERVICE_LIBRARY) $(TARGET_DRIVER) $(TARGET_DRIVER_OBJ) *_seaplus_api_mapping.h
+	@cd foobar && $(MAKE) -s clean
 
 
 clean-log:
