@@ -251,6 +251,7 @@ endif
 #ERL_BASE := $(HOME)/Software/Erlang/Erlang-current-install
 #ERL_BASE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/..
 
+
 # As installation structures may vary:
 
 # Typically if installed thanks to our install-erlang.sh script:
@@ -261,13 +262,10 @@ ERL_BASE_SECOND_CANDIDATE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/.
 
 ERL_BASE = $(shell if [ -d $(ERL_BASE_FIRST_CANDIDATE)/lib/erlang/lib/erl_interface-* ]; then echo "$(ERL_BASE_FIRST_CANDIDATE)" ; else echo "$(ERL_BASE_SECOND_CANDIDATE)" ; fi)
 
-ERL_INTERFACE = $(shell /bin/ls -d $(ERL_BASE)/lib/erlang/lib/erl_interface-* 2>/dev/null)
-
-
-
 
 # As version numbers are in the way:
 ERL_INTERFACE = $(shell /bin/ls -d $(ERL_BASE)/lib/erlang/lib/erl_interface-* 2>/dev/null)
+
 
 # Allows to ensure that we have a proper base installation (and not for example
 # an empty directory due to a failed filtering):
