@@ -66,11 +66,14 @@ $(TARGET_DRIVER_OBJ): foobar.beam
 $(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB_PATH)
 	@$(MAKE) -s $(TARGET_DRIVER_OBJ)
 	@echo "   Linking driver $(TARGET_DRIVER)"
-	@ls -l $(FOOBAR_LIB_DIR)/libfoobar.so
-	@file $(FOOBAR_LIB_DIR)/libfoobar.so
-	@nm -D $(FOOBAR_LIB_DIR)/libfoobar.so
 	$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) \
 	 $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT) -L$(FOOBAR_LIB_DIR) -lfoobar
+
+
+# If having to investigate:
+#	@ls -l $(FOOBAR_LIB_DIR)/libfoobar.so
+#	@file $(FOOBAR_LIB_DIR)/libfoobar.so
+#	@nm -D $(FOOBAR_LIB_DIR)/libfoobar.so
 
 
 # Main interest: ensuring that the driver executable can be run at all.
