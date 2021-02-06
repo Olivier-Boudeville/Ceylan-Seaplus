@@ -68,7 +68,7 @@ seaplus_test: $(SEAPLUS_TEST_OBJ) $(SEAPLUS_LIB)
 test: run-test
 
 run-test: build-test
-	@./seaplus_test
+	@LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH} ./seaplus_test
 
 
 clean: clean-local
