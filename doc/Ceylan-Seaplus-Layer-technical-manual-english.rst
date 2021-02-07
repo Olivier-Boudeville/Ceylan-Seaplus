@@ -475,20 +475,19 @@ One can then test the whole with:
 Using Rebar3
 ------------
 
-.. Note::
-  In a nutshell: most of the usual rebar3 machinery is in place and functional, at the price of some workarounds that are transparent for the users.
+Most of the usual rebar3 machinery is in place and functional, at the price of some workarounds that are transparent for the users.
 
-  So the only Seaplus prerequisite (`Myriad <https://myriad.esperide.org>`_) and Seaplus itself can be obtained simply thanks to:
+So the only Seaplus prerequisite (`Myriad <https://myriad.esperide.org>`_) and Seaplus itself can be obtained simply thanks to:
 
-  .. code:: bash
+.. code:: bash
 
-	$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus.git seaplus
-	$ cd seaplus
-	$ rebar3 compile
+  $ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus.git seaplus
+  $ cd seaplus
+  $ rebar3 compile
 
-  Then Seaplus and its tests shall be ready for a successful execution.
+Then Seaplus and its tests shall be ready for a successful execution.
 
-  Note that rebar3 is an alternate way of building Seaplus, as one may rely directly on our make-based system instead.
+Note that rebar3 is an alternate way of building Seaplus, as one may rely directly on our make-based system instead.
 
 
 ..
