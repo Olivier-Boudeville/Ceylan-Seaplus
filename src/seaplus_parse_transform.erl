@@ -207,7 +207,7 @@ parse_transform( InputAST, Options ) ->
 % Returns the root directory of Seaplus, as specified in the build defines.
 get_seaplus_root( Options ) ->
 
-	case [ RootDir || { 'seaplus_root', RootDir } <- Options ] of
+	case [ RootDir || { d, 'seaplus_root', RootDir } <- Options ] of
 
 		[ RootDirectory ] ->
 
