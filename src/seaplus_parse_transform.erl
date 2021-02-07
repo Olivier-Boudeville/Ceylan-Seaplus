@@ -204,10 +204,10 @@ parse_transform( InputAST, Options ) ->
 	SeaplusAST.
 
 
-% Returns the root directory of Seaplus.
+% Returns the root directory of Seaplus, as specified in the build defines.
 get_seaplus_root( Options ) ->
 
-	case [ RootDir || { d, 'SEAPLUS_ROOT', RootDir } <- Options ] of
+	case [ RootDir || { d, 'seaplus_root', RootDir } <- Options ] of
 
 		[ RootDirectory ] ->
 
@@ -227,13 +227,14 @@ get_seaplus_root( Options ) ->
 			end;
 
 		[] ->
-			trace_bridge:error( "Seaplus directory not set in build." ),
-			throw( seaplus_directory_not_set );
+			trace_bridge:error( "Seaplus root directory not set in build "
+				"settings (requiring '-Dseaplus_root=SOME_DIR')." ),
+			throw( seaplus_root_directory_not_set );
 
 		Others ->
 			trace_bridge:error_fmt( "Multiple Seaplus directories set: ~p.",
 									[ Others ] ),
-			throw( multiple_seaplus_directories )
+			throw( { multiple_seaplus_root_directories, Others } )
 
 	end.
 
