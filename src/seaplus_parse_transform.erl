@@ -220,15 +220,16 @@ get_seaplus_root( Options ) ->
 
 				false ->
 					trace_bridge:error_fmt(
-					  "Seaplus directory '~s' does not exist.",
-					  [ RootDirectory ] ),
+					  "Seaplus root directory '~s', specified in build options,"
+					  " does not exist.", [ RootDirectory ] ),
 					throw( { seaplus_directory_not_found, RootDirectory } )
 
 			end;
 
 		[] ->
-			trace_bridge:error( "Seaplus root directory not set in build "
-				"settings (requiring '-Dseaplus_root=SOME_DIR')." ),
+			trace_bridge:error_fmt( "Seaplus root directory not set in build "
+				"settings (requiring '-Dseaplus_root=SOME_DIR').~n"
+				"Build options were: ~p", [ Options ] ),
 			throw( seaplus_root_directory_not_set );
 
 		Others ->
