@@ -227,9 +227,11 @@ get_seaplus_root( Options ) ->
 
 						false ->
 							trace_bridge:error_fmt( "The Seaplus root directory"
-							  "specified in build options, '~s', does not seem "
-							  "a legit one (no '~s' file found).",
-							  [ RootDirectory, TestFile ] ),
+							  " specified in the build options, '~s', does not "
+							  "seem to be a legit one (no '~s' file found, "
+							  "while being in '~s').",
+							  [ RootDirectory, TestFile,
+								file_utils:get_current_directory() ] ),
 							throw( { invalid_seaplus_root_directory,
 									 RootDirectory } )
 
@@ -237,14 +239,15 @@ get_seaplus_root( Options ) ->
 
 				false ->
 					trace_bridge:error_fmt( "The Seaplus root directory '~s', "
-						"specified in build options, does not exist.",
-						[ RootDirectory ] ),
+						"as specified in the build options, does not exist "
+						"(while being in '~s').",
+						[ RootDirectory, file_utils:get_current_directory() ] ),
 					throw( { seaplus_root_directory_not_found, RootDirectory } )
 
 			end;
 
 		[] ->
-			trace_bridge:error_fmt( "Seaplus root directory not set in build "
+			trace_bridge:error_fmt( "No Seaplus root directory set in build "
 				"settings (requiring '-Dseaplus_root=SOME_DIR').~n"
 				"Build options were: ~p; current directory being '~s'.",
 				[ Options, file_utils:get_current_directory() ] ),
