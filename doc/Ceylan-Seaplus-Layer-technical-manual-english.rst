@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2021 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Saturday, February 6, 2021
+:Lastly updated: Sunday, February 7, 2021
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -424,8 +424,8 @@ We hope that enhancements will be back-contributed (ex: thanks to merge requests
 :raw-latex:`\pagebreak`
 
 
-Current Stable Version & Download
-=================================
+Current Stable Version, Download & Build
+========================================
 
 This integration layer, ``Ceylan-Seaplus``, relies (only) on:
 
@@ -438,11 +438,11 @@ We prefer using GNU/Linux, sticking to the latest stable release of Erlang, and 
 Refer to the corresponding `Myriad prerequisite section <http://myriad.esperide.org#prerequisites>`_  for more precise guidelines, knowing that Ceylan-Seaplus does not need modules with conditional support such as ``crypto`` or ``wx``.
 
 
+..
+  Using Stable Release Archive
+  ----------------------------
 
-Using Stable Release Archive
-----------------------------
-
-Currently no source archive is specifically distributed, please refer to the following section.
+  Currently no source archive is specifically distributed, please refer to the following section.
 
 
 
@@ -460,12 +460,86 @@ Once proper Erlang and C environments are available, the `Ceylan-Myriad reposito
  $ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus seaplus
  $ cd seaplus && make all
 
+(for OTP compliance, using short names, such as ``myriad`` or ``seaplus``, for clones rather than long ones, such as ``Ceylan-Myriad`` or ``Ceylan-Seaplus``, is recommended)
+
+
 One can then test the whole with:
 
 .. code:: bash
 
  $ cd test/c-test
  $ make test
+
+
+
+Using Rebar3
+------------
+
+.. Note::
+  In a nutshell: most of the usual rebar3 machinery is in place and functional, at the price of some workarounds that are transparent for the users.
+
+  So the only Seaplus prerequisite (`Myriad <https://myriad.esperide.org>`_) and Seaplus itself can be obtained simply thanks to:
+
+  .. code:: bash
+
+	$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus.git seaplus
+	$ cd seaplus
+	$ rebar3 compile
+
+  Then Seaplus and its tests shall be ready for a successful execution.
+
+  Note that rebar3 is an alternate way of building Seaplus, as one may rely directly on our make-based system instead.
+
+
+..
+ yet after building everything (Seaplus and also the full foobar test) properly thanks to the hooks that we defined, rebar3 insists on (attempting to) build Seaplus again, bypassing our hooks this time, which can only lead to failure (``seaplus_parse_transform`` is visibly recompiled silently, without the right options - namely the ones related to the use of the Myriad parse transform).
+
+  This strange behaviour happens iff a ``ebin/seaplus.app`` file exists (even if it is an empty boilerplate).
+
+..
+  Precisely:
+  ===> Analyzing applications...
+  ===> Compiling seaplus
+  ===> Compiling src/seaplus.erl failed
+  src/seaplus.erl:none: error in parse transform 'seaplus_parse_transform': {undef,
+
+
+  So currently we do not include anymore this file in the repository.
+
+  It can simply be generated with:.. code:: bash
+
+  $ make rebar3-create-app-file
+
+.. The usual rebar3 machinery is in place and functional, so the only Seaplus prerequisite (`Myriad <https://myriad.esperide.org>`_) and Seaplus itself can be obtained simply thanks to:
+
+..
+  code:: bash
+
+  $ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus.git seaplus
+  $ cd seaplus
+  $ rebar3 compile
+
+  Then Seaplus and its tests shall be ready for a successful execution.
+
+  Note that rebar3 is an alternate way of building Seaplus, as one may rely directly on our make-based system instead.
+
+
+
+
+Testing Seaplus
+---------------
+
+Once `Myriad <https://myriad.esperide.org>`_ and Seaplus itself have been built (for that refer to either `Using Cutting-Edge GIT`_ or `Using Rebar3`_), just run from the root directory of Seaplus:
+
+.. code:: bash
+
+ $ make test
+
+
+The testing shall complete successfully (if it is not the case, see our support_ section).
+
+.. Note:: Seaplus is built and tested at each commit through `continuous integration <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/actions?query=workflow%3A%22Erlang+CI%22>`_, and the same holds for its only prerequisite (`Myriad <https://myriad.esperide.org>`_).
+		  Reciprocally this procedure applies to the projects based on it, such as `Ceylan-Mobile <https://mobile.esperide.org/>`_, so in terms of usability, confidence should be rather high.
 
 
 
@@ -705,21 +779,25 @@ Hopefully with this example one will be less afraid to hack around shared librar
 
 
 
-Building Seaplus with Rebar
----------------------------
+Testing Seaplus
+---------------
 
-The usual rebar3 machinery is in place and functional.
+Once `Myriad <https://myriad.esperide.org>`_ and Seaplus itself have been built (for that refer to either `Using Cutting-Edge GIT`_ or `Using Rebar3`_), just run from the root directory of Seaplus:
 
-As shown in our `configuration for continuous integration <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/.github/workflows/erlang-ci.yml>`_, cloning and executing ``rebar3 compile`` shall be enough to have Seaplus and its tests ready for a successful execution.
+.. code:: bash
 
-Note that rebar3 is an alternate way of building Seaplus, as one may rely directly on our make-based system instead.
+ $ make test
+
+
+.. Note:: Seaplus is built and tested at each commit through `continuous integration <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/actions?query=workflow%3A%22Erlang+CI%22>`_, and the same holds for its only prerequisite (`Myriad <https://myriad.esperide.org>`_).
+		  Reciprocally this procedure applies to the projects based on it (ex: `Mobile <https://mobile.esperide.org/>`_), so in terms of usability, confidence should be high.
 
 
 
 Towards a more General C/C++ Interface
 --------------------------------------
 
-Functionally, `ei <http://erlang.org/doc/man/ei.html>`_ (not to mention `Erl_Interface <http://erlang.org/doc/apps/erl_interface/>`_) and the `Erlang NIF support <http://erlang.org/doc/man/erl_nif.html>`_ provide the same services, and could probably be unified under a common API (that one day Seaplus could provide).
+Functionally, `ei <http://erlang.org/doc/man/ei.html>`_ (not to mention `Erl_Interface <http://erlang.org/doc/apps/erl_interface/>`_) and the `Erlang NIF support <http://erlang.org/doc/man/erl_nif.html>`_ provide the same services, and **could probably be unified under a common API** (that one day Seaplus could provide).
 
 This could enable the possibility of integrating the same C/C++ code seamlessly as a C-Node and/or as a NIF, for a greater flexibility of use.
 
@@ -733,6 +811,8 @@ Issues & Planned Enhancements
 
 
 :raw-latex:`\pagebreak`
+
+
 
 
 Support
