@@ -37,12 +37,22 @@ else
 endif
 
 
+# One may define here:
+# EXECUTION_TARGET := production / development [the default]
+# ENABLE_DEBUG := false / true [the default]
 
+
+# Tells whether the debug mode will be activated for the next Seaplus modules to
+# be built (maximum performance versus extended checkings).
+#
 ifeq ($(ENABLE_DEBUG),true)
+	SEAPLUS_DEBUG_OPT := -DDEBUG_SEAPLUS -DSEAPLUS_ENABLE_LOG=1
 	ENABLE_SEAPLUS_DEBUG_OPT = -Dseaplus_debug_mode
 else
+	SEAPLUS_DEBUG_OPT := -DSEAPLUS_ENABLE_LOG=0
 	ENABLE_SEAPLUS_DEBUG_OPT =
 endif
+
 
 
 
@@ -63,6 +73,8 @@ ifeq ($(EXECUTION_TARGET),development)
 endif
 
 
+ERLANG_COMPILER_OPT_BASE += $(SEAPLUS_DEBUG_FLAGS)               \
+							$(SEAPLUS_CHECK_FLAGS)
 
 
 
@@ -153,6 +165,37 @@ SEAPLUS_BEAM_DIRS := $(SEAPLUS_BEAM)
 SEAPLUS_REBAR_BUILD_BASE = $(REBAR_BUILD_DIR)/lib/seaplus
 
 
+# When building Seaplus in an OTP context from its usual (GIT) root (ex: with
+# 'make rebar3-application'), the BEAMs of Myriad are to be found in the OTP
+# build tree - rather than in a supposedly fully-built usual root for Myriad:
+#
+# (these information are useful only at compilation-time, in order to locate the
+# needed parse transforms and their dependencies; at runtime, the OTP rules
+# ensure that the relevant ebin directories are in the code path)
+#
+# Note that this implies that the BEAM files in all ebin directories should be
+# up to date with the ones in the build trees, otherwise hard-to-debug
+# discrepancies may happen (these OTP/rebar-related directories act as default
+# catch-alls, should no prior directory correspond in the BEAM paths).
+#
+MYRIAD_OTP_BEAM_DIR_FROM_USUAL = $(LAYER_TOP)/$(MYRIAD_REBAR_BUILD_BASE)/ebin
+
+
+# In an OTP/rebar3-style application layout (not speaking of sibling base
+# directories here), at compilation time as well, modules compiled (directly or
+# not) by the Myriad parse transform will expect its modules to be located in:
+#
+# (a third place could be considered, in the _build tree of Myriad itself, yet
+# it would not provide any additional chance)
+#
+MYRIAD_OTP_BEAM_DIR_FROM_OTP = $(LAYER_TOP)/../myriad/ebin/
+
+
+# To locate Myriad modules from all OTP contexts:
+MYRIAD_PARSE_TRANSFORMS_PZ_OPT = -pz $(MYRIAD_OTP_BEAM_DIR_FROM_USUAL) \
+								 -pz $(MYRIAD_OTP_BEAM_DIR_FROM_OTP)
+
+
 # Library referencing section.
 
 SEAPLUS_LIB = libseaplus-$(SEAPLUS_VERSION).so
@@ -182,22 +225,6 @@ ifndef VM_TEST_NAME
 endif
 
 
-
-# Overall settings section.
-
-# One may define here:
-# EXECUTION_TARGET := production / development [the default]
-# ENABLE_DEBUG := false / true [the default]
-
-
-# Tells whether the debug mode will be activated for the next Seaplus modules to
-# be built (maximum performance versus extended checkings).
-#
-ifeq ($(ENABLE_DEBUG),true)
-	SEAPLUS_DEBUG_OPT := -DDEBUG_SEAPLUS -DSEAPLUS_ENABLE_LOG=1
-else
-	SEAPLUS_DEBUG_OPT := -DSEAPLUS_ENABLE_LOG=0
-endif
 
 
 
@@ -285,7 +312,7 @@ ifndef BOOTSTRAP_MODULES
 	# We want to bootstrap all relevant Seaplus modules (Myriad expected to be
 	# already fully built)
 
-	# We list here all the SEAPLUS-level prerequisites of the SEAPLUS
+	# We list here all the Seaplus-level prerequisites of the Seaplus
 	# parse-transform:
 	#
 	# - seaplus_info: to manage layer-level information
@@ -294,25 +321,30 @@ ifndef BOOTSTRAP_MODULES
 
 endif
 
+ifndef COMPILER_OPT_FOR_SEAPLUS_MODULES
 
-ifndef COMPILER_OPT_FOR_SEAPLUS_CLASSES
-
-	COMPILER_OPT_FOR_SEAPLUS_CLASSES =                     \
+	COMPILER_OPT_FOR_SEAPLUS_MODULES =                     \
 		$(ERLANG_COMPILER_OPT_BASE)                        \
+		$(ENABLE_SEAPLUS_DEBUG_OPT)                        \
 		$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
 
 endif
 
 
-#ifndef ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES
+# With Seaplus, *all* modules (being Seaplus stubs or not) shall be compiled
+# with the Seaplus parse-transform, which operates only if needed, and triggers
+# the Myriad one appropriately:
+#
+ifndef ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES
 
-	# Standard (non-class) modules in Seaplus shall not be compiled with the
-	#  Seaplus parse-transform, but with the Myriad one:
+	# All modules (being Seaplus stubs or not) shall be compiled with the
+	# Seaplus parse-transform, which operates only if needed, driving the Myriad
+	# one appropriately:
 	#
 	ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES = \
-		$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
-
-#endif
+		$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)     \
+		$(MYRIAD_PARSE_TRANSFORMS_PZ_OPT)
+endif
 
 
 # Conditionally defined so that upper layer may update these settings (ex:
@@ -320,10 +352,11 @@ endif
 #
 ifndef ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES
 
+	# Same rules for all modules:
 	ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES =                          \
 			$(ERLANG_COMPILER_OPT_BASE)                                 \
 			$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES) \
-			$(SEAPLUS_DEBUG_OPT)
+			$(ENABLE_SEAPLUS_DEBUG_OPT)
 
 endif
 
@@ -336,14 +369,17 @@ endif
 # (to be overridden by each upper layer)
 #
 ifndef PARSE_TRANSFORM_DIRS
+
 	PARSE_TRANSFORM_DIRS = $(SEAPLUS_TOP)/src
+
 endif
 
 
 # So that the (compilation of the) Seaplus parse transform can benefit from the
 # Myriad parse transform:
 #
-ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MYRIAD)
+ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MYRIAD) \
+							 $(ENABLE_SEAPLUS_DEBUG_OPT)
 
 
 # Variable defined to be re-usable by upper layers, so that compiling their own
@@ -358,8 +394,8 @@ ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS = \
 
 
 # We conditionally defined this option, as upper layers may want to trigger
-# their own parse transforms *instead* (probably that will call directly, by
-# themselves, at the Erlang level, this 'SEAPLUS' parse transform):
+# their own parse transforms *instead* (probably that they will call directly,
+# by themselves, at the Erlang level, this 'Seaplus' parse transform):
 #
 ifndef ERLANG_COMPILER_PARSE_TRANSFORM_OPT
 	ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
@@ -370,7 +406,7 @@ endif
 # parse transforms can take advantage of the Seaplus one:
 #
 COMPILER_PARSE_TRANSFORM_FOR_SEAPLUS_CLASSES_OPT = \
-					'+{parse_transform,seaplus_parse_transform}'
+	'+{parse_transform,seaplus_parse_transform}'
 
 
 # Linking section.
@@ -393,6 +429,7 @@ SEAPLUS_PLT_FILE := $(SEAPLUS_TOP)/Ceylan-Seaplus.plt
 
 # This is the merged PLT of the level just below in the software stack.
 # For 'Seaplus', it is the PLT of 'Myriad':
+#
 ifndef PREDECESSOR_PLT
 	PREDECESSOR_PLT = $(MYRIAD_PLT_FILE)
 endif
