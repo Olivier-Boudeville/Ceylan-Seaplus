@@ -50,8 +50,24 @@
 % Previously 'MYRIAD_REBAR_PROFILE=${REBAR_PROFILE}' was added, yet
 % REBAR_PROFILE is actually not set, so we rely on our default value instead.
 %
-{pre_hooks,  [ {compile, "make -s rebar3-compile-pre-hook"} ]}.
-{post_hooks, [ {compile, "make -s rebar3-compile-post-hook"} ]}.
+
+% Hiding and restoring the source of the Seaplus parse transform and copying
+% around explicitly its right BEAM file is certainly a ugly hack, yet it is the
+% only way that we found to prevent rebar3 from attempting to rebuild it
+% (whereas it is already perfectly fine) with options that are not ours,
+% resulting in having it fail later when applied in turn (to, for example,
+% seaplus.erl), short of having been parse-transformed by its Myriad
+% counterpart; indeed calls to the 'table' pseudo-module remain in this
+% unfortunately updated seaplus_parse_transform.beam)
+%
+{pre_hooks,  [ {compile, "make -s rebar3-compile-pre-hook" },
+			   {compile, "/bin/mv -f src/seaplus_parse_transform.erl src/seaplus_parse_transform.erl-hidden"},
+			   {compile,"/bin/cp -f src/seaplus_parse_transform.beam ./_build/default/lib/seaplus/ebin/"}
+			   ]}.
+
+{post_hooks, [ {compile, "make -s rebar3-compile-post-hook"},
+			   {compile, "/bin/mv -f src/seaplus_parse_transform.erl-hidden src/seaplus_parse_transform.erl"}
+			   ]}.
 
 
 
