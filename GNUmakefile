@@ -9,7 +9,7 @@ SEAPLUS_TOP = .
 		info-erlang-for-c info-paths info-compile info-parse-transform
 
 
-MODULES_DIRS = src doc test priv
+MODULES_DIRS = src doc conf test priv
 
 
 # To override the 'all' default target with a parallel version:
@@ -53,8 +53,12 @@ add-prerequisite-plts: link-plt
 
 # As upper layers may rely on the 'seaplus' naming:
 link-plt:
-	@/bin/ln -s --force $(PLT_FILE) $(SEAPLUS_PLT_FILE)
+	@if [ ! "$(PLT_FILE)" = "$(SEAPLUS_PLT_FILE)" ]; then /bin/ln -s --force $(PLT_FILE) $(SEAPLUS_PLT_FILE) ; fi
 
+
+# Note: the source archives are not produced in this directory, but in its
+# parent, so that everything related to Seaplus (including these rules) remains
+# self-contained.
 
 release: release-zip release-bz2 release-xz
 	@$(MAKE) clean-release
@@ -90,6 +94,7 @@ prepare-release: clean clean-release
 
 
 clean: clean-release clean-archive
+
 
 clean-release:
 	@echo "   Cleaning release archive for Seaplus"
