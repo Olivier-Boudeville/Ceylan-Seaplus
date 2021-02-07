@@ -35,7 +35,7 @@
 
 
 % Include directories found in INC:
-{erl_opts, [ {d,myriad_debug_mode}, {d,seaplus_debug_mode}, debug_info, {debug_info_key,"DEBUG_KEY_FOR_REBAR"}, report_warnings, warn_export_all, warn_export_vars, warn_shadow_vars, warn_obsolete_guards, warn_unused_import, warnings_as_errors, {parse_transform,seaplus_parse_transform}, INCS_FOR_REBAR ]}.
+{erl_opts, [ {d,myriad_debug_mode}, {d,seaplus_debug_mode}, debug_info, {debug_info_key,"DEBUG_KEY_FOR_REBAR"}, report_warnings, warn_export_all, warn_export_vars, warn_shadow_vars, warn_obsolete_guards, warn_unused_import, warnings_as_errors, {parse_transform,seaplus_parse_transform}, INCS_FOR_REBAR, {seaplus_root,"."} ]}.
 
 
 % Bootstrapped modules (from BOOTSTRAP_MODULES):
@@ -87,7 +87,7 @@
 	% Like for the default profile, except for removed {d,myriad_debug_mode} and
 	% {d,seaplus_debug_mode}, and added {d,exec_target_is_production}:
 	%
-	{erl_opts, [ {d,exec_target_is_production}, debug_info, {debug_info_key,"DEBUG_KEY_FOR_REBAR"}, report_warnings, warn_export_all, warn_export_vars, warn_shadow_vars, warn_obsolete_guards, warn_unused_import, warnings_as_errors, {parse_transform,seaplus_parse_transform}, INCS_FOR_REBAR ]},
+	{erl_opts, [ {d,exec_target_is_production}, debug_info, {debug_info_key,"DEBUG_KEY_FOR_REBAR"}, report_warnings, warn_export_all, warn_export_vars, warn_shadow_vars, warn_obsolete_guards, warn_unused_import, warnings_as_errors, {parse_transform,seaplus_parse_transform}, INCS_FOR_REBAR, {seaplus_root,"_build/default/lib/seaplus"} ]},
 
 	% For the build makefiles:
 	{env, [ { 'REBAR_PROFILE', "prod" } ] },
