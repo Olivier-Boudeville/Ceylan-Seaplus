@@ -211,7 +211,8 @@ get_seaplus_root( Options ) ->
 
 		[ RootDirectory ] ->
 
-			case file_utils:is_existing_directory( RootDirectory ) of
+			% As a _checkout symlink might be used:
+			case file_utils:is_existing_directory_or_link( RootDirectory ) of
 
 				true ->
 					%trace_bridge:debug_fmt( "Seaplus directory is '~s'.",

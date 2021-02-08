@@ -15,7 +15,7 @@ if [ ! -d "${target_dir}" ]; then
 	target_dir="../seaplus/ebin/"
 fi
 
-echo "Selected target directory for Seaplus parse transform is '${target_dir}'."
+#echo "rebar fix for hook: selected target directory for Seaplus parse transform is '${target_dir}'."
 
 parse_beam="src/seaplus_parse_transform.beam"
 
