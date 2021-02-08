@@ -21,7 +21,7 @@
 
 :raw-html:`<a name="seaplus_top"></a>`
 
-:raw-html:`<div class="banner"><p><em>Seaplus 1.0 documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">browse mirror</a> <a href="seaplus.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_bottom">go to bottom</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus%201.0]%20Remark">email us</a></p></div>`
+:raw-html:`<div class="banner"><p><em>Seaplus 1.0 documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">browse mirror</a> <a href="seaplus.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_bottom">go to bottom</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">go to project</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus%201.0]%20Remark">email us</a></p></div>`
 
 
 
@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2021 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Sunday, February 7, 2021
+:Lastly updated: Monday, February 8, 2021
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -100,6 +100,7 @@ As a result, the result of a Seaplus integration can be seen as an easily obtain
 
 ``Ceylan-Seaplus`` relies on various facilities offered by the `Ceylan-Myriad <http://myriad.esperide.org>`_ toolbox.
 
+The project repository is located `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_.
 
 
 Usage
