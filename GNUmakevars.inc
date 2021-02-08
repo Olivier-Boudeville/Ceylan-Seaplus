@@ -55,7 +55,6 @@ endif
 
 
 
-
 # Defining (optional) layer-specific flags, typically used by in-code
 # conditional compilation primitives (see cond_utils for their management):
 
