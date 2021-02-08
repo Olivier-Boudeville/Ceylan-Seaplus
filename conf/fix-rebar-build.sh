@@ -2,6 +2,8 @@
 
 # Script defined for convenience.
 
+echo "Fixing rebar build from Seaplus hook"
+
 # May not be here if Seaplus is a checkout:
 parse_src="src/seaplus_parse_transform.erl"
 
@@ -15,7 +17,7 @@ if [ ! -d "${target_dir}" ]; then
 	target_dir="../seaplus/ebin/"
 fi
 
-#echo "rebar fix for hook: selected target directory for Seaplus parse transform is '${target_dir}'."
+echo "rebar fix for hook: selected target directory for Seaplus parse transform is '${target_dir}'."
 
 parse_beam="src/seaplus_parse_transform.beam"
 
@@ -28,3 +30,5 @@ else
 	echo "Warning: no ${parse_beam} found from $(pwd); content: $(tree)"
 
 fi
+
+echo "rebar build fixed from Seaplus hook"
