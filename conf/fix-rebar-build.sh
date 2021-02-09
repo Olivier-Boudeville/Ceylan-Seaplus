@@ -36,7 +36,7 @@ if [ ! -d "${target_base_dir}" ]; then
 
 	echo "(project based directory is not '${target_base_dir}')"
 
-	target_base_dir="../${project_name}/"
+	target_base_dir="../${project_name}"
 
 	if [ ! -d "${target_base_dir}" ]; then
 
@@ -145,6 +145,6 @@ for f in ${all_beams}; do
 	/bin/cp -f $f ${target_beam_dir}
 done
 
-tree _build/default/lib/${project_name}
+tree ${target_base_dir_build}/${project_name}
 
 echo "Rebar build fixed for ${project_name}."
