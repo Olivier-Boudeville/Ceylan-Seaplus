@@ -318,6 +318,11 @@ ifndef BOOTSTRAP_MODULES
 
 	#BOOTSTRAP_MODULES = $(SEAPLUS_TOP)/src/seaplus_info.beam
 
+	# Needed to be defined and set to empty, otherwise deemed undefined and
+	# inheriting thus the Myriad ones:
+	#
+	BOOTSTRAP_MODULES = $(empty)
+
 endif
 
 ifndef COMPILER_OPT_FOR_SEAPLUS_MODULES

@@ -1,34 +1,150 @@
 #!/bin/sh
 
-# Script defined for convenience.
+# Script defined for convenience and reliability.
 
-echo "Fixing rebar build from Seaplus hook"
+# Recreates a proper rebar3 landscape, based on our build, so that rebar3 will
+# not attempt (and fail) to recreate BEAM files that are already correct as they
+# are.
+#
 
-# May not be here if Seaplus is a checkout:
-parse_src="src/seaplus_parse_transform.erl"
+# Even if copying the relevant header/source/BEAM files with relevant
+# timestamps, for some reason rebar will still find it relevant to rebuild some
+# of them. So we have to hide the corresponding sources as well...
 
-if [ -f "${parse_src}" ]; then
-	/bin/mv -f ${parse_src} ${parse_src}-hidden
+project_name="$1"
+
+if [ -z "${project_name}" ]; then
+
+	echo "  Error, project name not set." 1>&2
+
+	exit 5
+
 fi
 
-target_dir="./_build/default/lib/seaplus/ebin/"
+echo "Fixing rebar build for ${project_name}: building all first, from $(pwd)."
+#tree
 
-if [ ! -d "${target_dir}" ]; then
-	target_dir="../seaplus/ebin/"
+make -s all 2>/dev/null
+
+
+# Element locations may vary depending on whether this project is the main
+# target or a dependency, or a checkout.
+
+target_base_dir="./_build/default/lib/${project_name}"
+
+if [ ! -d "${target_base_dir}" ]; then
+
+	echo "(project based directory is not '${target_base_dir}')"
+
+	target_base_dir="../${project_name}/"
+
+	if [ ! -d "${target_base_dir}" ]; then
+
+		echo "(project based directory is not '${target_base_dir}')"
+
+		echo "  Error, target directory not found for ${project_name}." 1>&2
+
+		exit 10
+
+	fi
+
 fi
 
-echo "rebar fix for hook: selected target directory for Seaplus parse transform is '${target_dir}'."
+echo "Copying built-related elements in the '${target_base_dir}' target tree."
 
-parse_beam="src/seaplus_parse_transform.beam"
+# Transforming a potentially nested hierarchy (tree) into a flat directory:
+# (operation order allows proper timestamp ordering)
+#
+# Note that 'ebin' is bound to be an actual directory yet (probably if dev_mode
+# has been set to true in rebar.config), 'include', 'priv' and 'src' may be
+# symlinks to their original versions.
+#
+# As they could be nested (a tree rather than flat directories), we remove any
+# pre-existing directory and replace it with a flat copy of our own).
 
-if [ -f "${parse_beam}" ]; then
+target_hdr_dir="${target_base_dir}/include"
 
-	/bin/cp -f ${parse_beam} ${target_dir}
+if [ -L "${target_hdr_dir}" ]; then
+
+	echo "Replacing the ${target_hdr_dir} symlink by an actual directory."
+	/bin/rm -f "${target_hdr_dir}"
+	mkdir "${target_hdr_dir}"
+
+elif [ ! -d "${target_hdr_dir}" ]; then
+
+	echo "Creating the non-existing ${target_hdr_dir} directory."
+	mkdir "${target_hdr_dir}"
 
 else
 
-	echo "Warning: no ${parse_beam} found from $(pwd); content: $(tree)"
+	echo "(${target_hdr_dir} directory already existing)"
+	#echo "Unexpected target ${target_hdr_dir}: $(ls -l ${target_hdr_dir})" 1>&2
+	#exit 5
 
 fi
 
-echo "rebar build fixed from Seaplus hook"
+
+all_hdrs=$(find src test include -name '*.hrl' 2>/dev/null)
+
+echo "  Copying all headers to ${target_hdr_dir}: ${all_hdrs}"
+
+for f in ${all_hdrs}; do
+	/bin/cp -f $f ${target_hdr_dir}
+done
+
+
+
+target_src_dir="${target_base_dir}/src"
+
+if [ -L "${target_src_dir}" ]; then
+
+	echo "Replacing the ${target_src_dir} symlink by an actual directory."
+	/bin/rm -f "${target_src_dir}"
+	mkdir "${target_src_dir}"
+
+elif [ ! -d "${target_src_dir}" ]; then
+
+	echo "Creating the non-existing ${target_src_dir} directory."
+	mkdir "${target_src_dir}"
+
+fi
+
+
+all_srcs=$(find src test -name '*.erl' 2>/dev/null)
+
+echo "  Copying all sources to ${target_src_dir} then hiding the original ones: ${all_srcs}"
+
+for f in ${all_srcs}; do
+	/bin/cp -f $f ${target_src_dir}
+	/bin/mv -f $f $f-hidden
+done
+
+
+
+target_beam_dir="${target_base_dir}/ebin"
+
+if [ -L "${target_beam_dir}" ]; then
+
+	echo "Replacing the ${target_beam_dir} symlink by an actual directory."
+	/bin/rm -f "${target_beam_dir}"
+	mkdir "${target_beam_dir}"
+
+elif [ ! -d "${target_beam_dir}" ]; then
+
+	echo "Creating the non-existing ${target_beam_dir} directory."
+	mkdir "${target_beam_dir}"
+
+fi
+
+
+all_beams=$(find src test -name '*.beam' 2>/dev/null)
+
+echo "  Copying all BEAM files to ${target_beam_dir}: ${all_beams}"
+
+for f in ${all_beams}; do
+	/bin/cp -f $f ${target_beam_dir}
+done
+
+tree _build/default/lib/${project_name}
+
+echo "Rebar build fixed for ${project_name}."
