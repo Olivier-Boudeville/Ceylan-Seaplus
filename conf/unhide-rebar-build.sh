@@ -4,6 +4,7 @@
 
 to_rename=$(find src test -name '*.erl-hidden')
 
+# Applies only if needed:
 echo "Renaming back ${to_rename}"
 for f in ${to_rename}; do
 

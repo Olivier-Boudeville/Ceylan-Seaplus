@@ -123,7 +123,10 @@ if [ $fix_hdr -eq 0 ]; then
 	echo "  Copying all headers to ${target_hdr_dir}: ${all_hdrs}"
 
 	for f in ${all_hdrs}; do
-		/bin/cp -f $f ${target_hdr_dir}
+		# We do not care if it is a copy of a file onto itself, a touch-like
+		# operation is anyway strictly needed:
+		#
+		/bin/cp -f $f ${target_hdr_dir} 2>/dev/null
 	done
 
 else
@@ -156,7 +159,10 @@ if [ $fix_src -eq 0 ]; then
 	echo "  Copying all sources to ${target_src_dir} then hiding the original ones: ${all_srcs}"
 
 	for f in ${all_srcs}; do
-		/bin/cp -f $f ${target_src_dir}
+		# We do not care if it is a copy of a file onto itself, a touch-like
+		# operation is anyway strictly needed:
+		#
+		/bin/cp -f $f ${target_src_dir} 2>/dev/null
 		/bin/mv -f $f $f-hidden
 	done
 
