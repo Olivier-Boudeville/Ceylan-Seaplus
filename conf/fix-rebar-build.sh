@@ -68,6 +68,13 @@ else
 	# In which case the only need is to copy ebin:
 	fix_beam=0
 
+	# Actually we nevertheless need them apparently (even if it copies a file to
+	# itself, it updates their timestamp), otherwise another silly attempt of
+	# rebuild will be done by rebar3:
+
+	fix_src=0
+	fix_hdr=0
+
 fi
 
 echo "Copying build-related elements in the '${target_base_dir}' target tree."
