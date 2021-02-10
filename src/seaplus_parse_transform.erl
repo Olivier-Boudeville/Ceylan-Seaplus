@@ -402,8 +402,11 @@ process_module_info_from(
 	%
 	ControleModuleInfo = handle_control_functions( ModuleInfo ),
 
-	trace_bridge:debug_fmt( "Control-augmented module: ~s",
-		[ ast_info:module_info_to_string( ControleModuleInfo ) ] ),
+	% Useful to have a deep look into the target module for which a driver will
+	% be generated:
+	%
+	%trace_bridge:debug_fmt( "Control-augmented module: ~s",
+	%	[ ast_info:module_info_to_string( ControleModuleInfo ) ] ),
 
 	ReadyFunInfos = prepare_api_functions( ControleModuleInfo ),
 
