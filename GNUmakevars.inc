@@ -59,11 +59,11 @@ endif
 # conditional compilation primitives (see cond_utils for their management):
 
 # Topics covered by flags:
-#  - xx (none yet)
+#  - driver: information about the Seaplus-generated driver
 
 # Defining debug flags (at least the most verbose are by default commented-out):
 ifeq ($(ENABLE_DEBUG),true)
-	#SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_xx
+	#SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_driver
 endif
 
 # Defining check flags:
