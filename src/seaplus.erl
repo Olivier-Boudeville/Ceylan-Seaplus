@@ -143,10 +143,10 @@
 % bar( A, B ) ->
 %   seaplus:call_port_for( ?foobar_port_dict_key, 2, [ A, B ] ).
 %
-% where for example 1d is the static index (compile-time, immediate value)
-% chosen for foo/1 (and foobar_port_dict_key is the service-specific key of
-% foobar in the user process dictionary, so that multiple Seaplus-using services
-% can coexist)
+% where for example 1 is the static index (compile-time, immediate value) chosen
+% for foo/1 (and foobar_port_dict_key is the service-specific key of foobar in
+% the user process dictionary, so that multiple Seaplus-using services can
+% coexist)
 %
 % - the function identifier mapping, made available thanks to a
 % 'foobar_seaplus_api_mapping.h' generated C header file (to be included in
@@ -168,8 +168,8 @@
 % """
 %
 % (format: (FUNCTION_NAME)_(ARITY)_ID; arity is specified as of course, on both
-% sides, two different functions might bear the same name but then should have a
-% different arity)
+% sides, two different functions might bear the same name but then should have
+% different arities)
 %
 % - all relevant utility functions transverse to all services (start/0, etc.)
 %
@@ -190,7 +190,7 @@
 % foobar service, for example:
 %
 % [...]
-% A = foobar:foo( 42 ),
+% Res = foobar:foo( 42 ),
 % [...]
 
 
@@ -383,6 +383,17 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 	%trace_bridge:debug_fmt( "Initializing service '~s', "
 	%     "using executable '~s'.", [ ServiceName, ExecPath ] ),
 
+	% Notably to check whether libseaplus-*.so will be found:
+	cond_utils:if_defined( seaplus_debug_driver,
+		begin
+			% At least as clear as 'readelf -d XXX':
+			LddPath = executable_utils:find_executable( "ldd" ),
+			Cmd = text_utils:format( "~s ~s", [ LddPath, ExecPath ] ),
+			{ _RetCode, CmdOutput } = system_utils:run_executable( Cmd ),
+			trace_bridge:debug_fmt( "Library dependencies for '~s' are:~n~s",
+									[ ExecPath, CmdOutput ] )
+		end ),
+
 	ExecPath.
 
 
@@ -477,8 +488,8 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	% If wanting to run the driver through Valgrind instead:
 	%DriverCommand = text_utils:format(
-	%				  "valgrind --log-file=/tmp/seaplus-valgrind.log ~s",
-	%				  [ DriverExecPath ] ),
+	%	"valgrind --log-file=/tmp/seaplus-valgrind.log ~s",
+	%	[ DriverExecPath ] ),
 
 	%trace_bridge:debug_fmt( "DriverCommand: ~s", [ DriverCommand ] ),
 
@@ -571,8 +582,8 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			%trace_bridge:warning_fmt( "Normal EXIT of port ~p.",
 			%						 [ TargetPort ] ),
 
-			trace_bridge:error_fmt( "Crash of the driver port (~w) reported.",
-									[ TargetPort ] ),
+			trace_bridge:error_fmt( "Crash of the driver port (~w) reported "
+				"(no reason was specified).", [ TargetPort ] ),
 
 			throw( { driver_crashed, unknown_reason } );
 
