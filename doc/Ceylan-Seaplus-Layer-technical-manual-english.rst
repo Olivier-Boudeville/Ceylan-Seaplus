@@ -39,7 +39,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2021 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Monday, February 8, 2021
+:Lastly updated: Wednesday, February 10, 2021
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
 :Abstract:
 
@@ -553,7 +553,7 @@ Seaplus Log System
 
 When integrating a C service, the most difficult part is ensuring the sanity of the C driver, i.e. knowing what happens within it whenever converting terms back and forth, handling pointers, allocating memory, crashing unexpectedly, etc. (a.k.a. the joys of C programming).
 
-To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done by the driver (including the user code and the Seaplus facilities on which it relies).
+To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done *by the driver* (including the user code and the Seaplus facilities on which it relies).
 
 This log system is enabled by default. To disable it (then no runtime penalty will be incurred), set ``SEAPLUS_ENABLE_LOG`` to ``0`` (ex: add the ``-DSEAPLUS_ENABLE_LOG=0`` option when compiling the library, see `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_ for the various build settings).
 
@@ -667,13 +667,22 @@ The type of errors that we want to track down are reported as such (real-life ex
   Sent first SMS whose report is: {success,255}.
 
   <----------------
-  [error] Crash of the driver port (#Port<0.7>) reported.
+  [error] Crash of the driver port (#Port<0.7>) reported (no reason was specified).
   ---------------->
 
   {"init terminating in do_boot",{{nocatch,{driver_crashed,unknown_reason}},[{seaplus,call_port_for,3,...
 
 
-So the driver crashed, we do not know why, and often, with such problems, nothing very relevant can be found in the Seaplus log (i.e. in ``seaplus-driver.*.log``), except which API function was called when the crash happened (should you have left the corresponding ``LOG_DEBUG`` calls in your driver of course).
+So the driver crashed, we do not know why, and often, with such problems, nothing very relevant can be found in the Seaplus driver log (i.e. in ``seaplus-driver.*.log``); we nevertheless know which API function was called when the crash happened (should you have left the corresponding ``LOG_DEBUG`` calls in your driver of course) - which is already a precious information.
+
+.. Note:: The fact that such a driver log simply exists means already that this driver could be launched at all, which is a first good news.
+
+		  Indeed, if Seaplus checks whether the driver can be found (ex: the ``PATH`` environment variable may not be adequate) and is executable, a classical problem is that this driver may still fail to start because at least one of the shared libraries it relies upon cannot be found - typically because the ``LD_LIBRARY_PATH`` environment variable has not been properly set (see ``mobile_test`` for an example on how to deal with these topics). This is either the Seaplus library (``libseaplus-x.y.z.so``) that is lacking, and/or an integrated one (like ``libGammu.so.x`` here).
+
+		  To better investigate such issues, just define in Seaplus the ``seaplus_debug_driver`` compile option (see ``SEAPLUS_DEBUG_FLAGS`` in ``GNUmakevars.inc``) and recompile it. Then, before executing a driver, Seaplus will emit a trace listing all library dependencies for that driver, telling which are satisfied (with their path to identify them) and which are not (a sure sign of an upcoming dynamic linking issue).
+
+
+
 
 A first difficulty is that generally a (Linux) distribution will, at least by default, only include prebuilt binary packages whose libraries are stripped. For example:
 
