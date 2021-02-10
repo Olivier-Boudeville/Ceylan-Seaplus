@@ -391,7 +391,12 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 			Cmd = text_utils:format( "~s ~s", [ LddPath, ExecPath ] ),
 			{ _RetCode, CmdOutput } = system_utils:run_executable( Cmd ),
 			trace_bridge:debug_fmt( "Library dependencies for '~s' are:~n~s",
-									[ ExecPath, CmdOutput ] )
+									[ ExecPath, CmdOutput ] ),
+			trace_bridge:debug_fmt( "While being in '~s':~n  PATH is '~s'~n  "
+				"LD_LIBRARY_PATH is '~s'.",
+				[ file_utils:get_current_directory(),
+				  system_utils:get_environment_variable( "PATH" ),
+				  system_utils:get_environment_variable( "LD_LIBRARY_PATH" ) ] )
 		end ),
 
 	ExecPath.
