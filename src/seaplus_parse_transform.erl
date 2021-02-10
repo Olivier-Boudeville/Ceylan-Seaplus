@@ -76,7 +76,7 @@
 
 
 -export([ run_standalone/1, run_standalone/2,
-		  parse_transform/2, apply_seaplus_transform/2 ]).
+		  parse_transform/2, apply_seaplus_transform/3 ]).
 
 
 
@@ -98,6 +98,8 @@
 -type function_info() :: ast_info:function_info().
 -type ast_transforms() :: ast_transform:ast_transforms().
 -type preprocessor_option() :: ast_utils:preprocessor_option().
+
+-type parse_transform_options() :: meta_utils:parse_transform_options().
 
 -type file_name() :: file_utils:file_name().
 -type directory_name() :: file_utils:directory_name().
@@ -170,8 +172,8 @@ run_standalone( FileToTransform, PreprocessorOptions ) ->
 	% Necessary to fetch resources:
 	SeaplusRootDir = get_seaplus_root( PreprocessorOptions ),
 
-	% Returns { SeaplusAST, ModuleInfo }:
-	apply_seaplus_transform( InputAST, SeaplusRootDir ).
+	% Returns {SeaplusAST, ModuleInfo}:
+	apply_seaplus_transform( InputAST, SeaplusRootDir, _Options=[] ).
 
 
 
@@ -195,7 +197,7 @@ parse_transform( InputAST, Options ) ->
 	% use afterwards and thus can be dropped:
 	%
 	{ SeaplusAST, _ModuleInfo } =
-		apply_seaplus_transform( InputAST, SeaplusRootDir ),
+		apply_seaplus_transform( InputAST, Options, SeaplusRootDir ),
 
 	%trace_bridge:debug_fmt( "Seaplus output AST:~n~p~n", [ SeaplusAST ] ),
 
@@ -264,16 +266,18 @@ get_seaplus_root( Options ) ->
 
 
 
-
 % Transforms specified AST for Seaplus.
--spec apply_seaplus_transform( ast(), directory_path() ) ->
-									{ ast(), module_info() }.
-apply_seaplus_transform( InputAST, SeaplusRootDir ) ->
+-spec apply_seaplus_transform( ast(), parse_transform_options(),
+							   directory_path() ) -> { ast(), module_info() }.
+apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 
 	%trace_bridge:debug_fmt( "  (applying parse transform '~p')", [ ?MODULE ] ),
 
 	%trace_bridge:debug_fmt( "~n## INPUT ###################################" ),
+
 	%trace_bridge:debug_fmt( "Seaplus input AST:~n~p~n~n", [ InputAST ] ),
+
+	%ast_utils:display_debug( "Seaplus options:~n~p~n", [ Options ] ),
 
 	%ast_utils:write_ast_to_file( InputAST, "Seaplus-input-AST.txt" ),
 
@@ -285,22 +289,24 @@ apply_seaplus_transform( InputAST, SeaplusRootDir ) ->
 	% to benefit from its corresponding module_info record:
 	% (however no Myriad-level transformation performed yet)
 	%
-	InputModuleInfo = ast_info:extract_module_info_from_ast( InputAST ),
+	BaseModuleInfo = ast_info:extract_module_info_from_ast( InputAST ),
+
+	WithOptsModuleInfo = ast_info:interpret_options( Options, BaseModuleInfo ),
 
 	?display_trace( "Module information extracted." ),
 
 	%ast_utils:display_debug( "Module information, directly as obtained "
-	%				"from Myriad (untransformed): ~s",
-	%				[ ast_info:module_info_to_string( InputModuleInfo ) ] ),
+	%	"from Myriad (untransformed): ~s",
+	%	[ ast_info:module_info_to_string( WithOptsModuleInfo ) ] ),
 
 	% The Seaplus augmentations must be applied only to modules corresponding to
 	% services to be integrated (not to all modules):
 	%
-	ProcessedModuleInfo = case is_integration_module( InputModuleInfo ) of
+	ProcessedModuleInfo = case is_integration_module( WithOptsModuleInfo ) of
 
 		false ->
 			% Then Seaplus does nothing specific:
-			InputModuleInfo;
+			WithOptsModuleInfo;
 
 		ShrunkModuleInfo ->
 			% Then promote this Myriad-level information into a Seaplus one:
