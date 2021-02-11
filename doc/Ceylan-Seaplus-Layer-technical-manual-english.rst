@@ -679,7 +679,7 @@ So the driver crashed, we do not know why, and often, with such problems, nothin
 
 		  Indeed, if Seaplus checks whether the driver can be found (ex: the ``PATH`` environment variable may not be adequate) and is executable, a classical problem is that this driver may still fail to start because at least one of the shared libraries it relies upon cannot be found - typically because the ``LD_LIBRARY_PATH`` environment variable has not been properly set (see ``mobile_test`` for an example on how to deal with these topics). This is either the Seaplus library (``libseaplus-x.y.z.so``) that is lacking, and/or an integrated one (like ``libGammu.so.x`` here).
 
-		  To better investigate such issues, just define in Seaplus the ``seaplus_debug_driver`` compile option (see ``SEAPLUS_DEBUG_FLAGS`` in ``GNUmakevars.inc``) and recompile it. Then, before executing a driver, Seaplus will emit a trace listing all library dependencies for that driver, telling which are satisfied (with their path to identify them) and which are not (a sure sign of an upcoming dynamic linking issue).
+		  To better investigate such issues, just define in Seaplus the ``seaplus_debug_driver`` compile option (see ``SEAPLUS_DEBUG_FLAGS`` in ``GNUmakevars.inc``) and recompile it. Then, before executing a driver, Seaplus will emit a trace listing all library dependencies for that driver, telling which are satisfied (with their path to identify them) and which are not (a sure sign of an upcoming dynamic linking issue); additionally the full path of the driver, the current directory, and the current value of the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables will be reported.
 
 
 
