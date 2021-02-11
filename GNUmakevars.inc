@@ -65,9 +65,9 @@ endif
 
 # Defining debug flags (at least the most verbose are by default commented-out):
 ifeq ($(ENABLE_DEBUG),true)
-	#SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_general
-	#SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_port
-	#SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_driver
+	SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_general
+	SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_port
+	SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_driver
 endif
 
 # Defining check flags:
