@@ -298,7 +298,8 @@ restart( ServiceName, DriverExecutableName ) ->
 -spec stop( service_name() ) -> void().
 stop( ServiceName ) when is_atom( ServiceName ) ->
 
-	%trace_bridge:debug_fmt( "Stopping the '~s' service.", [ ServiceName ] ),
+	cond_utils:if_defined( seaplus_debug_general, trace_bridge:debug_fmt(
+		"Stopping the '~s' service.", [ ServiceName ] ) ),
 
 	ServiceKey = get_service_port_key_for( ServiceName ),
 
@@ -318,7 +319,9 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 			receive
 
 				{ TargetPort, closed } ->
-					%trace_bridge:debug( "Port stopped." )
+					cond_utils:if_defined( seaplus_debug_port,
+						trace_bridge:debug_fmt( "Port ~w stopped.",
+												[ TargetPort ] ) ),
 					ok
 
 			after 5000 ->
@@ -412,6 +415,10 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 -spec launch( service_name(), executable_name() ) -> void().
 launch( ServiceName, DriverExecPath ) ->
 
+	cond_utils:if_defined( seaplus_debug_general, trace_bridge:debug_fmt(
+		"[~w] Launching the '~s' service, using driver path '~s'.",
+		[ self(), ServiceName, DriverExecPath ] ) ),
+
 	% To receive EXIT messages, should the port fail (best option):
 	process_flag( trap_exit, true ),
 
@@ -440,8 +447,9 @@ launch_link( ServiceName, DriverExecPath ) ->
 %
 init_driver( ServiceName, DriverExecPath ) ->
 
-	%trace_bridge:debug_fmt( "For service '~s', launching driver '~s'.",
-	%					   [ ServiceName, DriverExecPath ] ),
+	cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
+		"For service '~s', launching driver '~s'.",
+		[ ServiceName, DriverExecPath ] ) ),
 
 	% Used to intercept driver crashes, when was a spawned process:
 	%process_flag( trap_exit, true ),
@@ -496,8 +504,8 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%	"valgrind --log-file=/tmp/seaplus-valgrind.log ~s",
 	%	[ DriverExecPath ] ),
 
-	%trace_bridge:debug_fmt( "DriverCommand: ~s", [ DriverCommand ] ),
-
+	cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
+		"DriverCommand: '~s'.", [ DriverCommand ] ) ),
 
 	% Respect the erl_interface conventions:
 	%
@@ -505,12 +513,13 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%
 	Port = open_port( { spawn, DriverCommand }, PortOptions ),
 
-	%trace_bridge:debug_fmt( "Storing port ~w under the service key '~s' "
-	%  "in the process dictionary of ~p.", [ Port, ServiceKey, self() ] ),
+	cond_utils:if_defined( seaplus_debug_port, trace_bridge:debug_fmt(
+		"Storing port ~w under the service key '~s' "
+		"in the process dictionary of ~p.", [ Port, ServiceKey, self() ] ) ),
 
 	process_dictionary:put( ServiceKey, Port ).
 
-	% No need for a main loop, we drive the (direct) communication:
+	% No need for a main loop, *we* drive the (direct) communication:
 	%driver_main_loop( Port, ServiceName ).
 
 
@@ -593,20 +602,30 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			throw( { driver_crashed, unknown_reason } );
 
 
+		% This is not one of our ports; it must be an unrelated operation we
+		% should not even interfere with by receiving such message:
+		%
+		%{ 'EXIT', OtherPort, _Reason=normal } ->
+		%  Not our business
+
+
 		{ 'EXIT', TargetPort, Reason } ->
 
 			process_dictionary:remove( ServiceKey ),
 
-			trace_bridge:error_fmt( "Received exit failure from driver "
-				"port ~p, reason: ~p", [ TargetPort, Reason ] ),
+			trace_bridge:error_fmt( "Received exit failure from the driver "
+				"port (~p), reason: ~p", [ TargetPort, Reason ] ),
 
-			throw( { driver_crashed, Reason } );
+			throw( { driver_crashed, Reason } )
 
+		% Not our business either:
+		%{ 'EXIT', OtherPort, Reason } ->
 
-		Unexpected ->
-			trace_bridge:error_fmt( "Driver call: unexpected message "
-				"received: ~p~n", [ Unexpected ] ),
-			throw( { unexpected_driver_message, Unexpected } )
+		% No promiscuous mode, we have not to hijack the traffic of others:
+		%Unexpected ->
+		%	trace_bridge:error_fmt( "Driver call: unexpected message "
+		%		"received: ~p~n", [ Unexpected ] ),
+		%	throw( { unexpected_driver_message, Unexpected } )
 
 	end.
 
