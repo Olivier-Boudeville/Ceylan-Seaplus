@@ -1,5 +1,3 @@
-
-
 /*
  * C Seaplus driver in charge of converting, for each function exposed by the
  * foobar service API, the Erlang parameters received from the
@@ -80,7 +78,8 @@ int main()
 	 */
 	arity param_count ;
 
-	read_function_information( read_buf, &index, &current_fun_id, &param_count ) ;
+	read_function_information( read_buf, &index, &current_fun_id,
+	  &param_count ) ;
 
 	LOG_DEBUG( "Function identifier is %u, arity is %u (new index is %u).",
 	  current_fun_id, param_count, index ) ;
