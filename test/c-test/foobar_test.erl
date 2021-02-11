@@ -54,8 +54,8 @@ run() ->
 	system_utils:add_paths_for_library_lookup( [ "../../src/", "foobar/lib" ] ),
 
 	% Not foobar:start_link(), as here we want to survive a crash of the foobar
-	% service (i.e. to be able to handle failures explicitly, as messages
-	% received by this test process):
+	% service (i.e. to be able to handle test-generated failures explicitly, as
+	% messages received by this test process):
 	%
 	foobar:start(),
 
@@ -98,7 +98,7 @@ run() ->
 
 	catch throw:{ driver_crashed, ErrorReason } ->
 
-		test_facilities:display( "Exception thrown as expected: ~p",
+		test_facilities:display( "Exception thrown as expected, and is: ~p",
 								 [ ErrorReason ] ),
 
 		% Check (best option: read the seaplus log to investigate real crashes):
@@ -137,8 +137,8 @@ run() ->
 	"this is tur" = foobar:frob( tur_value ),
 	"this is non-tur" = foobar:frob( non_tur_value ),
 
-	% Add a test with a returned binary string:
-	%<<"My beautiful binary">> = foobar:frob( "beautiful" ),
+	% To add: a test with a returned binary string, such as:
+	%<<"My beautiful binary">> = foobar:frob_bin( "beautiful" ),
 
 	test_facilities:display( "Finally stopping the tested service." ),
 
