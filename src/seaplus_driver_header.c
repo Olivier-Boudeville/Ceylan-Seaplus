@@ -21,7 +21,12 @@
 #include "seaplus.h"
 
 
-// To access to the actual C implementation of the service:
+/* To access the actual C implementation of the service:
+ *
+ * (this is an example; depending on the integrated library, such a header may
+ * or may not exist with this specific name - adapt to your liking)
+ *
+ */
 #include "##SEAPLUS_SERVICE_NAME##.h"
 
 
