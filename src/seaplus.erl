@@ -87,7 +87,8 @@
 
 -export([ start/1, start_link/1, start/2, start_link/2,
 		  restart/1, restart/2, stop/1,
-		  call_port_for/3, get_execution_target/0 ]).
+		  call_port_for/3, get_execution_target/0,
+		  display_driver_runtime_info/1 ]).
 
 
 % The name of a C-based service to make available:
@@ -118,8 +119,12 @@
 -export_type([ function_driver_id/0, function_params/0, function_result/0 ]).
 
 
+-define( service_port_key_prefix, "_seaplus_port_for_service_" ).
+
+
 % To define get_execution_target/0:
 -include_lib("myriad/include/utils/basic_utils.hrl").
+
 
 
 % Shorthands:
@@ -386,22 +391,6 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 	%trace_bridge:debug_fmt( "Initializing service '~s', "
 	%     "using executable '~s'.", [ ServiceName, ExecPath ] ),
 
-	% Notably to check whether libseaplus-*.so will be found:
-	cond_utils:if_defined( seaplus_debug_driver,
-		begin
-			% At least as clear as 'readelf -d XXX':
-			LddPath = executable_utils:find_executable( "ldd" ),
-			Cmd = text_utils:format( "~s ~s", [ LddPath, ExecPath ] ),
-			{ _RetCode, CmdOutput } = system_utils:run_executable( Cmd ),
-			trace_bridge:debug_fmt( "Library dependencies for '~s' are:~n~s",
-									[ ExecPath, CmdOutput ] ),
-			trace_bridge:debug_fmt( "While being in '~s':~n  PATH is '~s'~n  "
-				"LD_LIBRARY_PATH is '~s'.",
-				[ file_utils:get_current_directory(),
-				  system_utils:get_environment_variable( "PATH" ),
-				  system_utils:get_environment_variable( "LD_LIBRARY_PATH" ) ] )
-		end ),
-
 	ExecPath.
 
 
@@ -480,6 +469,37 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	end,
 
+	% To help any driver-level debugging; notably to check whether
+	% libseaplus-*.so will be found:
+	%
+	cond_utils:if_defined( seaplus_debug_driver,
+						   display_driver_runtime_info( DriverExecPath ) ),
+
+	cond_utils:if_defined( seaplus_check_driver,
+		begin
+			% Allows to pre-check whether the driver can be run at all:
+			% (actually any command-line option will do)
+			%
+			Cmd = text_utils:format( "~s ~s", [ DriverExecPath, "--help" ] ),
+
+			% For check relevance, we perform this test in the same environment
+			% that will be used just afterwards to run the actual port:
+			%
+			case system_utils:run_executable( Cmd ) of
+
+				{ _ExitCode=0, DriverNormalMessage } ->
+					trace_bridge:debug_fmt( "Driver check successful, returned "
+						"'~s'.", [ DriverNormalMessage ] );
+
+				{ ErrorCode, ErrorMsg } ->
+					trace_bridge:error_fmt( "Driver check failed "
+						"(error code ~B, check command was '~s'): '~s'",
+						[ ErrorCode, Cmd, ErrorMsg ] ),
+					display_driver_runtime_info( DriverExecPath )
+
+			end
+		end ),
+
 	% Uncomment if wanting to force the selection of, typically, a library you
 	% specifically built with debug symbols, like for example:
 	% LibDebugPath = "/home/stallone/Software/libgammu/lib",
@@ -494,7 +514,6 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	%PortOptions = [ { packet, 2 }, binary, EnvOpt ]
 	PortOptions = [ { packet, 2 }, binary ],
-
 
 	% If wanting a direct execution of the driver:
 	DriverCommand = DriverExecPath,
@@ -517,11 +536,44 @@ init_driver( ServiceName, DriverExecPath ) ->
 		"Storing port ~w under the service key '~s' "
 		"in the process dictionary of ~p.", [ Port, ServiceKey, self() ] ) ),
 
-	process_dictionary:put( ServiceKey, Port ).
+	process_dictionary:put( ServiceKey, Port ),
+
+	% Useful for a post-crash analysis:
+	ServiceDriverKey = get_service_driver_key_for( ServiceName ),
+	process_dictionary:put( ServiceDriverKey, DriverExecPath ).
 
 	% No need for a main loop, *we* drive the (direct) communication:
 	%driver_main_loop( Port, ServiceName ).
 
+
+
+% Displays runtime information about the specified driver, to help
+% troubleshooting.
+%
+-spec display_driver_runtime_info( executable_path() ) -> void().
+display_driver_runtime_info( ExecPath ) ->
+
+	% At least as clear as 'readelf -d XXX':
+	LddPath = executable_utils:find_executable( "ldd" ),
+
+	Cmd = text_utils:format( "~s ~s", [ LddPath, ExecPath ] ),
+
+	case system_utils:run_executable( Cmd ) of
+
+		{ _RetCode=0, CmdOutput } ->
+			trace_bridge:info_fmt( "Library dependencies for '~s' are:~n~s~n"
+				"While being in '~s':~n  PATH is '~s'~n  "
+				"LD_LIBRARY_PATH is '~s'.",
+				[ ExecPath, CmdOutput, file_utils:get_current_directory(),
+				  system_utils:get_environment_variable( "PATH" ),
+				  system_utils:get_environment_variable( "LD_LIBRARY_PATH" )
+				] );
+
+		{ RetCode, CmdOutput } ->
+			trace_bridge:error_fmt( "Unable to get library dependencies for "
+				"'~s' (exit code ~B): '~s'.", [ ExecPath, RetCode, CmdOutput ] )
+
+	end.
 
 
 
@@ -578,13 +630,47 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 	receive
 
-
 		% Normal case, receiving the corresponding result:
 		{ TargetPort, { data, BinAnswer } } ->
-			%trace_bridge:debug_fmt( "Term received from C side: '~p'.",
-			%					   [ BinAnswer ] ),
-			binary_to_term( BinAnswer );
 
+			trace_bridge:debug_fmt( "Term received by ~w from C side "
+				"(port: ~w) for service '~s', in answer to "
+				"a call to the function whose identifier is ~B:~n~p",
+				[ self(), TargetPort,
+				  get_service_name_from_port_key( ServiceKey ), FunctionId,
+				  BinAnswer ] ),
+
+			% If raises {badarg,[{erlang,binary_to_term,[... then probably that
+			% this driver performed an incorrect write_*_result for that
+			% function:
+			%
+			try
+
+				binary_to_term( BinAnswer )
+
+			catch
+
+				_:badarg ->
+					ServiceName = get_service_name_from_port_key( ServiceKey ),
+					trace_bridge:error_fmt( "Incorrect driver return received "
+						"by process ~w from port ~w for service '~s' regarding "
+						"function identified by ~B:~n~p",
+						[ self(), TargetPort, ServiceName, FunctionId,
+						  BinAnswer ] ),
+					throw( { incorrect_return, { service, ServiceName },
+							 { function_id, FunctionId }, BinAnswer } );
+
+				_:E ->
+					ServiceName = get_service_name_from_port_key( ServiceKey ),
+					trace_bridge:error_fmt( "Exception raised for driver "
+						"return received by process ~w from port ~w "
+						"for service '~s' regarding the function identified "
+						"by ~B: ~p",
+						[ self(), TargetPort, ServiceName, FunctionId, E ] ),
+					throw( { invalid_return, { service, ServiceName },
+							 { function_id, FunctionId }, E } )
+
+			end;
 
 		{ 'EXIT', TargetPort, _Reason=normal } ->
 
@@ -596,8 +682,24 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			%trace_bridge:warning_fmt( "Normal EXIT of port ~p.",
 			%						 [ TargetPort ] ),
 
+			% In order to call display_driver_runtime_info
 			trace_bridge:error_fmt( "Crash of the driver port (~w) reported "
-				"(no reason was specified).", [ TargetPort ] ),
+				"to calling process ~w (no reason was specified).",
+				[ TargetPort, self() ] ),
+
+			% Fetch driver path:
+			DrivKey = get_service_driver_key_from_port_one( ServiceKey ),
+
+			case process_dictionary:get( DrivKey ) of
+
+				undefined ->
+					trace_bridge:error_fmt( "Unable to find driver key '~s' "
+						"on ~w (abnormal).", [ DrivKey, self() ] );
+
+				ExecPath ->
+					display_driver_runtime_info( ExecPath )
+
+			end,
 
 			throw( { driver_crashed, unknown_reason } );
 
@@ -639,7 +741,53 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 -spec get_service_port_key_for( service_name() ) -> service_key().
 get_service_port_key_for( ServiceName ) ->
 
-	KeyString = text_utils:format( "_seaplus_port_for_service_~s",
-								   [ ServiceName ] ),
+	PortKeyString = text_utils:format( "~s~s",
+								   [ ?service_port_key_prefix, ServiceName ] ),
 
-	text_utils:string_to_atom( KeyString ).
+	text_utils:string_to_atom( PortKeyString ).
+
+
+% Reciprocal of get_service_port_key_for/1.
+-spec get_service_name_from_port_key( service_key() ) -> service_name().
+get_service_name_from_port_key( ServicePortKey ) ->
+
+	case text_utils:split_after_prefix( ?service_port_key_prefix,
+							text_utils:atom_to_string( ServicePortKey ) ) of
+
+		no_prefix ->
+			throw( { no_service_prefix, ?service_port_key_prefix,
+					 ServicePortKey } );
+
+		Str ->
+			text_utils:string_to_atom( Str )
+
+	end.
+
+
+% Returns the key that shall be used to store the executable path of the driver
+% for the specified service.
+%
+% Note: fully optional, only interest is to help troubleshooting.
+%
+-spec get_service_driver_key_for( service_name() ) -> service_key().
+get_service_driver_key_for( ServiceName ) ->
+
+	DriverKeyString = text_utils:format( "_seaplus_driver_path_for_service_~s",
+										 [ ServiceName ] ),
+
+	text_utils:string_to_atom( DriverKeyString ).
+
+
+
+% Returns the key that shall be used to store the executable path of the driver
+% for the specified service, based on the key for service port.
+%
+% Note: necessary to deduce one from another as Seaplus is mostly stateless.
+%
+-spec get_service_driver_key_from_port_one( service_key() ) -> service_key().
+get_service_driver_key_from_port_one( ServicePortKey ) ->
+
+	ServiceName = get_service_name_from_port_key( ServicePortKey ),
+
+	% Is actually a string, not a problem though:
+	get_service_driver_key_for( ServiceName ).
