@@ -875,10 +875,11 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 				"parameter of~n"
 		"\t\t// interest (refer to seaplus_getters.h for the conversion "
 				"functions).~n~n"
-		"\t\t// As an example, supposing a single input parameter of "
-		"type 'int'~n\t\t// for this ~s function:~n"
+		"\t\t// As an example, supposing that a single input parameter of "
+		"type 'int'~n\t\t// applies for this ~s/~B function:~n"
 		"\t\t// int i = read_int_parameter( read_buf, &index ) ;~n~n"
-		"\t\t// This allows then calling the C counterpart of ~s/~B:~n"
+		"\t\t// This allows then to call the C counterpart of~n"
+		"\t\t// the ~s/~B function:~n"
 		"\t\t// Ex: float f = some_service_function( i ) ;~n~n"
 		"\t\t// Then write the returned result to the Erlang side:~n"
 		"\t\t// (refer to seaplus_setters.h for the conversion functions)"
@@ -887,7 +888,7 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 		"\t\t// Do not forget to deallocate any relevant memory!~n"
 		"\t\t// (refer to foobar_seaplus_driver.c for an example)~n~n"
 		"\t\tbreak ;~n",
-		[ DriverId, FunName, Arity, Arity, DriverId, FunName, FunName,
+		[ DriverId, FunName, Arity, Arity, DriverId, FunName, Arity, FunName,
 		  Arity ] ),
 
 	file_utils:write( SourceFile, "~n~s~n", [ Snippet ] ),
