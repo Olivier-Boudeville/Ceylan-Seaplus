@@ -72,7 +72,7 @@ endif
 
 # Defining check flags:
 ifeq ($(EXECUTION_TARGET),development)
-	# Does not exist: SEAPLUS_CHECK_FLAGS += -Dseaplus_check_xx
+	SEAPLUS_CHECK_FLAGS += -Dseaplus_check_driver
 endif
 
 
