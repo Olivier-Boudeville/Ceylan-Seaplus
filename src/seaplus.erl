@@ -633,12 +633,13 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 		% Normal case, receiving the corresponding result:
 		{ TargetPort, { data, BinAnswer } } ->
 
-			trace_bridge:debug_fmt( "Term received by ~w from C side "
+			cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
+				"Term received by ~w from C side "
 				"(port: ~w) for service '~s', in answer to "
 				"a call to the function whose identifier is ~B:~n~p",
 				[ self(), TargetPort,
 				  get_service_name_from_port_key( ServiceKey ), FunctionId,
-				  BinAnswer ] ),
+				  BinAnswer ] ) ),
 
 			% If raises {badarg,[{erlang,binary_to_term,[... then probably that
 			% this driver performed an incorrect write_*_result for that
