@@ -106,7 +106,7 @@ endif
 # The uniquely-defined version of this layer, for all uses (including rebar and
 # hex):
 #
-SEAPLUS_VERSION := 1.0.3
+SEAPLUS_VERSION := 1.1.4
 
 
 # PROJECT_VERSION should be defined on a per-project basis.
