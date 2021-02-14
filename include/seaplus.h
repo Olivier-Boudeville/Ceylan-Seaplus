@@ -132,9 +132,14 @@ void start_seaplus_driver( input_buffer buf ) ;
 
 #if SEAPLUS_ENABLE_LOG
 
-#define LOG_DEBUG( format, ... ) log_debug( format, ##__VA_ARGS__ )
-#define LOG_TRACE( format, ... ) log_trace( format, ##__VA_ARGS__ )
-#define LOG_WARNING( format, ... ) log_warning( format, ##__VA_ARGS__ )
+/* Note that ## is rather gcc-specific:
+ * (https://gcc.gnu.org/onlinedocs/gcc/Variadic-Macros.html)
+ *
+ */
+
+#define LOG_DEBUG( format, ... ) log_debug( format, ## __VA_ARGS__ )
+#define LOG_TRACE( format, ... ) log_trace( format, ## __VA_ARGS__ )
+#define LOG_WARNING( format, ... ) log_warning( format, ## __VA_ARGS__ )
 
 #else // SEAPLUS_ENABLE_LOG
 
