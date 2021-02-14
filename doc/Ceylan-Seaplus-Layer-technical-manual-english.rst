@@ -2,7 +2,7 @@
 .. _Top:
 
 
-.. title:: Welcome to the Ceylan-Seaplus 1.0 documentation
+.. title:: Welcome to the Ceylan-Seaplus 1.1 documentation
 
 .. comment stylesheet specified through GNUmakefile
 
@@ -21,7 +21,7 @@
 
 :raw-html:`<a name="seaplus_top"></a>`
 
-:raw-html:`<div class="banner"><p><em>Seaplus 1.0 documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">browse mirror</a> <a href="seaplus.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_bottom">go to bottom</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">go to project</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus%201.0]%20Remark">email us</a></p></div>`
+:raw-html:`<div class="banner"><p><em>Seaplus 1.1 documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">browse mirror</a> <a href="seaplus.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_bottom">go to bottom</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">go to project</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus%201.1]%20Remark">email us</a></p></div>`
 
 
 
@@ -39,8 +39,8 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2021 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Wednesday, February 10, 2021
-:Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.0.
+:Lastly updated: Sunday, February 14, 2021
+:Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.1.
 :Abstract:
 
 	The role of the ``Seaplus`` bridge is to control C or C++ code from Erlang, not as NIF but thanks to a port, and to streamline the corresponding integration process.
@@ -656,31 +656,91 @@ As a result, if needed, any mix of Erlang and C can be used to wrap any call to 
 Debugging a Seaplus-based Driver
 --------------------------------
 
-Integrating C code is not so easy; more often than not, a SEGV will be encountered, and the fun begins in order to determine whom should we blame, typically your integration code (possible), Seaplus (possible as well) or the integrated library itself (often less likely).
+Integrating C code is not so easy; more often than not, a SEGV will be encountered, and the fun begins in order to determine whom to blame, typically your integration code (possible), Seaplus (possible as well) or the integrated library itself (often less likely).
 
-The situation is never hopeless, though; we will take the integration of the `libgammu <https://wammu.eu/libgammu/>`_ library done by `Ceylan-Mobile <http://mobile.esperide.org>`_ on Arch Linux as a mini-tutorial.
+The situation is never hopeless, though; we will take the integration of the `libgammu <https://wammu.eu/libgammu/>`_ library done by `Ceylan-Mobile <http://mobile.esperide.org>`_ on Arch Linux as a (slightly edited) mini-tutorial.
 
 The type of errors that we want to track down are reported as such (real-life example of the execution of ``mobile_test`` while the Seaplus driver-level facilities was incorrectly dealing, memory-wise, with the parameters that were binary strings):
 
 .. code:: shell-session
 
+  [...]
+  [debug] Driver check successful, returned 'This is a Ceylan-Seaplus driver generated for service Ceylan-Mobile. It is not meant to be executed by itself, but to be run by the Erlang-based Seaplus integration logic. Exiting now.'.
+  [debug] DriverCommand: '/__w/Ceylan-Mobile/Ceylan-Mobile/src/mobile_seaplus_driver'.
+  [debug] Storing port #Port<0.10> under the service key '_seaplus_port_for_service_mobile' in the process dictionary of <0.9.0>.
+  [debug] Starting Mobile.
+
+  [...]
+  [longer session is going smoothly when...]
+
   Sent first SMS whose report is: {success,255}.
 
   <----------------
-  [error] Crash of the driver port (#Port<0.7>) reported (no reason was specified).
+  Error:  Crash of the driver port (#Port<0.10>) reported to calling process <0.9.0> (no reason was specified).
   ---------------->
 
-  {"init terminating in do_boot",{{nocatch,{driver_crashed,unknown_reason}},[{seaplus,call_port_for,3,...
+  [info] Library dependencies for '/__w/Ceylan-Mobile/Ceylan-Mobile/src/mobile_seaplus_driver' are:
+	linux-vdso.so.1 (0x00007ffd62ddc000)
+	libseaplus-1.0.3.so => /__w/Ceylan-Mobile/Ceylan-Mobile/_build/default/lib/seaplus/src/libseaplus-1.0.3.so (0x00007f49027d7000)
+	libGammu.so.8 => /usr/lib/libGammu.so.8 (0x00007f4902649000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f49024c6000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f4902305000)
+	libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f49022e4000)
+	libglib-2.0.so.0 => /usr/lib/x86_64-linux-gnu/libglib-2.0.so.0 (0x00007f49021c5000)
+	libbluetooth.so.3 => /usr/lib/x86_64-linux-gnu/libbluetooth.so.3 (0x00007f490219c000)
+	libusb-1.0.so.0 => /lib/x86_64-linux-gnu/libusb-1.0.so.0 (0x00007f4901f83000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f4902802000)
+	libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007f4901f0f000)
+	libudev.so.1 => /lib/x86_64-linux-gnu/libudev.so.1 (0x00007f4901ee9000)
+	librt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f4901edf000)
+  While being in '/__w/Ceylan-Mobile/Ceylan-Mobile/test':
+	PATH is '/__w/Ceylan-Mobile/Ceylan-Mobile/src:/usr/local/lib/erlang/erts-11.1.4/bin:/usr/local/lib/erlang/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+	LD_LIBRARY_PATH is '/__w/Ceylan-Mobile/seaplus/src:/__w/Ceylan-Mobile/Ceylan-Mobile/_build/default/lib/seaplus/src'.
+  "init terminating in do_boot",{{nocatch,{driver_crashed,unknown_reason}},[{seaplus,call_port_for,3,[{file,"seaplus.erl"},{line,705}]},{mobile,get_backend_information,0,[{file,"mobile.erl"},{line,420}]},{mobile_test,run,0,[{file,"mobile_test.erl"},{line,80}]},{erl_eval,do_apply,6,[{file,"erl_eval.erl"},{line,680}]},{init,start_it,1,[]},{init,start_em,1,[]},{init,do_boot,3,[]}]}}
 
 
-So the driver crashed, we do not know why, and often, with such problems, nothing very relevant can be found in the Seaplus driver log (i.e. in ``seaplus-driver.*.log``); we nevertheless know which API function was called when the crash happened (should you have left the corresponding ``LOG_DEBUG`` calls in your driver of course) - which is already a precious information.
+So the driver crashed, we do not know precisely why (yet at least some key library information is given), and, as we will see, with such problems not so many relevant information can be found in the Seaplus driver log (i.e. in ``seaplus-driver.*.log``).
 
-.. Note:: The fact that such a driver log simply exists means already that this driver could be launched at all, which is a first good news.
+.. Note:: The fact that such a driver log simply exists already means that this driver could be launched at all, which is a first good news.
 
 		  Indeed, if Seaplus checks whether the driver can be found (ex: the ``PATH`` environment variable may not be adequate) and is executable, a classical problem is that this driver may still fail to start because at least one of the shared libraries it relies upon cannot be found - typically because the ``LD_LIBRARY_PATH`` environment variable has not been properly set (see ``mobile_test`` for an example on how to deal with these topics). This is either the Seaplus library (``libseaplus-x.y.z.so``) that is lacking, and/or an integrated one (like ``libGammu.so.x`` here).
 
-		  To better investigate such issues, just define in Seaplus the ``seaplus_debug_driver`` compile option (see ``SEAPLUS_DEBUG_FLAGS`` in ``GNUmakevars.inc``) and recompile it. Then, before executing a driver, Seaplus will emit a trace listing all library dependencies for that driver, telling which are satisfied (with their path to identify them) and which are not (a sure sign of an upcoming dynamic linking issue); additionally the full path of the driver, the current directory, and the current value of the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables will be reported.
+		  To better investigate such issues, now, if the ``seaplus_check_driver`` compile flag is enabled (see ``SEAPLUS_CHECK_FLAGS`` in `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_), then any generated Seaplus driver is automatically tested first like if it was just a basic executable that performs a simple console output and exits immediately afterwards. Once the driver proved that way that it can be launched successfully (ex: no lacking library dependency in the current setting), then only it is used by Seaplus as a port to interact with. This procedure is fully transparent to the Seaplus user.
 
+
+Indeed these driver logs (in ``seaplus-driver.1037076.log`` here) tell us:
+
+.. code:: shell-session
+
+  [2021/2/14 12:09:21][debug] Logger for Seaplus driver: starting new session...
+  [2021/2/14 12:09:21][debug] Starting the Seaplus C driver, with an input buffer of 32768 bytes.
+  [2021/2/14 12:09:21][trace] <Ceylan-Seaplus driver for service Ceylan-Mobile now running>
+  [2021/2/14 12:09:21][debug] Starting Gammu.
+  [2021/2/14 12:09:21][debug] Directing Gammu logs to Seaplus ones.
+  [2021/2/14 12:09:21][debug] No Gammu state machine logs requested.
+  [...]
+  [2021/2/14 12:09:21][debug] Reading a new command, from address 0x7ffda4845258.
+  [2021/2/14 12:09:21][debug] 2 bytes to read.
+  [2021/2/14 12:09:21][debug] 2 bytes actually read.
+  [2021/2/14 12:09:21][debug] Read 2 bytes.
+  [2021/2/14 12:09:21][debug] Command payload to read: 6 bytes.
+  [2021/2/14 12:09:21][debug] 6 bytes to read.
+  [2021/2/14 12:09:21][debug] 6 bytes actually read.
+  [2021/2/14 12:09:21][debug] Read 6 bytes.
+  [2021/2/14 12:09:21][trace] New command received.
+  [2021/2/14 12:09:21][trace] Getting function information.
+  [2021/2/14 12:09:21][debug] Read Erlang binary term format version number: 131, from index 1.
+  [2021/2/14 12:09:21][debug] Reading command: function identifier is 16 (index is 5).
+  [2021/2/14 12:09:21][debug] Normal list found at index 6, having 4 element(s).
+  [2021/2/14 12:09:21][debug] 4 parameter(s) received for this function.
+  [2021/2/14 12:09:21][trace] Function information obtained.
+  [2021/2/14 12:09:21][debug] Function identifier is 16, arity is 4 (new index is 6).
+  [2021/2/14 12:09:21][debug] Executing send_multipart_sms/4.
+  [2021/2/14 12:09:21][debug] Will write 29 bytes.
+  [...]
+
+
+We nevertheless know which API function was called when the crash happened (should you have left the corresponding ``LOG_DEBUG`` calls in your driver of course) - which is already a precious information.
 
 
 
@@ -799,8 +859,7 @@ Once `Myriad <https://myriad.esperide.org>`_ and Seaplus itself have been built 
 
 
 .. Note:: Seaplus is built and tested at each commit through `continuous integration <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/actions?query=workflow%3A%22Erlang+CI%22>`_, and the same holds for its only prerequisite (`Myriad <https://myriad.esperide.org>`_).
-		  Reciprocally this procedure applies to the projects based on it (ex: `Mobile <https://mobile.esperide.org/>`_), so in terms of usability, confidence should be high.
-
+		  Reciprocally this procedure applies to the projects based on it (ex: `Mobile <https://mobile.esperide.org/>`_), so in terms of usability, at least some confidence should exist.
 
 
 Towards a more General C/C++ Interface
