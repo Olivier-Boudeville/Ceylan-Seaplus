@@ -271,21 +271,41 @@ void log_warning( const char * format, ... )
 }
 
 
-// Raises specified error: reports it in logs, and halts.
+
+/* Raises specified error, based on a specified arguments: reports it in logs,
+ * and halts.
+ *
+ */
 void raise_error( const char * format, ... )
+{
+
+  va_list extra_values ;
+
+  va_start( extra_values, format ) ;
+
+  raise_error_variadic( format, &extra_values ) ;
+
+  va_end( extra_values ) ;
+
+}
+
+
+/* Raises specified error, based on a variadic argument: reports it in logs, and
+ * halts.
+ *
+ * Useful to report errors from a driver. For an example, see in Ceylan-Mobile:
+ *   void raise_gammu_error( GSM_StateMachine * gammu_fsm,
+ *                           const char * format, ... )
+ *
+ */
+void raise_error_variadic( const char * format, va_list *values )
 {
 
   if ( log_file != NULL )
   {
 
 	fprintf( log_file, "[error] " );
-
-	va_list arg_ptr ;
-
-	va_start( arg_ptr, format ) ;
-	vfprintf( log_file, format, arg_ptr ) ;
-	va_end( arg_ptr ) ;
-
+	vfprintf( log_file, format, *values ) ;
 	fprintf( log_file, "\n" );
 
   }
