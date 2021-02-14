@@ -88,7 +88,7 @@
 -export([ start/1, start_link/1, start/2, start_link/2,
 		  restart/1, restart/2, stop/1,
 		  call_port_for/3, get_execution_target/0,
-		  display_driver_runtime_info/1 ]).
+		  check_driver_runnable/2, display_driver_runtime_info/2 ]).
 
 
 % The name of a C-based service to make available:
@@ -128,6 +128,8 @@
 
 
 % Shorthands:
+
+-type ustring() :: text_utils:ustring().
 
 -type executable_name() :: file_utils:executable_name().
 -type executable_path() :: file_utils:executable_path().
@@ -401,7 +403,7 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 %
 % (helper)
 %
--spec launch( service_name(), executable_name() ) -> void().
+-spec launch( service_name(), executable_path() ) -> void().
 launch( ServiceName, DriverExecPath ) ->
 
 	cond_utils:if_defined( seaplus_debug_general, trace_bridge:debug_fmt(
@@ -469,37 +471,6 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	end,
 
-	% To help any driver-level debugging; notably to check whether
-	% libseaplus-*.so will be found:
-	%
-	cond_utils:if_defined( seaplus_debug_driver,
-						   display_driver_runtime_info( DriverExecPath ) ),
-
-	cond_utils:if_defined( seaplus_check_driver,
-		begin
-			% Allows to pre-check whether the driver can be run at all:
-			% (actually any command-line option will do)
-			%
-			Cmd = text_utils:format( "~s ~s", [ DriverExecPath, "--help" ] ),
-
-			% For check relevance, we perform this test in the same environment
-			% that will be used just afterwards to run the actual port:
-			%
-			case system_utils:run_executable( Cmd ) of
-
-				{ _ExitCode=0, DriverNormalMessage } ->
-					trace_bridge:debug_fmt( "Driver check successful, returned "
-						"'~s'.", [ DriverNormalMessage ] );
-
-				{ ErrorCode, ErrorMsg } ->
-					trace_bridge:error_fmt( "Driver check failed "
-						"(error code ~B, check command was '~s'): '~s'",
-						[ ErrorCode, Cmd, ErrorMsg ] ),
-					display_driver_runtime_info( DriverExecPath )
-
-			end
-		end ),
-
 	% Uncomment if wanting to force the selection of, typically, a library you
 	% specifically built with debug symbols, like for example:
 	% LibDebugPath = "/home/stallone/Software/libgammu/lib",
@@ -507,13 +478,39 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%LibPath = "LD_LIBRARY_PATH",
 	%BaseEnv = system_utils:get_environment_variable( LibPath ),
 
-	%NewEnv = text_utils:format( "~s:~s", [ LibDebugPath, BaseEnv ] ),
-	%EnvOpt = { env, [ { LibPath, NewEnv } ] },
+	%NewPathEnv = text_utils:format( "~s:~s", [ LibDebugPath, BaseEnv ] ),
+	%ExtraEnv = [ { LibPath, NewPathEnv } ],
 
-	%trace_bridge:debug_fmt( "EnvOpt: ~p", [ EnvOpt ] ),
+	ExtraEnv = [],
 
-	%PortOptions = [ { packet, 2 }, binary, EnvOpt ]
-	PortOptions = [ { packet, 2 }, binary ],
+	%trace_bridge:debug_fmt( "Extra environment for driver: ~p.",
+	%                        [ ExtraEnv ] ),
+
+	% To help any driver-level debugging; notably to just *display* whether
+	% libseaplus-*.so will be found:
+	%
+%	cond_utils:if_defined( seaplus_debug_driver,
+%		display_driver_runtime_info( DriverExecPath, ExtraEnv ) ),
+
+
+	% To perfom an actual check; user code might do the same unconditionally:
+	cond_utils:if_defined( seaplus_check_driver,
+		case check_driver_runnable( DriverExecPath, ExtraEnv ) of
+
+			{ ErrorCode, ErrorMsg } ->
+				trace_bridge:error_fmt( "Driver check failed "
+					"(error code ~B; extra environment: ~p): '~s'.",
+					[ ErrorCode, ExtraEnv, ErrorMsg ] ),
+				display_driver_runtime_info( DriverExecPath, ExtraEnv );
+
+			DriverNormalMessage ->
+				trace_bridge:debug_fmt( "Driver check successful "
+					"(for extra environment: ~p); returned '~s'.",
+					[ ExtraEnv, DriverNormalMessage ] )
+
+		end ),
+
+	PortOptions = [ { packet, 2 }, binary, { env, ExtraEnv } ],
 
 	% If wanting a direct execution of the driver:
 	DriverCommand = DriverExecPath,
@@ -522,6 +519,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%DriverCommand = text_utils:format(
 	%	"valgrind --log-file=/tmp/seaplus-valgrind.log ~s",
 	%	[ DriverExecPath ] ),
+
 
 	cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
 		"DriverCommand: '~s'.", [ DriverCommand ] ) ),
@@ -540,38 +538,69 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	% Useful for a post-crash analysis:
 	ServiceDriverKey = get_service_driver_key_for( ServiceName ),
-	process_dictionary:put( ServiceDriverKey, DriverExecPath ).
+	process_dictionary:put( ServiceDriverKey, { DriverExecPath, ExtraEnv } ).
 
 	% No need for a main loop, *we* drive the (direct) communication:
 	%driver_main_loop( Port, ServiceName ).
 
 
 
+% Checks whether the driver for the specified service is runnable at all.
+%
+% Defined as a separate function so that user code can anticipate this checking,
+% for example when it starts up.
+%
+-spec check_driver_runnable( executable_path(), system_utils:environment() ) ->
+			ustring() | system_utils:execution_outcome().
+check_driver_runnable( DriverExecPath, ExtraEnvironment ) ->
+
+	% Allows to pre-check whether the driver can be run at all:
+	% (actually any command-line option will do)
+	%
+	Cmd = DriverExecPath ++ " --help",
+
+	% For the relevance of this check, we perform this test in the exact same
+	% environment that will be used just afterwards to run the actual port:
+	%
+	case system_utils:run_executable( Cmd, ExtraEnvironment ) of
+
+		{ _ExitCode=0, DriverNormalMessage } ->
+			DriverNormalMessage;
+
+		Outcome -> %{ ErrorCode, ErrorMsg } ->
+			Outcome
+
+	end.
+
+
+
 % Displays runtime information about the specified driver, to help
 % troubleshooting.
 %
--spec display_driver_runtime_info( executable_path() ) -> void().
-display_driver_runtime_info( ExecPath ) ->
+-spec display_driver_runtime_info( executable_path(),
+								   system_utils:environment() ) -> void().
+display_driver_runtime_info( ExecPath, ExtraEnvironment ) ->
 
 	% At least as clear as 'readelf -d XXX':
 	LddPath = executable_utils:find_executable( "ldd" ),
 
 	Cmd = text_utils:format( "~s ~s", [ LddPath, ExecPath ] ),
 
-	case system_utils:run_executable( Cmd ) of
+	case system_utils:run_executable( Cmd, ExtraEnvironment ) of
 
 		{ _RetCode=0, CmdOutput } ->
 			trace_bridge:info_fmt( "Library dependencies for '~s' are:~n~s~n"
 				"While being in '~s':~n  PATH is '~s'~n  "
-				"LD_LIBRARY_PATH is '~s'.",
+				"LD_LIBRARY_PATH is '~s' (with extra environment ~p).",
 				[ ExecPath, CmdOutput, file_utils:get_current_directory(),
 				  system_utils:get_environment_variable( "PATH" ),
-				  system_utils:get_environment_variable( "LD_LIBRARY_PATH" )
-				] );
+				  system_utils:get_environment_variable( "LD_LIBRARY_PATH" ),
+				  ExtraEnvironment ] );
 
 		{ RetCode, CmdOutput } ->
 			trace_bridge:error_fmt( "Unable to get library dependencies for "
-				"'~s' (exit code ~B): '~s'.", [ ExecPath, RetCode, CmdOutput ] )
+				"'~s' (exit code ~B; with extra environment ~p): '~s'.",
+				[ ExecPath, RetCode, ExtraEnvironment, CmdOutput ] )
 
 	end.
 
@@ -697,8 +726,8 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 					trace_bridge:error_fmt( "Unable to find driver key '~s' "
 						"on ~w (abnormal).", [ DrivKey, self() ] );
 
-				ExecPath ->
-					display_driver_runtime_info( ExecPath )
+				{ ExecPath, ExtraEnv } ->
+					display_driver_runtime_info( ExecPath, ExtraEnv )
 
 			end,
 
