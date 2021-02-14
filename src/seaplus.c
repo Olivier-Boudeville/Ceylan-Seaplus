@@ -24,7 +24,7 @@
  * <http://www.mozilla.org/MPL/>.
  *
  * Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
- * Creation date: Sunday, December 16, 2018
+ * Creation date: Sunday, December 16, 2018.
  *
  */
 
@@ -112,7 +112,7 @@ char * encoded_string = NULL ;
 buffer_index encoded_index ;
 
 
-/// The number of elements in any current list encoded as a string.
+// The number of elements in any current list encoded as a string:
 list_size encoded_length ;
 
 
@@ -150,7 +150,7 @@ void start_logging( const char * log_filename )
 	// No buffering wanted here:
 	setbuf( log_file, NULL ) ;
 
-	log_debug( "Starting Seaplus session..." ) ;
+	log_debug( "Logger for Seaplus driver: starting new session..." ) ;
 
   }
   else
@@ -187,7 +187,7 @@ void stop_logging()
 }
 
 
-#define TIMESTAMP_FORMAT "[%d/%d/%d %d:%02d:%02d]"
+#define SEAPLUS_TIMESTAMP_FORMAT "[%d/%d/%d %d:%02d:%02d]"
 
 
 // Logs specified debug message.
@@ -201,7 +201,7 @@ void log_debug( const char * format, ... )
 
 	struct tm tm = *localtime( &t ) ;
 
-	fprintf( log_file, TIMESTAMP_FORMAT "[debug] ", tm.tm_year + 1900,
+	fprintf( log_file, SEAPLUS_TIMESTAMP_FORMAT "[debug] ", tm.tm_year + 1900,
 	  tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec ) ;
 
 	va_list arg_ptr ;
@@ -228,7 +228,7 @@ void log_trace( const char * format, ... )
 
 	struct tm tm = *localtime( &t ) ;
 
-	fprintf( log_file, TIMESTAMP_FORMAT "[trace] ", tm.tm_year + 1900,
+	fprintf( log_file, SEAPLUS_TIMESTAMP_FORMAT "[trace] ", tm.tm_year + 1900,
 	  tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec ) ;
 
 	va_list arg_ptr ;
@@ -255,7 +255,7 @@ void log_warning( const char * format, ... )
 
 	struct tm tm = *localtime( &t ) ;
 
-	fprintf( log_file, TIMESTAMP_FORMAT "[warning] ", tm.tm_year + 1900,
+	fprintf( log_file, SEAPLUS_TIMESTAMP_FORMAT "[warning] ", tm.tm_year + 1900,
 	  tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec ) ;
 
 	va_list arg_ptr ;
@@ -392,7 +392,7 @@ void clear_output_buffer( output_buffer * sm_buf )
 
 
 /**
- * Prepares for the encoding of the next upcoming command.
+ * Prepares for the encoding of the next, upcoming command.
  *
  * A (smart) buffer is specified, as in some cases (ex: interrupt handling)
  * multiple output buffers may be useful.
@@ -583,10 +583,10 @@ void read_function_information( input_buffer input_buffer, buffer_index * index,
 
 	int format_version ;
 
-	/* According to
-	 * https://erlangcentral.org/wiki/How_to_use_ei_to_marshal_binary_terms_in_port_programs,
-	 * the first token in a binary term is the version magic number for the
-	 * Erlang binary term format (131, at the time of this writing).
+	/* According to How_to_use_ei_to_marshal_binary_terms_in_port_programs on
+	 * https://erlangcentral.org/wiki, the first token in a binary term is the
+	 * version magic number for the Erlang binary term format (131, at the time
+	 * of this writing).
 	 *
 	 */
 	if ( ei_decode_version( *input_buffer, index, &format_version ) != 0 )
@@ -1169,7 +1169,8 @@ void write_list_header_result( output_buffer * output_sm_buf, list_size size )
  * Especially useful to write lists whose size is not known a priori, by
  * cons'ing elements one by one until none is left.
  *
- * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header for more information.
+ * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header for more
+ * information.
  *
  */
 void write_empty_list_result( output_buffer * output_sm_buf )
