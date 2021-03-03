@@ -76,7 +76,7 @@ ifeq ($(EXECUTION_TARGET),development)
 endif
 
 
-ERLANG_COMPILER_OPT_BASE += $(SEAPLUS_DEBUG_FLAGS)               \
+ERLANG_COMPILER_OPT_BASE += $(SEAPLUS_DEBUG_FLAGS) \
 							$(SEAPLUS_CHECK_FLAGS)
 
 
@@ -113,7 +113,6 @@ SEAPLUS_VERSION := 1.1.4
 ifndef PROJECT_VERSION
 	PROJECT_VERSION := $(SEAPLUS_VERSION)
 endif
-
 
 
 ifndef PACKAGE_TOP
@@ -207,8 +206,6 @@ SEAPLUS_LIB_PATH = $(SEAPLUS_LIB_DIR)/$(SEAPLUS_LIB)
 SEAPLUS_LIB_OPT = -L$(SEAPLUS_LIB_DIR) -lseaplus-$(SEAPLUS_VERSION)
 
 
-# ($(SEAPLUS_TOP)/examples not included here anymore)
-#
 # See Myriad counterpart variable (MYRIAD_BEAM_DIRS) for explanations:
 SEAPLUS_BEAM_DIRS = $(SEAPLUS_TOP)/src
 
@@ -217,16 +214,13 @@ SEAPLUS_BEAM_DIRS = $(SEAPLUS_TOP)/src
 BEAM_DIRS += $(SEAPLUS_BEAM_DIRS)
 
 
-
 ifndef VM_TEST_NAME
 	VM_NAME := seaplus_debug
 endif
 
-
 ifndef VM_TEST_NAME
 	VM_TEST_NAME := seaplus_test
 endif
-
 
 
 
