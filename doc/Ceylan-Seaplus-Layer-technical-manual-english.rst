@@ -13,11 +13,6 @@
 .. role:: raw-latex(raw)
    :format: latex
 
-.. comment Would appear too late, can only be an be used only in preamble:
-.. comment :raw-latex:`\usepackage{graphicx}`
-.. comment As a result, in this document at least a '.. figure:: XXXX' must
-.. exist, otherwise: 'Undefined control sequence \includegraphics.'.
-
 
 :raw-html:`<a name="seaplus_top"></a>`
 
@@ -25,8 +20,8 @@
 
 
 
-:raw-html:`<center><img src="seaplus-title.png" width="50%"></img></center>`
-:raw-latex:`\includegraphics[scale=0.70]{seaplus-title.png}`
+:raw-html:`<center><img src="seaplus-title.png" width="45%"></img></center>`
+:raw-latex:`\centering \includegraphics[scale=0.65]{seaplus-title.png}`
 
 
 
@@ -39,7 +34,7 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2021 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Sunday, February 14, 2021
+:Lastly updated: Friday, March 12, 2021
 :Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.1.
 :Abstract:
 
@@ -919,14 +914,9 @@ If you have information more detailed or more recent than those presented in thi
 Ending Word
 ===========
 
-Have fun with Seaplus!
+Have fun with Ceylan-Seaplus!
 
-.. comment Mostly added to ensure there is at least one figure directive,
-.. otherwise the LateX graphic support will not be included:
-
-.. figure:: seaplus-title.png
-   :alt: Seaplus logo
-   :width: 35%
-   :align: center
+:raw-html:`<center><img src="seaplus-title.png" width="20%"></img></center>`
+:raw-latex:`\begin{figure}[h] \centering \includegraphics[scale=0.2]{seaplus-title.png} \end{figure}`
 
 :raw-html:`<a name="seaplus_bottom"></a>`
