@@ -181,7 +181,7 @@ run_standalone( FileToTransform, PreprocessorOptions ) ->
 % code, before being itself converted in turn into an Erlang-compliant Abstract
 % Format code.
 %
--spec parse_transform( ast(), list() ) -> ast().
+-spec parse_transform( ast(), meta_util:parse_transform_options() ) -> ast().
 parse_transform( InputAST, Options ) ->
 
 	%trace_bridge:debug_fmt( "Seaplus input AST:~n~p~n", [ InputAST ] ),
@@ -217,7 +217,7 @@ get_seaplus_root( Options ) ->
 			case file_utils:is_existing_directory_or_link( RootDirectory ) of
 
 				true ->
-					%trace_bridge:debug_fmt( "Seaplus directory is '~s'.",
+					%trace_bridge:debug_fmt( "Seaplus directory is '~ts'.",
 					%					   [ RootDirectory ] ),
 
 					TestFile = file_utils:join(
@@ -230,20 +230,21 @@ get_seaplus_root( Options ) ->
 
 						false ->
 							trace_bridge:error_fmt( "The Seaplus root directory"
-							  " specified in the build options, '~s', does not "
-							  "seem to be a legit one (no '~s' file found, "
-							  "while being in '~s').",
-							  [ RootDirectory, TestFile,
-								file_utils:get_current_directory() ] ),
+								" specified in the build options, '~ts', does "
+								"not seem to be a legit one (no '~ts' file "
+								"found, while being in '~ts').",
+								[ RootDirectory, TestFile,
+								  file_utils:get_current_directory() ] ),
+
 							throw( { invalid_seaplus_root_directory,
 									 RootDirectory } )
 
 					end;
 
 				false ->
-					trace_bridge:error_fmt( "The Seaplus root directory '~s', "
+					trace_bridge:error_fmt( "The Seaplus root directory '~ts', "
 						"as specified in the build options, does not exist "
-						"(while being in '~s').",
+						"(while being in '~ts').",
 						[ RootDirectory, file_utils:get_current_directory() ] ),
 					throw( { seaplus_root_directory_not_found, RootDirectory } )
 
@@ -252,7 +253,7 @@ get_seaplus_root( Options ) ->
 		[] ->
 			trace_bridge:error_fmt( "No Seaplus root directory set in build "
 				"settings (requiring '-Dseaplus_root=SOME_DIR').~n"
-				"Build options were: ~p; current directory being '~s'.",
+				"Build options were: ~p; current directory being '~ts'.",
 				[ Options, file_utils:get_current_directory() ] ),
 			throw( seaplus_root_directory_not_set );
 
@@ -296,7 +297,7 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 	?display_trace( "Module information extracted." ),
 
 	%ast_utils:display_debug( "Module information, directly as obtained "
-	%	"from Myriad (untransformed): ~s",
+	%	"from Myriad (untransformed): ~ts",
 	%	[ ast_info:module_info_to_string( WithOptsModuleInfo ) ] ),
 
 	% The Seaplus augmentations must be applied only to modules corresponding to
@@ -324,7 +325,7 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 
 
 	%trace_bridge:debug_fmt(
-	%  "Module information after Seaplus: ~s",
+	%  "Module information after Seaplus: ~ts",
 	%  [ ast_info:module_info_to_string( FinalModuleInfo ) ] ),
 
 	?display_trace( "Module information processed, "
@@ -336,13 +337,13 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 	%trace_bridge:debug_fmt( "Seaplus output AST:~n~p", [ OutputAST ] ),
 
 	%OutputASTFilename = text_utils:format(
-	%		   "Seaplus-output-AST-for-module-~s.txt",
+	%		   "Seaplus-output-AST-for-module-~ts.txt",
 	%			[ element( 1, FinalModuleInfo#module_info.module ) ] ),
 	%
 	%ast_utils:write_ast_to_file( OutputAST, OutputASTFilename ),
 
 	%OutputSortedASTFilename = text_utils:format(
-	%		   "Seaplus-sorted-output-AST-for-module-~s.txt",
+	%		   "Seaplus-sorted-output-AST-for-module-~ts.txt",
 	%			[ element( 1, FinalModuleInfo#module_info.module ) ] ),
 	%
 	%ast_utils:write_ast_to_file( lists:sort( OutputAST ),
@@ -405,7 +406,7 @@ process_module_info_from(
 	% Useful to have a deep look into the target module for which a driver will
 	% be generated:
 	%
-	%trace_bridge:debug_fmt( "Control-augmented module: ~s",
+	%trace_bridge:debug_fmt( "Control-augmented module: ~ts",
 	%	[ ast_info:module_info_to_string( ControleModuleInfo ) ] ),
 
 	ReadyFunInfos = prepare_api_functions( ControleModuleInfo ),
@@ -421,7 +422,7 @@ process_module_info_from(
 			ControleModuleInfo;
 
 		_ ->
-			trace_bridge:debug_fmt( "Selected ~B function(s) for API: ~s",
+			trace_bridge:debug_fmt( "Selected ~B function(s) for API: ~ts",
 				[ length( SelectFunIds ), text_utils:strings_to_string(
 					[ ast_info:function_id_to_string( Id )
 					  || Id <- SelectFunIds ] ) ] ),
@@ -711,10 +712,10 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 % Generates the relevant C header file for the service driver.
 generate_driver_header( ServiceModuleName, FunIds ) ->
 
-	HeaderFilename = text_utils:format( "~s_seaplus_api_mapping.h",
+	HeaderFilename = text_utils:format( "~ts_seaplus_api_mapping.h",
 										[ ServiceModuleName ] ),
 
-	trace_bridge:debug_fmt( "Generating the '~s' header file, comprising ~B "
+	trace_bridge:debug_fmt( "Generating the '~ts' header file, comprising ~B "
 		"function mappings.", [ HeaderFilename, length( FunIds ) ] ),
 
 	% Being a generated file, it can be overwritten with no regret:
@@ -722,19 +723,19 @@ generate_driver_header( ServiceModuleName, FunIds ) ->
 
 	StringModName = text_utils:atom_to_string( ServiceModuleName ),
 
-	IncGuard = text_utils:format( "_~s_SEAPLUS_API_MAPPING_H_",
+	IncGuard = text_utils:format( "_~ts_SEAPLUS_API_MAPPING_H_",
 						[ text_utils:to_uppercase( StringModName ) ] ),
 
-	file_utils:write( HeaderFile, "#ifndef ~s~n", [ IncGuard ] ),
-	file_utils:write( HeaderFile, "#define ~s~n~n", [ IncGuard ] ),
+	file_utils:write_ustring( HeaderFile, "#ifndef ~ts~n#define ~ts~n~n",
+							  [ IncGuard, IncGuard ] ),
 
-	file_utils:write( HeaderFile,
+	file_utils:write_ustring( HeaderFile,
 		"/* This header file has been generated by the Seaplus integration~n"
-		" * bridge for the '~s' service, on ~s.~n"
+		" * bridge for the '~ts' service, on ~ts.~n"
 		" */~n~n",
 		[ StringModName, time_utils:get_textual_timestamp() ] ),
 
-	file_utils:write( HeaderFile,
+	file_utils:write_ustring( HeaderFile,
 		"/* For each of the exposed functions of the API, "
 		"a Seaplus identifier is~n"
 		" * generated to ensure that the C code of the driver "
@@ -744,7 +745,7 @@ generate_driver_header( ServiceModuleName, FunIds ) ->
 
 	write_mapping( HeaderFile, FunIds, _Count=1 ),
 
-	file_utils:write( HeaderFile, "~n#endif // ~s~n", [ IncGuard ] ),
+	file_utils:write_ustring( HeaderFile, "~n#endif // ~ts~n", [ IncGuard ] ),
 
 	file_utils:close( HeaderFile ),
 
@@ -759,7 +760,8 @@ write_mapping( HeaderFile, _FunIds=[ { FunName, Arity } | T ], Count ) ->
 
 	FunSymbol = get_driver_id_for( FunName, Arity ),
 
-	file_utils:write( HeaderFile, "#define ~s ~B~n", [ FunSymbol, Count ] ),
+	file_utils:write_ustring( HeaderFile, "#define ~ts ~B~n",
+							  [ FunSymbol, Count ] ),
 
 	write_mapping( HeaderFile, T, Count+1 ).
 
@@ -770,24 +772,24 @@ get_driver_id_for( FunName, Arity ) ->
 
 	FunString = text_utils:to_uppercase( text_utils:atom_to_string( FunName ) ),
 
-	text_utils:format( "~s_~B_ID", [ FunString, Arity ] ).
+	text_utils:format( "~ts_~B_ID", [ FunString, Arity ] ).
 
 
 % Creates an implementation stub for the driver, if no such file exists.
 manage_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 							  SeaplusRootDir ) ->
 
-	SourceFilename = text_utils:format( "~s_seaplus_driver.c",
+	SourceFilename = text_utils:format( "~ts_seaplus_driver.c",
 										[ ServiceModuleName ] ),
 
 	case file_utils:is_existing_file_or_link( SourceFilename ) of
 
 		true ->
-			trace_bridge:info_fmt( "Driver implementation ('~s') already "
+			trace_bridge:info_fmt( "Driver implementation ('~ts') already "
 				"existing, not generating it.", [ SourceFilename ] );
 
 		false ->
-			trace_bridge:info_fmt( "No driver implementation ('~s') found, "
+			trace_bridge:info_fmt( "No driver implementation ('~ts') found, "
 				"generating it.", [ SourceFilename ] ),
 			generate_driver_implementation( ServiceModuleName, FunIds,
 						HeaderFilename, SourceFilename, SeaplusRootDir )
@@ -817,13 +819,13 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 
 	HeaderContent = file_utils:read_whole( DriverHeaderFilename ),
 
-	%trace_bridge:debug_fmt( "Read content:~n~s",
+	%trace_bridge:debug_fmt( "Read content:~n~ts",
 	%					   [ HeaderContent ] ),
 
 	HHeaderContent = string:replace(  HeaderContent,
 	   "##SEAPLUS_SERVICE_HEADER_FILE##", HeaderFilename, all ),
 
-	%trace_bridge:debug_fmt( "New content:~n~s", [ HHeaderContent ] ),
+	%trace_bridge:debug_fmt( "New content:~n~ts", [ HHeaderContent ] ),
 
 	StringServiceModuleName = text_utils:atom_to_string( ServiceModuleName ),
 
@@ -831,7 +833,7 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 				"##SEAPLUS_SERVICE_NAME##", StringServiceModuleName, all ),
 
 
-	%trace_bridge:debug_fmt( "Generated driver header:~n~s",
+	%trace_bridge:debug_fmt( "Generated driver header:~n~ts",
 	%                      [ NHeaderContent ] ),
 
 	DriverFooterFilename =
@@ -851,11 +853,11 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 
 	SourceFile = file_utils:open( SourceFilename, _Opts=[ write, raw ] ),
 
-	file_utils:write( SourceFile, NHeaderContent ),
+	file_utils:write_ustring( SourceFile, NHeaderContent ),
 
 	write_cases( SourceFile, FunIds ),
 
-	file_utils:write( SourceFile, FooterContent ),
+	file_utils:write_ustring( SourceFile, FooterContent ),
 
 	file_utils:close( SourceFile ).
 
@@ -868,18 +870,18 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 	DriverId = get_driver_id_for( FunName, Arity ),
 
 	Snippet = text_utils:format(
-		"\tcase ~s:~n~n"
-		"\t\tLOG_DEBUG( \"Executing ~s/~B.\" ) ;~n"
-		"\t\tcheck_arity_is( ~B, param_count, ~s ) ;~n~n"
+		"\tcase ~ts:~n~n"
+		"\t\tLOG_DEBUG( \"Executing ~ts/~B.\" ) ;~n"
+		"\t\tcheck_arity_is( ~B, param_count, ~ts ) ;~n~n"
 		"\t\t// Add an Erlang term -> C conversion here for each "
 				"parameter of~n"
 		"\t\t// interest (refer to seaplus_getters.h for the conversion "
 				"functions).~n~n"
 		"\t\t// As an example, supposing that a single input parameter of "
-		"type 'int'~n\t\t// applies for this ~s/~B function:~n"
+		"type 'int'~n\t\t// applies for this ~ts/~B function:~n"
 		"\t\t// int i = read_int_parameter( read_buf, &index ) ;~n~n"
 		"\t\t// This allows then to call the C counterpart of~n"
-		"\t\t// the ~s/~B function:~n"
+		"\t\t// the ~ts/~B function:~n"
 		"\t\t// Ex: float f = some_service_function( i ) ;~n~n"
 		"\t\t// Then write the returned result to the Erlang side:~n"
 		"\t\t// (refer to seaplus_setters.h for the conversion functions)"
@@ -891,7 +893,7 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 		[ DriverId, FunName, Arity, Arity, DriverId, FunName, Arity, FunName,
 		  Arity ] ),
 
-	file_utils:write( SourceFile, "~n~s~n", [ Snippet ] ),
+	file_utils:write_ustring( SourceFile, "~n~ts~n", [ Snippet ] ),
 
 	write_cases( SourceFile, T ).
 
@@ -939,7 +941,7 @@ prepare_api_functions( ModuleInfo=#module_info{ functions=FunctionTable,
 	PortDictKey = get_port_dict_key_for( ModuleInfo ),
 
 	%trace_bridge:debug_fmt( "Will store the service port under the "
-	%   "'~s' key in the process dictionary.", [ PortDictKey ] ),
+	%   "'~ts' key in the process dictionary.", [ PortDictKey ] ),
 
 	MarkerTable = ModuleInfo#module_info.markers,
 
@@ -971,7 +973,7 @@ select_for_binding( [ #function_info{ %name=Name,
 									  spec=undefined } | T ],
 					SeaplusFunIds, Acc ) ->
 
-	%trace_bridge:debug_fmt( "~s/~B skipped for binding (no spec).",
+	%trace_bridge:debug_fmt( "~ts/~B skipped for binding (no spec).",
 	%					   [ Name, Arity ] ),
 
 	select_for_binding( T, SeaplusFunIds, Acc );
@@ -988,12 +990,12 @@ select_for_binding( [ FInfo=#function_info{ name=Name,
 
 		true ->
 			%trace_bridge:debug_fmt(
-			%  "Seaplus-defined ~s/~B not selected in binding.",
+			%  "Seaplus-defined ~ts/~B not selected in binding.",
 			%  [ Name, Arity ] ),
 			select_for_binding( T, SeaplusFunIds, Acc );
 
 		false ->
-			%trace_bridge:debug_fmt( "~s/~B selected in binding.",
+			%trace_bridge:debug_fmt( "~ts/~B selected in binding.",
 			%					   [ Name, Arity ] ),
 			select_for_binding( T, SeaplusFunIds, [ FInfo | Acc ] )
 
@@ -1033,7 +1035,7 @@ post_process_fun_infos( [ FInfo=#function_info{ %name=Name,
 
 	FunDriverId = Count,
 
-	%trace_bridge:debug_fmt( "Assigning Driver ID #~B to ~s/~B.",
+	%trace_bridge:debug_fmt( "Assigning Driver ID #~B to ~ts/~B.",
 	%						[ FunDriverId, Name, Arity ] ),
 
 	Clauses = generate_clauses_for( FunDriverId, Arity, PortDictKey ),
@@ -1171,7 +1173,7 @@ get_seaplus_function_ids() ->
 %
 -spec get_port_dict_key_for( module_info() ) -> dict_key().
 get_port_dict_key_for( #module_info{ module={ ModName, _Loc } } ) ->
-	KeyString = text_utils:format( "_seaplus_port_for_service_~s",
+	KeyString = text_utils:format( "_seaplus_port_for_service_~ts",
 								   [ ModName ] ),
 	text_utils:string_to_atom( KeyString ).
 
@@ -1185,7 +1187,7 @@ get_port_dict_key_for( #module_info{ module={ ModName, _Loc } } ) ->
 % (helper)
 %
 -spec generate_clauses_for( function_driver_id(), arity(), dict_key() ) ->
-								  [ meta_utils:clause_def() ].
+									[ meta_utils:clause_def() ].
 generate_clauses_for( Id, Arity, PortDictKey ) ->
 
 	Line = 0,

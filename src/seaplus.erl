@@ -306,14 +306,14 @@ restart( ServiceName, DriverExecutableName ) ->
 stop( ServiceName ) when is_atom( ServiceName ) ->
 
 	cond_utils:if_defined( seaplus_debug_general, trace_bridge:debug_fmt(
-		"Stopping the '~s' service.", [ ServiceName ] ) ),
+		"Stopping the '~ts' service.", [ ServiceName ] ) ),
 
 	ServiceKey = get_service_port_key_for( ServiceName ),
 
 	case process_dictionary:get( ServiceKey ) of
 
 		undefined ->
-			trace_bridge:warning_fmt( "Service key '~s', for service '~s', "
+			trace_bridge:warning_fmt( "Service key '~ts', for service '~ts', "
 				"not found, so service is supposed not to be running - "
 				"hence not to be stopped.", [ ServiceKey, ServiceName ] ),
 			ok;
@@ -350,7 +350,7 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 %
 -spec get_driver_name( service_name() ) -> executable_name().
 get_driver_name( ServiceName ) ->
-	text_utils:format( "~s_seaplus_driver", [ ServiceName ] ).
+	text_utils:format( "~ts_seaplus_driver", [ ServiceName ] ).
 
 
 
@@ -373,12 +373,12 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 
 				PathValue ->
 					text_utils:format( "the PATH environment variable being "
-						"set to '.:~s'", [ PathValue ] )
+						"set to '.:~ts'", [ PathValue ] )
 
 			end,
 
-			trace_bridge:error_fmt( "Unable to find executable '~s' "
-				"for service '~s' from '~s' (~s).",
+			trace_bridge:error_fmt( "Unable to find executable '~ts' "
+				"for service '~ts' from '~ts' (~ts).",
 				[ DriverExecutableName, ServiceName,
 				  file_utils:get_current_directory(), PathStr ] ),
 
@@ -390,8 +390,8 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 
 	end,
 
-	%trace_bridge:debug_fmt( "Initializing service '~s', "
-	%     "using executable '~s'.", [ ServiceName, ExecPath ] ),
+	%trace_bridge:debug_fmt( "Initializing service '~ts', "
+	%     "using executable '~ts'.", [ ServiceName, ExecPath ] ),
 
 	ExecPath.
 
@@ -407,7 +407,7 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 launch( ServiceName, DriverExecPath ) ->
 
 	cond_utils:if_defined( seaplus_debug_general, trace_bridge:debug_fmt(
-		"[~w] Launching the '~s' service, using driver path '~s'.",
+		"[~w] Launching the '~ts' service, using driver path '~ts'.",
 		[ self(), ServiceName, DriverExecPath ] ) ),
 
 	% To receive EXIT messages, should the port fail (best option):
@@ -439,14 +439,14 @@ launch_link( ServiceName, DriverExecPath ) ->
 init_driver( ServiceName, DriverExecPath ) ->
 
 	cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
-		"For service '~s', launching driver '~s'.",
+		"For service '~ts', launching driver '~ts'.",
 		[ ServiceName, DriverExecPath ] ) ),
 
 	% Used to intercept driver crashes, when was a spawned process:
 	%process_flag( trap_exit, true ),
 
 	% Now relying on the process dictionary:
-	%trace_bridge:debug_fmt( "Registering (locally) as '~s'.",
+	%trace_bridge:debug_fmt( "Registering (locally) as '~ts'.",
 	%    [ ServiceName ] ),
 
 	% Not using anymore an intermediate process:
@@ -464,7 +464,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 			ok;
 
 		_ ->
-			trace_bridge:error_fmt( "Service key '~s', for service '~s', "
+			trace_bridge:error_fmt( "Service key '~ts', for service '~ts', "
 				"already registered; service already started?",
 				[ ServiceKey, ServiceName ] ),
 			throw( { service_key_already_set, ServiceKey } )
@@ -478,7 +478,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%LibPath = "LD_LIBRARY_PATH",
 	%BaseEnv = system_utils:get_environment_variable( LibPath ),
 
-	%NewPathEnv = text_utils:format( "~s:~s", [ LibDebugPath, BaseEnv ] ),
+	%NewPathEnv = text_utils:format( "~ts:~ts", [ LibDebugPath, BaseEnv ] ),
 	%ExtraEnv = [ { LibPath, NewPathEnv } ],
 
 	ExtraEnv = [],
@@ -499,13 +499,13 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 			{ ErrorCode, ErrorMsg } ->
 				trace_bridge:error_fmt( "Driver check failed "
-					"(error code ~B; extra environment: ~p): '~s'.",
+					"(error code ~B; extra environment: ~p): '~ts'.",
 					[ ErrorCode, ExtraEnv, ErrorMsg ] ),
 				display_driver_runtime_info( DriverExecPath, ExtraEnv );
 
 			DriverNormalMessage ->
 				trace_bridge:debug_fmt( "Driver check successful "
-					"(for extra environment: ~p); returned '~s'.",
+					"(for extra environment: ~p); returned '~ts'.",
 					[ ExtraEnv, DriverNormalMessage ] )
 
 		end ),
@@ -517,12 +517,12 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	% If wanting to run the driver through Valgrind instead:
 	%DriverCommand = text_utils:format(
-	%	"valgrind --log-file=/tmp/seaplus-valgrind.log ~s",
+	%	"valgrind --log-file=/tmp/seaplus-valgrind.log ~ts",
 	%	[ DriverExecPath ] ),
 
 
 	cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
-		"DriverCommand: '~s'.", [ DriverCommand ] ) ),
+		"DriverCommand: '~ts'.", [ DriverCommand ] ) ),
 
 	% Respect the erl_interface conventions:
 	%
@@ -531,7 +531,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 	Port = open_port( { spawn, DriverCommand }, PortOptions ),
 
 	cond_utils:if_defined( seaplus_debug_port, trace_bridge:debug_fmt(
-		"Storing port ~w under the service key '~s' "
+		"Storing port ~w under the service key '~ts' "
 		"in the process dictionary of ~p.", [ Port, ServiceKey, self() ] ) ),
 
 	process_dictionary:put( ServiceKey, Port ),
@@ -584,14 +584,14 @@ display_driver_runtime_info( ExecPath, ExtraEnvironment ) ->
 	% At least as clear as 'readelf -d XXX':
 	LddPath = executable_utils:find_executable( "ldd" ),
 
-	Cmd = text_utils:format( "~s ~s", [ LddPath, ExecPath ] ),
+	Cmd = text_utils:format( "~ts ~ts", [ LddPath, ExecPath ] ),
 
 	case system_utils:run_executable( Cmd, ExtraEnvironment ) of
 
 		{ _RetCode=0, CmdOutput } ->
-			trace_bridge:info_fmt( "Library dependencies for '~s' are:~n~s~n"
-				"While being in '~s':~n  PATH is '~s'~n  "
-				"LD_LIBRARY_PATH is '~s' (with extra environment ~p).",
+			trace_bridge:info_fmt( "Library dependencies for '~ts' are:~n~ts~n"
+				"While being in '~ts':~n  PATH is '~ts'~n  "
+				"LD_LIBRARY_PATH is '~ts' (with extra environment ~p).",
 				[ ExecPath, CmdOutput, file_utils:get_current_directory(),
 				  system_utils:get_environment_variable( "PATH" ),
 				  system_utils:get_environment_variable( "LD_LIBRARY_PATH" ),
@@ -599,7 +599,7 @@ display_driver_runtime_info( ExecPath, ExtraEnvironment ) ->
 
 		{ RetCode, CmdOutput } ->
 			trace_bridge:error_fmt( "Unable to get library dependencies for "
-				"'~s' (exit code ~B; with extra environment ~p): '~s'.",
+				"'~ts' (exit code ~B; with extra environment ~p): '~ts'.",
 				[ ExecPath, RetCode, ExtraEnvironment, CmdOutput ] )
 
 	end.
@@ -623,7 +623,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 	TargetPort = case process_dictionary:get( ServiceKey ) of
 
 		undefined ->
-			trace_bridge:error_fmt( "Service key '~s' not set in process "
+			trace_bridge:error_fmt( "Service key '~ts' not set in process "
 				"dictionary of ~p; has the corresponding service been started?",
 				[ ServiceKey, self() ] ),
 
@@ -664,7 +664,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 			cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
 				"Term received by ~w from C side "
-				"(port: ~w) for service '~s', in answer to "
+				"(port: ~w) for service '~ts', in answer to "
 				"a call to the function whose identifier is ~B:~n~p",
 				[ self(), TargetPort,
 				  get_service_name_from_port_key( ServiceKey ), FunctionId,
@@ -683,8 +683,8 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 				_:badarg ->
 					ServiceName = get_service_name_from_port_key( ServiceKey ),
 					trace_bridge:error_fmt( "Incorrect driver return received "
-						"by process ~w from port ~w for service '~s' regarding "
-						"function identified by ~B:~n~p",
+						"by process ~w from port ~w for service '~ts' "
+						"regarding function identified by ~B:~n~p",
 						[ self(), TargetPort, ServiceName, FunctionId,
 						  BinAnswer ] ),
 					throw( { incorrect_return, { service, ServiceName },
@@ -694,7 +694,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 					ServiceName = get_service_name_from_port_key( ServiceKey ),
 					trace_bridge:error_fmt( "Exception raised for driver "
 						"return received by process ~w from port ~w "
-						"for service '~s' regarding the function identified "
+						"for service '~ts' regarding the function identified "
 						"by ~B: ~p",
 						[ self(), TargetPort, ServiceName, FunctionId, E ] ),
 					throw( { invalid_return, { service, ServiceName },
@@ -723,7 +723,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			case process_dictionary:get( DrivKey ) of
 
 				undefined ->
-					trace_bridge:error_fmt( "Unable to find driver key '~s' "
+					trace_bridge:error_fmt( "Unable to find driver key '~ts' "
 						"on ~w (abnormal).", [ DrivKey, self() ] );
 
 				{ ExecPath, ExtraEnv } ->
@@ -771,8 +771,8 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 -spec get_service_port_key_for( service_name() ) -> service_key().
 get_service_port_key_for( ServiceName ) ->
 
-	PortKeyString = text_utils:format( "~s~s",
-								   [ ?service_port_key_prefix, ServiceName ] ),
+	PortKeyString = text_utils:format( "~ts~ts",
+									[ ?service_port_key_prefix, ServiceName ] ),
 
 	text_utils:string_to_atom( PortKeyString ).
 
@@ -802,7 +802,7 @@ get_service_name_from_port_key( ServicePortKey ) ->
 -spec get_service_driver_key_for( service_name() ) -> service_key().
 get_service_driver_key_for( ServiceName ) ->
 
-	DriverKeyString = text_utils:format( "_seaplus_driver_path_for_service_~s",
+	DriverKeyString = text_utils:format( "_seaplus_driver_path_for_service_~ts",
 										 [ ServiceName ] ),
 
 	text_utils:string_to_atom( DriverKeyString ).

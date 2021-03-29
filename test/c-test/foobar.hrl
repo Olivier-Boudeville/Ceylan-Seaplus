@@ -25,5 +25,4 @@
 
 } ).
 
-
 -type foo_data() :: #foo_data{}.

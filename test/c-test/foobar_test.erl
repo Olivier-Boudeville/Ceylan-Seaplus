@@ -77,7 +77,7 @@ run() ->
 
 	end,
 
-	io:format( "Having: ~s~n", [ foobar:frob( Res ) ] ),
+	io:format( "Having: ~ts~n", [ foobar:frob( Res ) ] ),
 
 
 	test_facilities:display( "Now, some more extensive, extra testing." ),
