@@ -562,7 +562,7 @@ check_driver_runnable( DriverExecPath, ExtraEnvironment ) ->
 	% For the relevance of this check, we perform this test in the exact same
 	% environment that will be used just afterwards to run the actual port:
 	%
-	case system_utils:run_executable( Cmd, ExtraEnvironment ) of
+	case system_utils:run_command( Cmd, ExtraEnvironment ) of
 
 		{ _ExitCode=0, DriverNormalMessage } ->
 			DriverNormalMessage;
@@ -586,7 +586,7 @@ display_driver_runtime_info( ExecPath, ExtraEnvironment ) ->
 
 	Cmd = text_utils:format( "~ts ~ts", [ LddPath, ExecPath ] ),
 
-	case system_utils:run_executable( Cmd, ExtraEnvironment ) of
+	case system_utils:run_command( Cmd, ExtraEnvironment ) of
 
 		{ _RetCode=0, CmdOutput } ->
 			trace_bridge:info_fmt( "Library dependencies for '~ts' are:~n~ts~n"
