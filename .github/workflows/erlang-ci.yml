@@ -12,8 +12,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # See https://hub.docker.com/_/erlang:
     container:
-      image: erlang:23.2.0
+      image: erlang:latest
 
     steps:
     - uses: actions/checkout@v2
