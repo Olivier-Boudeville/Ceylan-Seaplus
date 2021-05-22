@@ -1,4 +1,4 @@
-% Copyright (C) 2018-2021 Olivier Boudeville
+% Copyright (C) 2019-2021 Olivier Boudeville
 %
 % This file is part of the Ceylan-Seaplus library.
 %
@@ -27,11 +27,13 @@
 
 
 
-% Overall parse transform for the Seaplus layer, in charge of streamlining the
-% integration of any C-based service.
+% @doc Overall <p>parse transform for the Seaplus layer</p>, in charge of
+% streamlining the integration of any C-based service.
 %
 % Meant, for a Foobar service, to operate on a foobar.erl stub, so that:
+%
 % - a fully-functional foobar module becomes available
+%
 % - a corresponding foobar_seaplus_api_mapping.h C header is generated in order
 % to ease the development of the corresponding C-side driver
 %
@@ -1047,10 +1049,10 @@ post_process_fun_infos( [ FInfo=#function_info{ %name=Name,
 		% Otherwise 'undefined', ending up at the beginning of the AST, prior to
 		% defines for example:
 		%
-		location=DefLoc,
+		ast_location=DefLoc,
 
 		% Otherwise 'undefined', rejected by the linter:
-		line=0,
+		file_location=ast_utils:get_generated_code_location(),
 
 		clauses=Clauses,
 		exported=[ ExportLoc ] },
