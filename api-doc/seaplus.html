@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Module seaplus</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
+</head>
+<body bgcolor="white">
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<hr>
+
+<h1>Module seaplus</h1>
+<ul class="index"><li><a href="#description">Description</a></li><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>The main Seaplus module gathers the generic elements useful to
+ <b>integrate any kind of C-based service</b> to Erlang.
+
+
+<h2><a name="description">Description</a></h2><p>The main Seaplus module gathers the generic elements useful to
+ <b>integrate any kind of C-based service</b> to Erlang.</p>
+
+ Relies (only) on Ceylan-Myriad.
+
+<h2><a name="types">Data Types</a></h2>
+
+<h3 class="typedecl"><a name="type-executable_name">executable_name()</a></h3>
+<p><tt>executable_name() = <a href="file_utils.html#type-executable_name">file_utils:executable_name()</a></tt></p>
+
+
+<h3 class="typedecl"><a name="type-executable_path">executable_path()</a></h3>
+<p><tt>executable_path() = <a href="file_utils.html#type-executable_path">file_utils:executable_path()</a></tt></p>
+
+
+<h3 class="typedecl"><a name="type-function_driver_id">function_driver_id()</a></h3>
+<p><tt>function_driver_id() = <a href="basic_utils.html#type-count">basic_utils:count()</a></tt></p>
+<p><p> The identifier of a function for the driver, as determined by Seaplus.</p>
+
+ (ex: 1 for foo/1 in the toy example)</p>
+
+<h3 class="typedecl"><a name="type-function_params">function_params()</a></h3>
+<p><tt>function_params() = [term()]</tt></p>
+<p> The list of parameters to call the function stub with.</p>
+
+<h3 class="typedecl"><a name="type-function_result">function_result()</a></h3>
+<p><tt>function_result() = term()</tt></p>
+<p> The (Erlang-side) result of the execution of a function.</p>
+
+<h3 class="typedecl"><a name="type-service_key">service_key()</a></h3>
+<p><tt>service_key() = <a href="process_dictionary.html#type-key">process_dictionary:key()</a></tt></p>
+<p> A key corresponding to the port of a service instance, whose reference is to
+ be stored in the process dictionary of the user process.</p>
+
+<h3 class="typedecl"><a name="type-service_name">service_name()</a></h3>
+<p><tt>service_name() = atom()</tt></p>
+<p> The name of a C-based service to make available.</p>
+
+<h3 class="typedecl"><a name="type-ustring">ustring()</a></h3>
+<p><tt>ustring() = <a href="text_utils.html#type-ustring">text_utils:ustring()</a></tt></p>
+
+
+<h2><a name="index">Function Index</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#call_port_for-3">call_port_for/3</a></td><td>The actual bridge from the user code to the port (and then to the 
+driver).</td></tr>
+<tr><td valign="top"><a href="#check_driver_runnable-2">check_driver_runnable/2</a></td><td>Checks whether the driver for the specified service is runnable at all.</td></tr>
+<tr><td valign="top"><a href="#display_driver_runtime_info-2">display_driver_runtime_info/2</a></td><td>Displays runtime information about the specified driver, to help
+ troubleshooting.</td></tr>
+<tr><td valign="top"><a href="#get_execution_target-0">get_execution_target/0</a></td><td></td></tr>
+<tr><td valign="top"><a href="#restart-1">restart/1</a></td><td>Restarts the specific service support (ex: to overcome a detected crash
+ thereof).</td></tr>
+<tr><td valign="top"><a href="#restart-2">restart/2</a></td><td>Restarts the specific service support (ex: to overcome a detected crash
+ thereof).</td></tr>
+<tr><td valign="top"><a href="#start-1">start/1</a></td><td>Starts the support for the specified named service.</td></tr>
+<tr><td valign="top"><a href="#start-2">start/2</a></td><td>Starts the support for the specified named service, relying on specified 
+executable name for the driver.</td></tr>
+<tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td>Starts and links the support for the specified named service.</td></tr>
+<tr><td valign="top"><a href="#start_link-2">start_link/2</a></td><td>Starts and links to the caller the support for the specified named 
+service, relying on specified executable name for the driver.</td></tr>
+<tr><td valign="top"><a href="#stop-1">stop/1</a></td><td>Stops the specific service support.</td></tr>
+</table>
+
+<h2><a name="functions">Function Details</a></h2>
+
+<h3 class="function"><a name="call_port_for-3">call_port_for/3</a></h3>
+<div class="spec">
+<p><tt>call_port_for(ServiceKey::<a href="#type-service_key">service_key()</a>, FunctionId::<a href="#type-function_driver_id">function_driver_id()</a>, Params::<a href="#type-function_params">function_params()</a>) -&gt; <a href="#type-function_result">function_result()</a></tt><br></p>
+<p> </p>
+</div><p><p>The actual bridge from the user code to the port (and then to the 
+driver).</p>
+
+ <p>The identifier will suffice, no real need to pass along the 
+basic_utils:function_name().</p>
+
+ Will return the result of the corresponding call, or will raise an exception.
+</p>
+
+<h3 class="function"><a name="check_driver_runnable-2">check_driver_runnable/2</a></h3>
+<div class="spec">
+<p><tt>check_driver_runnable(DriverExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="system_utils.html#type-environment">system_utils:environment()</a>) -&gt; <a href="#type-ustring">ustring()</a> | <a href="system_utils.html#type-execution_outcome">system_utils:execution_outcome()</a></tt><br></p>
+<p> </p>
+</div><p><p>Checks whether the driver for the specified service is runnable at all.</p>
+
+ Defined as a separate function so that user code can anticipate this checking,
+ for example when it starts up.
+</p>
+
+<h3 class="function"><a name="display_driver_runtime_info-2">display_driver_runtime_info/2</a></h3>
+<div class="spec">
+<p><tt>display_driver_runtime_info(ExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="system_utils.html#type-environment">system_utils:environment()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p> </p>
+</div><p>Displays runtime information about the specified driver, to help
+ troubleshooting.
+</p>
+
+<h3 class="function"><a name="get_execution_target-0">get_execution_target/0</a></h3>
+<div class="spec">
+<p><tt>get_execution_target() -&gt; development</tt><br></p>
+<p> </p>
+</div>
+
+<h3 class="function"><a name="restart-1">restart/1</a></h3>
+<div class="spec">
+<p><tt>restart(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p> </p>
+</div><p>Restarts the specific service support (ex: to overcome a detected crash
+ thereof).
+</p>
+
+<h3 class="function"><a name="restart-2">restart/2</a></h3>
+<div class="spec">
+<p><tt>restart(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p> </p>
+</div><p>Restarts the specific service support (ex: to overcome a detected crash
+ thereof).
+</p>
+
+<h3 class="function"><a name="start-1">start/1</a></h3>
+<div class="spec">
+<p><tt>start(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p> </p>
+</div><p><p>Starts the support for the specified named service.</p>
+
+ <p>The corresponding executable driver is implicit here, so its name is expected 
+to be the one of the service once suffixed with "_seaplus_driver".</p>
+
+ <p>For example, a service 'foobar', hence having the Erlang-side bridge 
+implemented in foobar.erl, is expected here to rely on the 
+'foobar_seaplus_driver' generated executable.</p>
+
+ Note: as the created port is not linked here, as a side-effect the caller
+ (user) process will be set to trapping exit signals, so that EXIT messages can
+ be received, and be translated to exceptions to be raised. This is the
+ recommended choice.
+</p>
+
+<h3 class="function"><a name="start-2">start/2</a></h3>
+<div class="spec">
+<p><tt>start(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p> </p>
+</div><p><p>Starts the support for the specified named service, relying on specified 
+executable name for the driver.</p>
+
+ Note: should the service itself or its driver crash (ex: in the context of a
+ call being triggered), the service user process will receive an
+ {'EXIT',FromPort,Reason} message.
+</p>
+
+<h3 class="function"><a name="start_link-1">start_link/1</a></h3>
+<div class="spec">
+<p><tt>start_link(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p> </p>
+</div><p><p>Starts and links the support for the specified named service.</p>
+
+ <p>The corresponding driver is implicit here, so its name is expected to be the 
+one of the service once suffixed with "_seaplus_driver".</p>
+
+ <p>For example, a service 'foobar', hence having the Erlang-side bridge 
+implemented in foobar.erl, is expected here to rely on the 
+'foobar_seaplus_driver' generated executable.</p>
+
+ Note: as the created port is linked here, as a side-effect the caller (user)
+ process will be set to *not* trapping exit signals; so it will die whenever a
+ port-side problem happens. This is not the recommended choice, prefer start/1.
+</p>
+
+<h3 class="function"><a name="start_link-2">start_link/2</a></h3>
+<div class="spec">
+<p><tt>start_link(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p> </p>
+</div><p><p>Starts and links to the caller the support for the specified named 
+service, relying on specified executable name for the driver.</p>
+
+ Note: should the service itself or its driver crash (ex: in the context of a
+ call being triggered), the service user process will receive an exit signal
+ with an exit reason other than normal.
+</p>
+
+<h3 class="function"><a name="stop-1">stop/1</a></h3>
+<div class="spec">
+<p><tt>stop(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p> </p>
+</div><p>Stops the specific service support.</p>
+<hr>
+
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<p><i>Generated by EDoc</i></p>
+</body>
+</html>

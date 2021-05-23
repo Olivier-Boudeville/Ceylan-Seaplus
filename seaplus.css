@@ -54,6 +54,12 @@ div.centered {
 }
 
 
+div.contents {
+	border: solid;
+	border-width: thin;
+ }
+
+
 body {
   color: #000000;
   background: #FFFFFF;

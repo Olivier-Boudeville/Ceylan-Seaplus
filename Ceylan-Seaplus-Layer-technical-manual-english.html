@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.16: http://docutils.sourceforge.net/" />
-<title>Welcome to the Ceylan-Seaplus 1.1 documentation</title>
+<title>Welcome to the Ceylan-Seaplus documentation</title>
 <meta content="Seaplus, C, C++, integration, interface, bridge, Erlang" name="keywords" />
 <link rel="stylesheet" href="pygments-default.css" type="text/css" />
 <link rel="stylesheet" href="seaplus.css" type="text/css" />
@@ -16,7 +16,7 @@
 
 
 <span class="target" id="top"></span><p><span class="raw-html"><a name="seaplus_top"></a></span></p>
-<p><span class="raw-html"><div class="banner"><p><em>Seaplus 1.1 documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">browse mirror</a> <a href="seaplus.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_bottom">go to bottom</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">go to project</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus%201.1]%20Remark">email us</a></p></div></span></p>
+<p><span class="raw-html"><div class="banner"><p><em>Seaplus documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">browse mirror</a> <a href="seaplus.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_toc">go to toc</a> <a href="#seaplus_bottom">go to bottom</a> <a href="api-doc/index.html">browse API</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">go to project</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus]%20Remark">email us</a></p></div></span></p>
 <p><span class="raw-html"><center><img src="seaplus-title.png" width="45%"></img></center></span>
 </p>
 <div class="section" id="seaplus-streamlining-a-safe-execution-of-c-c-code-from-erlang">
@@ -25,17 +25,31 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Organisation:</th><td class="field-body">Copyright (C) 2018-2021 Olivier Boudeville</td>
+<tr class="field"><th class="field-name">Organisation:</th><td class="field-body"><p class="first">Copyright (C) 2018-2021 Olivier Boudeville</p>
+</td>
 </tr>
-<tr class="field"><th class="field-name">Contact:</th><td class="field-body">about (dash) seaplus (at) esperide (dot) com</td>
+<tr class="field"><th class="field-name">Contact:</th><td class="field-body"><p class="first">about (dash) seaplus (at) esperide (dot) com</p>
+</td>
 </tr>
-<tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, December 23, 2018</td>
+<tr class="field"><th class="field-name">Creation date:</th><td class="field-body"><p class="first">Sunday, December 23, 2018</p>
+</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Friday, March 12, 2021</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Sunday, May 23, 2021</p>
+</td>
 </tr>
-<tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Seaplus</tt> bridge, version 1.1.</td>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.1.5</p>
+</td>
 </tr>
-<tr class="field"><th class="field-name">Abstract:</th><td class="field-body">The role of the <tt class="docutils literal">Seaplus</tt> bridge is to control C or C++ code from Erlang, not as NIF but thanks to a port, and to streamline the corresponding integration process.</td>
+<tr class="field"><th class="field-name">Status:</th><td class="field-body"><p class="first">Stable</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Dedication:</th><td class="field-body"><p class="first">Users and maintainers of the <tt class="docutils literal">Seaplus</tt> bridge.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Abstract:</th><td class="field-body"><p class="first">The role of the <a class="reference external" href="http://seaplus.esperide.org/">Seaplus</a> bridge  (part of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan">Ceylan</a> project) is to control C or C++ code from Erlang, not as NIF but thanks to a port, and to streamline the corresponding integration process.</p>
+<p class="last">We present here a short overview of these services, to introduce them to newcomers.
+The next level of information is either to browse the <a class="reference external" href="api-doc/index.html">Seaplus API documentation</a> or simply to read the corresponding <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">source files</a>, which are intensely commented and generally straightforward.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -43,8 +57,9 @@
 <p><span class="raw-html">This Seaplus documentation is also available in the PDF format (see <a href="seaplus.pdf">seaplus.pdf</a>), and mirrored <a href="http://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">here</a>.</span></p>
 <p></p>
 <p></p>
+<p><span class="raw-html"><a name="seaplus_toc"></a></span></p>
 <div class="contents topic" id="id1">
-<span id="table-of-contents"></span><p class="topic-title">Table of Contents</p>
+<span id="table-of-contents"></span><p class="topic-title"><strong>Table of Contents</strong></p>
 <ul class="simple">
 <li><a class="reference internal" href="#seaplus-streamlining-a-safe-execution-of-c-c-code-from-erlang" id="id36">Seaplus: Streamlining a safe execution of C/C++ code from Erlang</a><ul>
 <li><a class="reference internal" href="#overview" id="id37">Overview</a></li>
@@ -109,7 +124,7 @@
 
 <span class="kt">int</span> <span class="nf">foo</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">);</span>
 <span class="k">struct</span> <span class="nc">foo_data</span> <span class="o">*</span> <span class="n">bar</span><span class="p">(</span><span class="kt">double</span> <span class="n">a</span><span class="p">,</span> <span class="k">enum</span> <span class="n">foo_status</span> <span class="n">status</span><span class="p">);</span>
-<span class="k">enum</span> <span class="n">tur_status</span> <span class="n">baz</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">u</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">m</span><span class="p">);</span>
+<span class="k">enum</span> <span class="n">tur_status</span> <span class="nf">baz</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">u</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">m</span><span class="p">);</span>
 <span class="kt">bool</span> <span class="nf">tur</span><span class="p">();</span>
 <span class="kt">char</span> <span class="o">*</span> <span class="nf">frob</span><span class="p">(</span><span class="k">enum</span> <span class="n">tur_status</span><span class="p">);</span>
 </pre>

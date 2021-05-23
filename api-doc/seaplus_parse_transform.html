@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Module seaplus_parse_transform</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
+</head>
+<body bgcolor="white">
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<hr>
+
+<h1>Module seaplus_parse_transform</h1>
+<ul class="index"><li><a href="#description">Description</a></li><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>Overall <b>parse transform for the Seaplus layer</b>, in charge of 
+streamlining the integration of any C-based service.
+
+
+<h2><a name="description">Description</a></h2><p>Overall <b>parse transform for the Seaplus layer</b>, in charge of 
+streamlining the integration of any C-based service.</p>
+
+ <p>Meant, for a Foobar service, to operate on a foobar.erl stub, so that:</p>
+
+ <p>- a fully-functional foobar module becomes available</p>
+
+ - a corresponding foobar_seaplus_api_mapping.h C header is generated in order
+ to ease the development of the corresponding C-side driver
+
+<h2><a name="types">Data Types</a></h2>
+
+<h3 class="typedecl"><a name="type-ast">ast()</a></h3>
+<p><tt>ast() = <a href="ast_base.html#type-ast">ast_base:ast()</a></tt></p>
+
+
+<h3 class="typedecl"><a name="type-directory_path">directory_path()</a></h3>
+<p><tt>directory_path() = <a href="file_utils.html#type-directory_path">file_utils:directory_path()</a></tt></p>
+
+
+<h3 class="typedecl"><a name="type-file_name">file_name()</a></h3>
+<p><tt>file_name() = <a href="file_utils.html#type-file_name">file_utils:file_name()</a></tt></p>
+
+
+<h3 class="typedecl"><a name="type-module_info">module_info()</a></h3>
+<p><tt>module_info() = <a href="ast_info.html#type-module_info">ast_info:module_info()</a></tt></p>
+
+
+<h3 class="typedecl"><a name="type-parse_transform_options">parse_transform_options()</a></h3>
+<p><tt>parse_transform_options() = <a href="meta_utils.html#type-parse_transform_options">meta_utils:parse_transform_options()</a></tt></p>
+
+
+<h3 class="typedecl"><a name="type-preprocessor_option">preprocessor_option()</a></h3>
+<p><tt>preprocessor_option() = <a href="ast_utils.html#type-preprocessor_option">ast_utils:preprocessor_option()</a></tt></p>
+
+
+<h2><a name="index">Function Index</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#apply_seaplus_transform-3">apply_seaplus_transform/3</a></td><td>Transforms specified AST for Seaplus.</td></tr>
+<tr><td valign="top"><a href="#parse_transform-2">parse_transform/2</a></td><td>The parse transform itself, generating notably (Myriad-based) Abstract
+ Format code, before being itself converted in turn into an Erlang-compliant
+ Abstract Format code.</td></tr>
+<tr><td valign="top"><a href="#run_standalone-1">run_standalone/1</a></td><td>Runs the Seaplus parse transform defined here in a standalone way (that 
+is without being triggered by the usual, integrated compilation process), with 
+no specific preprocessor option.</td></tr>
+<tr><td valign="top"><a href="#run_standalone-2">run_standalone/2</a></td><td>Runs the Seaplus parse transform defined here in a standalone way (that 
+is without being triggered by the usual, integrated compilation process), with 
+specified preprocessor options.</td></tr>
+</table>
+
+<h2><a name="functions">Function Details</a></h2>
+
+<h3 class="function"><a name="apply_seaplus_transform-3">apply_seaplus_transform/3</a></h3>
+<div class="spec">
+<p><tt>apply_seaplus_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="#type-parse_transform_options">parse_transform_options()</a>, SeaplusRootDir::<a href="#type-directory_path">directory_path()</a>) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</tt><br></p>
+<p> </p>
+</div><p>Transforms specified AST for Seaplus.</p>
+
+<h3 class="function"><a name="parse_transform-2">parse_transform/2</a></h3>
+<div class="spec">
+<p><tt>parse_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="meta_util.html#type-parse_transform_options">meta_util:parse_transform_options()</a>) -&gt; <a href="#type-ast">ast()</a></tt><br></p>
+<p> </p>
+</div><p>The parse transform itself, generating notably (Myriad-based) Abstract
+ Format code, before being itself converted in turn into an Erlang-compliant
+ Abstract Format code.
+</p>
+
+<h3 class="function"><a name="run_standalone-1">run_standalone/1</a></h3>
+<div class="spec">
+<p><tt>run_standalone(FileToTransform::<a href="#type-file_name">file_name()</a>) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</tt><br></p>
+<p> </p>
+</div><p><p>Runs the Seaplus parse transform defined here in a standalone way (that 
+is without being triggered by the usual, integrated compilation process), with 
+no specific preprocessor option.</p>
+
+ This allows to benefit from all compilation error and warning messages,
+ whereas they are seldom available from a code directly run as a parse
+ transform (ex: 'undefined parse transform 'foobar'' as soon as a function or a
+ module is not found).
+</p>
+
+<h3 class="function"><a name="run_standalone-2">run_standalone/2</a></h3>
+<div class="spec">
+<p><tt>run_standalone(FileToTransform::<a href="#type-file_name">file_name()</a>, PreprocessorOptions::[<a href="#type-preprocessor_option">preprocessor_option()</a>]) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</tt><br></p>
+<p> </p>
+</div><p><p>Runs the Seaplus parse transform defined here in a standalone way (that 
+is without being triggered by the usual, integrated compilation process), with 
+specified preprocessor options.</p>
+
+ This allows to benefit from all compilation error and warning messages,
+ whereas they are seldom available from a code directly run as a parse
+ transform (ex: 'undefined parse transform 'foobar'' as soon as a function or a
+ module is not found).
+</p>
+<hr>
+
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<p><i>Generated by EDoc</i></p>
+</body>
+</html>
