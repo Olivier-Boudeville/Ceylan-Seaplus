@@ -25,28 +25,32 @@ PROJECT_CSS := pygments-default.css,seaplus.css
 
 PROJECT_ICON := seaplus-icon.png
 
-WEB_CONTENT = *.html *.css *.png *.pdf
+WEB_CONTENT = *.html *.css *.png *.pdf api-doc
+
 
 # Read from the user's environment:
 GITHUB_PAGES_BASE := $(shell basename "$(SEAPLUS_WEB_MIRROR_BRANCH)")
 
 
 
-.PHONY: doc all full-doc html pdf clone-mirror           \
-		export-doc export-to-official export-to-mirror   \
-		clean clean-doc info info-web
+.PHONY: doc all full-doc create-links html pdf api clone-mirror       \
+		export-doc export-doc-to-official export-doc-to-mirror        \
+		clean clean-doc clean-links info info-web
 
 
 
 # Default do-nothing target:
-doc:
-
 all:
 	@echo "  Run 'make full-doc' to generate the manual of the 'Seaplus' layer."
 
+doc:
 
 
-full-doc: $(DOC_GENERATED_FILES)
+full-doc: $(DOC_GENERATED_FILES) api-doc
+
+
+# These links do not need to be in version control:
+create-links:
 	@/bin/ln -sf $(CURRENT_SEAPLUS_HTML) seaplus.html
 	@/bin/ln -sf seaplus.html index.html
 	@/bin/ln -sf $(CURRENT_SEAPLUS_PDF) seaplus.pdf
@@ -56,15 +60,22 @@ html: clean-doc $(HTML_TARGET)
 
 pdf: clean-doc $(PDF_TARGET)
 
+api:
+	@cd $(LAYER_TOP) && $(MAKE) -s generate-api-doc
+
+
+# To generate the actual API documentation tree:
+api-doc: api
+
 
 # Creates a separate repository for the GitHub pages branch:
-# (please then remove all initial content of that branch)
-#
 clone-mirror:
+	@ echo "  Creating a separate repository for website in $(GITHUB_PAGES_BASE)"
 	@cd ../../ && git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus.git $(GITHUB_PAGES_BASE) && cd $(GITHUB_PAGES_BASE) && git checkout -b gh-pages
+	@echo "Please remove all initial content in that selected 'gh-pages' branch."
 
 
-export-doc: clean-doc full-doc export-to-official export-to-mirror
+export-doc: clean-doc full-doc export-doc-to-official export-doc-to-mirror
 
 
 # Drawback: scp will not preserve symlinks, it will duplicate files instead.
@@ -73,25 +84,33 @@ export-doc: clean-doc full-doc export-to-official export-to-mirror
 # not a set of files), so currently not used:
 # rsync -avze "ssh $(SP)" $(SOME_WEB_TREE) $(WEB_SRV):$(WEB_ROOT)/Seaplus/
 #
-export-to-official: $(DOC_GENERATED_FILES)
+export-doc-to-official: create-links $(DOC_GENERATED_FILES)
 	@echo "   Exporting Seaplus documentation to official website ($(WEB_SRV))"
-	@/bin/scp $(SP) $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Seaplus/
+	@/bin/scp $(SP) -r $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Seaplus/
 
 
-export-to-mirror: $(DOC_GENERATED_FILES)
+export-doc-to-mirror: create-links $(DOC_GENERATED_FILES)
 	@echo "   Exporting Seaplus documentation to mirror website in $(SEAPLUS_WEB_MIRROR_BRANCH)"
-	@/bin/cp -f $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
+	@/bin/cp -rf $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
 
 
 
 clean: clean-doc
 
 
-clean-doc:
+clean-doc: clean-links
+	@echo "     Cleaning documentation"
 	-@/bin/rm -f *.aux *.log *.maf *.mtc* *.stc* *.tex *.toc $(DOC_GENERATED_FILES)
+	-@/bin/rm -rf api-doc
+
+
+clean-links:
+	-@/bin/rm -f seaplus.html index.html seaplus.pdf
+
 
 
 info: info-doc info-web
+
 
 info-doc:
 	@echo "OVERALL_DOCUMENT_SOURCE = $(OVERALL_DOCUMENT_SOURCE)"
@@ -110,4 +129,5 @@ info-web:
 
 DOCUTILS_TOP = .
 
+# For MYRIAD_TOP:
 include $(SEAPLUS_TOP)/GNUmakesettings.inc

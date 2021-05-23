@@ -27,8 +27,8 @@
 
 
 
-% The main Seaplus module gathers the generic elements useful to integrate any
-% kind of C-based service to Erlang.
+% @doc The main Seaplus module gathers the generic elements useful to
+% <b>integrate any kind of C-based service</b> to Erlang.
 %
 % Relies (only) on Ceylan-Myriad.
 %
@@ -79,7 +79,7 @@
 % channels) with the (C-based) driver executable making the service of interest
 % available to Erlang.
 %
-% The port referebce is stored in the process dictionary of the user process,
+% The port reference is stored in the process dictionary of the user process,
 % for easier, more transparent management.
 
 
@@ -91,29 +91,27 @@
 		  check_driver_runnable/2, display_driver_runtime_info/2 ]).
 
 
-% The name of a C-based service to make available:
 -type service_name() :: atom().
+% The name of a C-based service to make available.
 
 
-% A key corresponding to the port of a service instance, whose reference is to
-% be stored in the process dictionary of the user process:
-%
 -type service_key() :: process_dictionary:key().
+% A key corresponding to the port of a service instance, whose reference is to
+% be stored in the process dictionary of the user process.
 
 
-% The identifier of a function for the driver, as determined by Seaplus:
+-type function_driver_id() :: basic_utils:count().
+% The identifier of a function for the driver, as determined by Seaplus.
 %
 % (ex: 1 for foo/1 in the toy example)
-%
--type function_driver_id() :: basic_utils:count().
 
 
-% The list of parameters to call the function stub with:
 -type function_params() :: [ term() ].
+% The list of parameters to call the function stub with.
 
 
-% The (Erlang-side) result of the execution of a function:
 -type function_result() :: term().
+% The (Erlang-side) result of the execution of a function.
 
 
 -export_type([ function_driver_id/0, function_params/0, function_result/0 ]).
@@ -203,7 +201,7 @@
 
 
 
-% Starts the support for the specified named service.
+% @doc Starts the support for the specified named service.
 %
 % The corresponding executable driver is implicit here, so its name is expected
 % to be the one of the service once suffixed with "_seaplus_driver".
@@ -227,7 +225,7 @@ start( ServiceName ) when is_atom( ServiceName ) ->
 
 
 
-% Starts and links the support for the specified named service.
+% @doc Starts and links the support for the specified named service.
 %
 % The corresponding driver is implicit here, so its name is expected to be the
 % one of the service once suffixed with "_seaplus_driver".
@@ -250,7 +248,7 @@ start_link( ServiceName ) when is_atom( ServiceName ) ->
 
 
 
-% Starts the support for the specified named service, relying on specified
+% @doc Starts the support for the specified named service, relying on specified
 % executable name for the driver.
 %
 % Note: should the service itself or its driver crash (ex: in the context of a
@@ -267,8 +265,8 @@ start( ServiceName, DriverExecutableName )
 
 
 
-% Starts and links to the caller the support for the specified named service,
-% relying on specified executable name for the driver.
+% @doc Starts and links to the caller the support for the specified named
+% service, relying on specified executable name for the driver.
 %
 % Note: should the service itself or its driver crash (ex: in the context of a
 % call being triggered), the service user process will receive an exit signal
@@ -283,7 +281,7 @@ start_link( ServiceName, DriverExecutableName )
 	launch_link( ServiceName, DriverExecPath ).
 
 
-% Restarts the specific service support (ex: to overcome a detected crash
+% @doc Restarts the specific service support (ex: to overcome a detected crash
 % thereof).
 %
 -spec restart( service_name() ) -> void().
@@ -292,7 +290,7 @@ restart( ServiceName ) ->
 	start( ServiceName ).
 
 
-% Restarts the specific service support (ex: to overcome a detected crash
+% @doc Restarts the specific service support (ex: to overcome a detected crash
 % thereof).
 %
 -spec restart( service_name(), executable_name() ) -> void().
@@ -301,7 +299,7 @@ restart( ServiceName, DriverExecutableName ) ->
 	start( ServiceName, DriverExecutableName ).
 
 
-% Stops the specific service support.
+% @doc Stops the specific service support.
 -spec stop( service_name() ) -> void().
 stop( ServiceName ) when is_atom( ServiceName ) ->
 
@@ -344,7 +342,8 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 % Helper section.
 
 
-% Returns the filename of the executable corresponding to specified service.
+% @doc Returns the filename of the executable corresponding to specified
+% service.
 %
 % (helper)
 %
@@ -354,7 +353,7 @@ get_driver_name( ServiceName ) ->
 
 
 
-% Returns the path to the executable corresponding to specified service.
+% @doc Returns the path to the executable corresponding to specified service.
 %
 % (helper)
 %
@@ -397,7 +396,7 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 
 
 
-% Launches specified service support.
+% @doc Launches specified service support.
 %
 % DriverExecPath supposed already checked for existence.
 %
@@ -430,7 +429,7 @@ launch_link( ServiceName, DriverExecPath ) ->
 
 
 
-% Inits the driver of specified service.
+% @doc Inits the driver of specified service.
 %
 % DriverExecPath supposed already checked for existence.
 %
@@ -545,7 +544,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 
 
-% Checks whether the driver for the specified service is runnable at all.
+% @doc Checks whether the driver for the specified service is runnable at all.
 %
 % Defined as a separate function so that user code can anticipate this checking,
 % for example when it starts up.
@@ -574,7 +573,7 @@ check_driver_runnable( DriverExecPath, ExtraEnvironment ) ->
 
 
 
-% Displays runtime information about the specified driver, to help
+% @doc Displays runtime information about the specified driver, to help
 % troubleshooting.
 %
 -spec display_driver_runtime_info( executable_path(),
@@ -609,7 +608,8 @@ display_driver_runtime_info( ExecPath, ExtraEnvironment ) ->
 % Service Driver section.
 
 
-% The actual bridge from the user code to the port (and then to the driver).
+% @doc The actual bridge from the user code to the port (and then to the
+% driver).
 %
 % The identifier will suffice, no real need to pass along the
 % basic_utils:function_name().
@@ -763,7 +763,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 
 
-% Returns the key that shall be used to store information in the process
+% @doc Returns the key that shall be used to store information in the process
 % dictionary of the calling user process for the specified service.
 %
 % Note: must agree with seaplus_parse_transform:get_port_dict_key_for/1.
@@ -777,7 +777,7 @@ get_service_port_key_for( ServiceName ) ->
 	text_utils:string_to_atom( PortKeyString ).
 
 
-% Reciprocal of get_service_port_key_for/1.
+% @doc Reciprocal of get_service_port_key_for/1.
 -spec get_service_name_from_port_key( service_key() ) -> service_name().
 get_service_name_from_port_key( ServicePortKey ) ->
 
@@ -794,8 +794,8 @@ get_service_name_from_port_key( ServicePortKey ) ->
 	end.
 
 
-% Returns the key that shall be used to store the executable path of the driver
-% for the specified service.
+% @doc Returns the key that shall be used to store the executable path of the
+% driver for the specified service.
 %
 % Note: fully optional, only interest is to help troubleshooting.
 %
@@ -809,8 +809,8 @@ get_service_driver_key_for( ServiceName ) ->
 
 
 
-% Returns the key that shall be used to store the executable path of the driver
-% for the specified service, based on the key for service port.
+% @doc Returns the key that shall be used to store the executable path of the
+% driver for the specified service, based on the key for service port.
 %
 % Note: necessary to deduce one from another as Seaplus is mostly stateless.
 %

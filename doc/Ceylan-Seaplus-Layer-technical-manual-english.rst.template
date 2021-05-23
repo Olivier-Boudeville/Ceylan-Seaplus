@@ -1,8 +1,7 @@
-
 .. _Top:
 
 
-.. title:: Welcome to the Ceylan-Seaplus 1.1 documentation
+.. title:: Welcome to the Ceylan-Seaplus documentation
 
 .. comment stylesheet specified through GNUmakefile
 
@@ -16,7 +15,7 @@
 
 :raw-html:`<a name="seaplus_top"></a>`
 
-:raw-html:`<div class="banner"><p><em>Seaplus 1.1 documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">browse mirror</a> <a href="seaplus.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_bottom">go to bottom</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">go to project</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus%201.1]%20Remark">email us</a></p></div>`
+:raw-html:`<div class="banner"><p><em>Seaplus documentation</em> <a href="http://seaplus.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/seaplus.html">browse mirror</a> <a href="seaplus.pdf">get PDF</a> <a href="#seaplus_top">go to top</a> <a href="#seaplus_toc">go to toc</a> <a href="#seaplus_bottom">go to bottom</a> <a href="api-doc/index.html">browse API</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">go to project</a> <a href="mailto:about(dash)seaplus(at)esperide(dot)com?subject=[Ceylan-Seaplus]%20Remark">email us</a></p></div>`
 
 
 
@@ -34,12 +33,16 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 :Organisation: Copyright (C) 2018-2021 Olivier Boudeville
 :Contact: about (dash) seaplus (at) esperide (dot) com
 :Creation date: Sunday, December 23, 2018
-:Lastly updated: Friday, March 12, 2021
-:Dedication: Users and maintainers of the ``Seaplus`` bridge, version 1.1.
+:Lastly updated: GENERATION_DATE
+:Version: PROJECT_VERSION
+:Status: Stable
+:Dedication: Users and maintainers of the ``Seaplus`` bridge.
 :Abstract:
 
-	The role of the ``Seaplus`` bridge is to control C or C++ code from Erlang, not as NIF but thanks to a port, and to streamline the corresponding integration process.
+	The role of the `Seaplus <http://seaplus.esperide.org/>`_ bridge  (part of the `Ceylan <https://github.com/Olivier-Boudeville/Ceylan>`_ project) is to control C or C++ code from Erlang, not as NIF but thanks to a port, and to streamline the corresponding integration process.
 
+	We present here a short overview of these services, to introduce them to newcomers.
+	The next level of information is either to browse the `Seaplus API documentation <api-doc/index.html>`_ or simply to read the corresponding `source files <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_, which are intensely commented and generally straightforward.
 
 .. meta::
    :keywords: Seaplus, C, C++, integration, interface, bridge, Erlang
@@ -56,12 +59,12 @@ The latest version of this documentation is to be found at the `official Seaplus
 
 :raw-latex:`\pagebreak`
 
-
+:raw-html:`<a name="seaplus_toc"></a>`
 
 .. _`table of contents`:
 
 
-.. contents:: Table of Contents
+.. contents:: **Table of Contents**
   :depth: 3
 
 

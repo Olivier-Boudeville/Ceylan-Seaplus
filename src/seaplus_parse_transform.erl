@@ -27,7 +27,7 @@
 
 
 
-% @doc Overall <p>parse transform for the Seaplus layer</p>, in charge of
+% @doc Overall <b>parse transform for the Seaplus layer</b>, in charge of
 % streamlining the integration of any C-based service.
 %
 % Meant, for a Foobar service, to operate on a foobar.erl stub, so that:
@@ -95,7 +95,9 @@
 % Local shorthands:
 
 -type ast() :: ast_base:ast().
+
 %-type location() :: ast_base:form_location().
+
 -type module_info() :: ast_info:module_info().
 -type function_info() :: ast_info:function_info().
 -type ast_transforms() :: ast_transform:ast_transforms().
@@ -141,9 +143,9 @@
 
 
 
-% Runs the Seaplus parse transform defined here in a standalone way
-% (i.e. without being triggered by the usual, integrated compilation process),
-% with no specific preprocessor option.
+% @doc Runs the Seaplus parse transform defined here in a standalone way (that
+% is without being triggered by the usual, integrated compilation process), with
+% no specific preprocessor option.
 %
 % This allows to benefit from all compilation error and warning messages,
 % whereas they are seldom available from a code directly run as a parse
@@ -156,9 +158,9 @@ run_standalone( FileToTransform ) ->
 
 
 
-% Runs the Seaplus parse transform defined here in a standalone way
-% (i.e. without being triggered by the usual, integrated compilation process),
-% with specified preprocessor options.
+% @doc Runs the Seaplus parse transform defined here in a standalone way (that
+% is without being triggered by the usual, integrated compilation process), with
+% specified preprocessor options.
 %
 % This allows to benefit from all compilation error and warning messages,
 % whereas they are seldom available from a code directly run as a parse
@@ -179,9 +181,9 @@ run_standalone( FileToTransform, PreprocessorOptions ) ->
 
 
 
-% The parse transform itself, generating notably (Myriad-based) Abstract Format
-% code, before being itself converted in turn into an Erlang-compliant Abstract
-% Format code.
+% @doc The parse transform itself, generating notably (Myriad-based) Abstract
+% Format code, before being itself converted in turn into an Erlang-compliant
+% Abstract Format code.
 %
 -spec parse_transform( ast(), meta_util:parse_transform_options() ) -> ast().
 parse_transform( InputAST, Options ) ->
@@ -208,7 +210,7 @@ parse_transform( InputAST, Options ) ->
 	SeaplusAST.
 
 
-% Returns the root directory of Seaplus, as specified in the build defines.
+% @doc Returns the root directory of Seaplus, as specified in the build defines.
 get_seaplus_root( Options ) ->
 
 	case [ RootDir || { d, 'seaplus_root', RootDir } <- Options ] of
@@ -268,8 +270,7 @@ get_seaplus_root( Options ) ->
 
 
 
-
-% Transforms specified AST for Seaplus.
+% @doc Transforms specified AST for Seaplus.
 -spec apply_seaplus_transform( ast(), parse_transform_options(),
 							   directory_path() ) -> { ast(), module_info() }.
 apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
@@ -334,7 +335,7 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 					"recomposing corresponding AST." ),
 
 	OutputAST = ast_info:recompose_ast_from_module_info(
-				  FinalModuleInfo ),
+					FinalModuleInfo ),
 
 	%trace_bridge:debug_fmt( "Seaplus output AST:~n~p", [ OutputAST ] ),
 
@@ -356,9 +357,9 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 
 
 
-% Determines whether specified module info corresponds to a service-integration
-% module, i.e. a module that Seaplus shall augment based on the unimplemented
-% specs found.
+% @doc Determines whether specified module info corresponds to a
+% service-integration module, that is a module that Seaplus shall augment based
+% on the unimplemented specs found.
 %
 -spec is_integration_module( module_info() ) -> 'false' | module_info().
 is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
@@ -394,7 +395,7 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 	end.
 
 
-% Applies the actual Seaplus transformations.
+% @doc Applies the actual Seaplus transformations.
 -spec process_module_info_from( module_info(), directory_name() ) ->
 									module_info().
 process_module_info_from(
@@ -447,7 +448,7 @@ process_module_info_from(
 
 
 
-% Manages any user-defined control function (ex: start, stop).
+% @doc Manages any user-defined control function (ex: start, stop).
 -spec handle_control_functions( module_info() ) -> module_info().
 handle_control_functions( ModuleInfo ) ->
 
@@ -460,7 +461,7 @@ handle_control_functions( ModuleInfo ) ->
 
 
 
-% Ensures that the start/0 function starts Seaplus as well.
+% @doc Ensures that the start/0 function starts Seaplus as well.
 handle_start_function( ModuleInfo=#module_info{
 									module={ ModName, _LocForm },
 									functions=FunctionTable } ) ->
@@ -543,7 +544,7 @@ handle_start_function( ModuleInfo=#module_info{
 
 
 
-% Ensures that the start_link/0 function starts Seaplus as well.
+% @doc Ensures that the start_link/0 function starts Seaplus as well.
 handle_start_link_function( ModuleInfo=#module_info{
 										module={ ModName, _LocForm },
 										functions=FunctionTable } ) ->
@@ -628,7 +629,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 
 
 
-% Ensures that the stop/0 function stops Seaplus as well.
+% @doc Ensures that the stop/0 function stops Seaplus as well.
 handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 											   functions=FunctionTable } ) ->
 
@@ -711,7 +712,7 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 
 
 
-% Generates the relevant C header file for the service driver.
+% @doc Generates the relevant C header file for the service driver.
 generate_driver_header( ServiceModuleName, FunIds ) ->
 
 	HeaderFilename = text_utils:format( "~ts_seaplus_api_mapping.h",
@@ -769,7 +770,7 @@ write_mapping( HeaderFile, _FunIds=[ { FunName, Arity } | T ], Count ) ->
 
 
 
-% Returns the C driver identifier for specified function.
+% @doc Returns the C driver identifier for specified function.
 get_driver_id_for( FunName, Arity ) ->
 
 	FunString = text_utils:to_uppercase( text_utils:atom_to_string( FunName ) ),
@@ -777,7 +778,7 @@ get_driver_id_for( FunName, Arity ) ->
 	text_utils:format( "~ts_~B_ID", [ FunString, Arity ] ).
 
 
-% Creates an implementation stub for the driver, if no such file exists.
+% @doc Creates an implementation stub for the driver, if no such file exists.
 manage_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 							  SeaplusRootDir ) ->
 
@@ -800,7 +801,9 @@ manage_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 
 
 
-% Generates the implementation stub for the driver, overwriting it if needed.
+% @doc Generates the implementation stub for the driver, overwriting it if
+% needed.
+%
 generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 								SourceFilename, SeaplusRootDir ) ->
 
@@ -901,7 +904,7 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 
 
 
-% Identifies the API functions, processes and sorts them.
+% @doc Identifies the API functions, processes and sorts them.
 -spec prepare_api_functions( module_info() ) -> [ function_info() ].
 prepare_api_functions( ModuleInfo=#module_info{ functions=FunctionTable,
 												markers=MarkerTable } ) ->
@@ -958,7 +961,7 @@ prepare_api_functions( ModuleInfo=#module_info{ functions=FunctionTable,
 
 
 
-% Selects the functions to be included in the binding.
+% @doc Selects the functions to be included in the binding.
 %
 % Too early to determine whether they should be generated or transformed
 % (i.e. to look at their clauses), we need to number them first.
@@ -1006,8 +1009,8 @@ select_for_binding( [ FInfo=#function_info{ name=Name,
 
 
 
-% Either generate (if no clause defined) or transform (otherwise) the listed API
-% functions.
+% @doc Either generate (if no clause defined) or transform (otherwise) the
+% listed API functions.
 %
 post_process_fun_infos( FunInfos, PortDictKey, ExportLoc, DefLoc ) ->
 
@@ -1104,7 +1107,7 @@ post_process_fun_infos( [ FInfo=#function_info{ name=Name,
 
 
 
-% Performs the AST substitutions in the user-provided clauses.
+% @doc Performs the AST substitutions in the user-provided clauses.
 %
 % (anonymous mute variables correspond to line numbers)
 %
@@ -1153,8 +1156,8 @@ call_transformer( LineCall, FunctionRef, Params, Transforms ) ->
 
 
 
-% Returns the identifiers of the function introduced by Seaplus in a service
-% module.
+% @doc Returns the identifiers of the function introduced by Seaplus in a
+% service module.
 %
 get_seaplus_function_ids() ->
 
@@ -1167,11 +1170,12 @@ get_seaplus_function_ids() ->
 
 
 
-% Returns the (atom) key under which the corresponding port will be stored:
+% @doc Returns the (atom) key under which the corresponding port will be
+% stored.
 %
-% (must agree with seaplus:get_service_port_key_for/1; not called directly here
-% as we prefer have this parse transform and the seaplus module not depending on
-% each other)
+% This must agree with seaplus:get_service_port_key_for/1; not called directly
+% here as we prefer have this parse transform and the seaplus module not
+% depending on each other.
 %
 -spec get_port_dict_key_for( module_info() ) -> dict_key().
 get_port_dict_key_for( #module_info{ module={ ModName, _Loc } } ) ->
@@ -1181,7 +1185,9 @@ get_port_dict_key_for( #module_info{ module={ ModName, _Loc } } ) ->
 
 
 
-% Generates the clauses for specified function, like for:
+% @doc Generates the adequate clauses for the specified function.
+%
+% Example:
 %
 % bar( A, B ) ->
 %	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 5, [ A, B ] ).
@@ -1204,13 +1210,12 @@ generate_clauses_for( Id, Arity, PortDictKey ) ->
 
 
 
-% Reinjects specified function infos into specified module info.
+% @doc Reinjects specified function infos into specified module info.
 -spec reinject_fun_infos( [ function_info() ], module_info() ) -> module_info().
 reinject_fun_infos( FunInfos,
 					ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 	FullFunctionTable = inject_fun_infos( FunInfos, FunctionTable ),
 	ModuleInfo#module_info{ functions=FullFunctionTable }.
-
 
 
 % (helper)

@@ -1,0 +1,30 @@
+@author Olivier Boudeville <olivier (dot) boudeville (at) esperide (dot) com>
+
+@copyright 2021 Olivier Boudeville
+
+@version API PROJECT_VERSION
+
+@title Welcome to the documentation of the Ceylan-Seaplus API
+
+@doc <h3>Overview</h3>
+
+<p>`Ceylan-Seaplus' control C or C++ code from <a href="http://erlang.org" target="_blank">Erlang</a>, not as NIF but thanks to a port, and to streamline the corresponding integration process.
+</p>
+
+<p>This website presents the documentation of the API (<em>Application Programming Interface</em>) of Seaplus version PROJECT_VERSION (as of GENERATION_DATE).
+</p>
+
+<p>Note though that Seaplus is more like a small framework than like a library, and thus users should refer primarily to its <a href="http://seaplus.esperide.org" target="_blank">main documentation</a>.
+</p>
+
+<p>Ceylan-Seaplus relies on the <a href="http://myriad.esperide.org" target="_blank">Myriad layer</a>, a generic Erlang toolbox.
+</p>
+
+
+@reference See the <a href="http://seaplus.esperide.org" target="_blank">Seaplus official website</a> or <a href="https://olivier-boudeville.github.io/Ceylan-Seaplus/index.html" target="_blank">its mirror</a>
+
+@reference In terms of dependency, for additional information one may refer to:
+<ul>
+  <li>the <a href="http://myriad.esperide.org" target="_blank">Myriad official website</a> or <a href="https://olivier-boudeville.github.io/Ceylan-Myriad/index.html" target="_blank">its mirror</a>, notably its <a href="https://myriad.esperide.org/api-doc/index.html" target="_blank">API documentation</a></li>
+  <li>the <a href="http://erlang.org" target="_blank">Erlang official website</a>, notably its <a href="https://erlang.org/doc/man_index.html">API documentation</a></li>
+</ul>

@@ -97,22 +97,29 @@ ifndef PROJECT_NAME
 endif
 
 
+# PROJECT_SHORT_NAME should be defined on a per-project basis.
+ifndef PROJECT_SHORT_NAME
+	PROJECT_SHORT_NAME := seaplus
+endif
+
+
 # PROJECT_NAME_FOR_REBAR should be defined on a per-project basis.
 ifndef PROJECT_NAME_FOR_REBAR
-	PROJECT_NAME_FOR_REBAR := seaplus
+	PROJECT_NAME_FOR_REBAR := $(PROJECT_SHORT_NAME)
 endif
 
 
 # The uniquely-defined version of this layer, for all uses (including rebar and
 # hex):
 #
-SEAPLUS_VERSION := 1.1.4
+SEAPLUS_VERSION := 1.1.5
 
 
 # PROJECT_VERSION should be defined on a per-project basis.
 ifndef PROJECT_VERSION
 	PROJECT_VERSION := $(SEAPLUS_VERSION)
 endif
+
 
 
 ifndef PACKAGE_TOP
@@ -451,6 +458,16 @@ FOOBAR_LIB_DIR = $(FOOBAR_ROOT)/lib
 FOOBAR_LIBRARY = libfoobar.so
 
 FOOBAR_LIB_PATH = $(FOOBAR_LIB_DIR)/$(FOOBAR_LIBRARY)
+
+
+
+# Documentation section.
+
+
+ifndef EDOC_OPTS
+	EDOC_OPTS = '[{dir,"$(API_DOC_ROOT)"}, {def,{vsn,"$(PROJECT_VERSION)"}}, {preprocess,true}, {includes,["$(LAYER_TOP)/include", "$(MYRIAD_TOP)/.."]}, {overview, "$(LAYER_TOP)/overview.edoc"}]'
+endif
+
 
 
 # We define the path to the Myriad layer (possibly available as a symbolic
