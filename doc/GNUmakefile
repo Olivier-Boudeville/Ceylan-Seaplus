@@ -111,12 +111,6 @@ clean-links:
 
 info: info-doc info-web
 
-
-info-doc:
-	@echo "OVERALL_DOCUMENT_SOURCE = $(OVERALL_DOCUMENT_SOURCE)"
-	@echo "DOC_TRACKER = $(DOC_TRACKER)"
-
-
 info-web:
 	@echo "HTML_TARGET = $(HTML_TARGET)"
 	@echo "SP = $(SP)"
