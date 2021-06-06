@@ -1,12 +1,13 @@
 SEAPLUS_TOP = .
 
 
-.PHONY: help help-intro help-seaplus                                     \
-		all register-version-in-header register-seaplus list-beam-dirs   \
+.PHONY: help help-intro help-seaplus all all-check                       \
+		register-version-in-header register-seaplus list-beam-dirs       \
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
-		prepare-release clean-release clean-archive                      \
-		info-erlang-for-c info-paths info-compile info-parse-transform
+		prepare-release clean-release clean-archive stats                \
+		info-erlang-for-c info-paths info-compile info-erlang-compile    \
+		info-c-compile info-parse-transform info-context info-versions
 
 
 MODULES_DIRS = src doc conf test priv
@@ -31,6 +32,14 @@ help-intro:
 
 help-seaplus:
 	@cd $(MYRIAD_TOP) && $(MAKE) -s help-myriad
+
+
+all: all-check
+
+
+
+all-check:
+	@if [ ! -d "$(ERL_BASE_CONTENT)" ]; then echo "Error, the base Erlang installation (needed to locate the Erl_Interface headers) could not be determined (searched for its '$(ERL_BASE_CONTENT)' subdirectory). Please update the ERL_BASE make variable, in GNUmakevars.inc." 1>&2; exit 5; fi
 
 
 register-version-in-header:
@@ -105,6 +114,10 @@ clean-archive:
 	-@cd .. && /bin/rm -f $(SEAPLUS_RELEASES)
 
 
+stats:
+	@$(MAKE_CODE_STATS) $(MYRIAD_TOP)
+
+
 info-erlang-for-c:
 	@echo "ERL_BASE = $(ERL_BASE)"
 	@echo "ERL_INTERFACE = $(ERL_INTERFACE)"
@@ -152,13 +165,13 @@ info-parse-transform:
 	@echo "META_BEAM_FILES = $(META_BEAM_FILES)"
 	@echo "ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT)"
 
-all: all-check
+
+# Typically useful to know the software context for continuous integration:
+info-context: info-platform info-versions info-source-layout
 
 
-
-
-all-check:
-	@if [ ! -d "$(ERL_BASE_CONTENT)" ]; then echo "Error, the base Erlang installation (needed to locate the Erl_Interface headers) could not be determined (searched for its '$(ERL_BASE_CONTENT)' subdirectory). Please update the ERL_BASE make variable, in GNUmakevars.inc." 1>&2 ; exit 5 ; fi
+info-versions:
+	@echo "MYRIAD_VERSION = $(MYRIAD_VERSION)"
 
 
 include $(SEAPLUS_TOP)/GNUmakesettings.inc
