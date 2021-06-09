@@ -6,8 +6,8 @@ SEAPLUS_TOP = .
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
 		prepare-release clean-release clean-archive stats                \
-		info-erlang-for-c info-paths info-compile info-erlang-compile    \
-		info-c-compile info-parse-transform info-context info-versions
+		info-erlang-for-c info-paths info-compile info-c-compile         \
+        info-context info-versions
 
 
 MODULES_DIRS = src doc conf test priv
@@ -127,21 +127,7 @@ info-paths:
 	@echo "BEAM_PATH_OPT = $(BEAM_PATH_OPT)"
 
 
-info-compile: info-erlang-compile info-c-compile
-
-
-info-erlang-compile:
-	@echo "ERLANG_COMPILER_BASE_OPT = $(ERLANG_COMPILER_BASE_OPT)"
-	@echo "BEAM_DIRS = $(BEAM_DIRS)"
-	@echo "INC = $(INC)"
-	@echo "ERLANG_COMPILER_EXEC_TARGET_OPT = $(ERLANG_COMPILER_EXEC_TARGET_OPT)"
-	@echo "ERLANG_COMPILER_DEBUG_OPT = $(ERLANG_COMPILER_DEBUG_OPT)"
-	@echo "ERLANG_COMPILER_NATIVE_COMPILATION_OPT = $(ERLANG_COMPILER_NATIVE_COMPILATION_OPT)"
-	@echo "ERLANG_COMPILER_WARNING_OPT = $(ERLANG_COMPILER_WARNING_OPT)"
-	@echo "ERLANG_COMPILER_OPT_BASE = $(ERLANG_COMPILER_OPT_BASE)"
-	@echo "OVERALL_PZ_OPT = $(OVERALL_PZ_OPT)"
-	@echo "ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES = $(ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES)"
-
+info-compile: info-c-compile
 
 info-c-compile:
 	@echo "ERL_BASE_FIRST_CANDIDATE = $(ERL_BASE_FIRST_CANDIDATE)"
@@ -157,13 +143,6 @@ info-c-compile:
 	@echo "C_LINKER_OPT = $(C_LINKER_OPT)"
 	@echo "ERL_COMPILER  = $(ERL_COMPILER)"
 	@echo "C_LINKER_LIBS = $(C_LINKER_LIBS)"
-
-
-info-parse-transform:
-	@echo "BOOTSTRAP_MODULES = $(BOOTSTRAP_MODULES)"
-	@echo "ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_OPT_FOR_PT)"
-	@echo "META_BEAM_FILES = $(META_BEAM_FILES)"
-	@echo "ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT)"
 
 
 # Typically useful to know the software context for continuous integration:

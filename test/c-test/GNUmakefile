@@ -3,7 +3,7 @@ SEAPLUS_TOP = ../..
 .PHONY: all test test-local compile-erl-generic-support compile-service-driver \
 		compile-service-to-wrap run-driver erlang-test integration-test        \
 		clean clean-local clean-driver clean-beams                             \
-		info info-compile info-erlang-local info-target info-compile
+		info info-c-compile info-erlang-local info-target info-compile
 
 
 # Explicit recursion (done by build-foobar-lib) preferred, to avoid parallel
@@ -122,7 +122,7 @@ info-target:
 	@echo "FOOBAR_LIBRARY = $(FOOBAR_LIBRARY)"
 
 
-info-compile:
+info-c-compile:
 	@echo "INC = $(INC)"
 	@echo "C_INC = $(C_INC)"
 	@echo "C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT_FOR_OBJ)"
