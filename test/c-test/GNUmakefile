@@ -3,7 +3,7 @@ SEAPLUS_TOP = ../..
 .PHONY: all test test-local compile-erl-generic-support compile-service-driver \
 		compile-service-to-wrap run-driver erlang-test integration-test        \
 		clean clean-local clean-driver clean-beams                             \
-		info info-c-compile info-erlang-local info-target info-compile
+		info info-target info-c-compile-local
 
 
 # Explicit recursion (done by build-foobar-lib) preferred, to avoid parallel
@@ -104,14 +104,7 @@ clean-log:
 	-@/bin/rm -f seaplus-driver.*.log
 
 
-info: info-erlang info-target
-
-info-erlang: info-erlang-local
-
-
-info-erlang-local:
-	@echo "ERL_BASE = $(ERL_BASE)"
-	@echo "ERL_INTERFACE = $(ERL_INTERFACE)"
+info: info-compile-seaplus info-target
 
 
 info-target:
@@ -122,8 +115,7 @@ info-target:
 	@echo "FOOBAR_LIBRARY = $(FOOBAR_LIBRARY)"
 
 
-info-c-compile:
-	@echo "INC = $(INC)"
-	@echo "C_INC = $(C_INC)"
-	@echo "C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT_FOR_OBJ)"
+info-c-compile: info-c-compile-local
+
+info-c-compile-local:
 	@echo "FOOBAR_INC_OPT = $(FOOBAR_INC_OPT)"

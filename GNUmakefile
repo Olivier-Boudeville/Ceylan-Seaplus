@@ -7,7 +7,7 @@ SEAPLUS_TOP = .
 		send-release release release-zip release-bz2 release-xz          \
 		prepare-release clean-release clean-archive stats                \
 		info-erlang-for-c info-paths info-compile info-c-compile         \
-        info-context info-versions
+		info-context info-versions
 
 
 MODULES_DIRS = src doc conf test priv
@@ -127,22 +127,7 @@ info-paths:
 	@echo "BEAM_PATH_OPT = $(BEAM_PATH_OPT)"
 
 
-info-compile: info-c-compile
-
-info-c-compile:
-	@echo "ERL_BASE_FIRST_CANDIDATE = $(ERL_BASE_FIRST_CANDIDATE)"
-	@echo "ERL_BASE_SECOND_CANDIDATE = $(ERL_BASE_SECOND_CANDIDATE)"
-	@echo "ERL_BASE = $(ERL_BASE)"
-	@echo "ERL_INTERFACE = $(ERL_INTERFACE)"
-	@echo "ERL_INTERFACE_LIB = $(ERL_INTERFACE_LIB)"
-	@echo "C_COMPILER = $(C_COMPILER)"
-	@echo "C_LINKER = $(C_LINKER)"
-	@echo "C_INC = $(C_INC)"
-	@echo "C_LIB = $(C_LIB)"
-	@echo "C_COMPILER_OPT = $(C_COMPILER_OPT)"
-	@echo "C_LINKER_OPT = $(C_LINKER_OPT)"
-	@echo "ERL_COMPILER  = $(ERL_COMPILER)"
-	@echo "C_LINKER_LIBS = $(C_LINKER_LIBS)"
+info-compile: info-compile-seaplus
 
 
 # Typically useful to know the software context for continuous integration:
