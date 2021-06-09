@@ -157,16 +157,8 @@ SEAPLUS_BEAM := $(SEAPLUS_SRC)
 SEAPLUS_INC = -I$(SEAPLUS_TOP)/include
 
 
-# In an OTP/rebar3-style application layout, at compilation time, libraries
-# making use of Myriad will expect its includes to be located in:
-#
-MYRIAD_OTP_INC := -I$(SEAPLUS_TOP)/../myriad/include/
-
-INC += $(SEAPLUS_INC) $(MYRIAD_OTP_INC)
-
-
 # See Myriad counterpart variable (MYRIAD_BEAM_DIRS) for explanations:
-SEAPLUS_BEAM_DIRS := $(SEAPLUS_BEAM)
+SEAPLUS_BEAM_DIRS := $(SEAPLUS_BEAM) $(SEAPLUS_TOP)/..
 
 
 # For OTP releases and all:
