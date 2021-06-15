@@ -402,6 +402,43 @@ blockquote pre {
 }
 
 
+
+#responsive-image-full {
+	width: 95%;
+	height: auto;
+}
+
+
+#responsive-image-large {
+	width: 70%;
+	height: auto;
+}
+
+
+#responsive-image-intermediate {
+	width: 55%;
+	height: auto;
+}
+
+
+#responsive-image-medium {
+	width: 40%;
+	height: auto;
+}
+
+
+#responsive-image-small {
+	width: 25%;
+	height: auto;
+}
+
+
+#responsive-image-tiny {
+	width: 15%;
+	height: auto;
+}
+
+
 a img {
  border: none;
  border-color: #000000;

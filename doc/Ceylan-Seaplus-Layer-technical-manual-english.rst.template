@@ -19,7 +19,7 @@
 
 
 
-:raw-html:`<center><img src="seaplus-title.png" width="45%"></img></center>`
+:raw-html:`<center><img src="seaplus-title.png" id="responsive-image-small"></img></center>`
 :raw-latex:`\centering \includegraphics[scale=0.65]{seaplus-title.png}`
 
 
@@ -919,7 +919,7 @@ Ending Word
 
 Have fun with Ceylan-Seaplus!
 
-:raw-html:`<center><img src="seaplus-title.png" width="20%"></img></center>`
+:raw-html:`<center><img src="seaplus-title.png" id="responsive-image-small"></img></center>`
 :raw-latex:`\begin{figure}[h] \centering \includegraphics[scale=0.2]{seaplus-title.png} \end{figure}`
 
 :raw-html:`<a name="seaplus_bottom"></a>`
