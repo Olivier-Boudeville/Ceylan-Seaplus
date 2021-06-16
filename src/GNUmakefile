@@ -1,7 +1,7 @@
 SEAPLUS_TOP = ..
 
 
-.PHONY: all build-seaplus clean clean-local info info-bin
+.PHONY: all build-seaplus clean clean-local clean-foobar info info-bin
 
 
 # Note: libtool is not used anymore (not worth the trouble).
@@ -75,10 +75,13 @@ clean: clean-local
 
 
 # Apparently libtool (not used anymore) systematically compiled a .lo and a .o:
-clean-local:
+clean-local: clean-foobar
 	-@/bin/rm -rf .libs
 	-@/bin/rm -f *.lo $(SEAPLUS_OBJ) $(SEAPLUS_LIB) seaplus_test \
 		$(SEAPLUS_TEST_OBJ) seaplus_test.log
+
+clean-foobar:
+	@echo "Cleaning files generated for foobar"
 
 
 info: info-bin
