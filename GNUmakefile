@@ -5,7 +5,7 @@ SEAPLUS_TOP = .
 		register-version-in-header register-seaplus list-beam-dirs       \
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
-		prepare-release clean-release clean-archive stats                \
+		prepare-release clean-release clean-archive clean-foobar stats   \
 		info-erlang-for-c info-paths info-compile info-c-compile         \
 		info-context info-versions
 
@@ -102,8 +102,7 @@ prepare-release: clean clean-release
 	-@cd .. && find $(SEAPLUS_RELEASE_BASE) -type f -a -name '*.beam' -exec /bin/rm -f '{}' ';' 2>/dev/null
 
 
-clean: clean-release clean-archive
-
+clean: clean-release clean-archive clean-foobar
 
 clean-release:
 	@echo "   Cleaning release archive for Seaplus"
@@ -112,6 +111,12 @@ clean-release:
 
 clean-archive:
 	-@cd .. && /bin/rm -f $(SEAPLUS_RELEASES)
+
+
+clean-foobar:
+	@echo "  Cleaning files generated for foobar"
+	-@/bin/rm -f include/foobar.hrl src/foobar.erl src/foobar_test.erl
+
 
 
 stats:
