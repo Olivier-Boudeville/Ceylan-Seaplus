@@ -29,7 +29,18 @@ include $(SEAPLUS_TOP)/GNUmakesettings.inc
 	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(FOOBAR_INC_OPT) -o $@ -c $<
 
 
-all: build-foobar-lib $(TARGET_DRIVER_EXEC) erlang-test
+# Initially we had:
+#     all: build-foobar-lib $(TARGET_DRIVER_EXEC) erlang-test
+#
+# yet a strange case happened (in continuous integration) where apparently the
+# foobar library (to be created by the 'build-foobar-lib' target) was built *in
+# parallel* to this driver (to be created by the '$(TARGET_DRIVER_EXEC)'
+# target), leading to ld failing with 'cannot find -lfoobar' whereas another
+# make job was actually creating lib/libfoobar.so.
+#
+# So now we try to force a stricter order thanks to:
+all: build-foobar-lib
+	@$(MAKE) -s $(TARGET_DRIVER_EXEC) erlang-test
 
 
 build-foobar-lib:
@@ -61,7 +72,7 @@ $(TARGET_DRIVER_OBJ): foobar.beam
 
 # For some reason, $(TARGET_DRIVER_OBJ) has to be specified twice if relying on
 # the auto-generated templated version of it, otherwise foobar_seaplus_driver.o
-# is not found:
+# is not found.
 #
 $(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB_PATH)
 	@$(MAKE) -s $(TARGET_DRIVER_OBJ)
