@@ -386,9 +386,14 @@ ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MYRIAD) \
 # Variable defined to be re-usable by upper layers, so that compiling their own
 # parse transforms can take advantage of the Seaplus one:
 #
+# (to find seaplus_parse_transform.beam, both the Seaplus 'src' and 'ebin'
+# directories are specified: the former for our native build, the latter for a
+# rebar3-based one)
+#
 ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS = \
 	$(OVERALL_PZ_OPT)                             \
 	-Dseaplus_root=\"$(SEAPLUS_TOP)\"             \
+	-pz $(SEAPLUS_TOP)/ebin                       \
 	-pz $(SEAPLUS_TOP)/src                        \
 	$(MYRIAD_PARSE_TRANSFORMS_PZ_OPT)             \
 	'+{parse_transform,seaplus_parse_transform}'
