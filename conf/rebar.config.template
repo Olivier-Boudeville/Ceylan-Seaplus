@@ -60,12 +60,12 @@
 % counterpart (indeed calls to the 'table' pseudo-module remain in this
 % unfortunately updated seaplus_parse_transform.beam)
 %
-% We also transfer the BEAM of the Seaplus parse transform in the right
+% We also transfer the BEAM of the Seaplus parse transform to the right
 % directory, depending on whether Seaplus is built by itself or as a dependency.
 %
-{pre_hooks,  [ {compile, "make rebar3-bulletproof-compile-pre-hook"} ]}.
+{pre_hooks,  [ {compile, "make rebar3-bulletproof-compile-pre-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
 
-{post_hooks, [ {compile, "make rebar3-bulletproof-compile-post-hook"} ]}.
+{post_hooks, [ {compile, "make rebar3-bulletproof-compile-post-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
 
 
 
