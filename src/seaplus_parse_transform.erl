@@ -210,6 +210,7 @@ parse_transform( InputAST, Options ) ->
 	SeaplusAST.
 
 
+
 % @doc Returns the root directory of Seaplus, as specified in the build defines.
 get_seaplus_root( Options ) ->
 
@@ -222,7 +223,7 @@ get_seaplus_root( Options ) ->
 
 				true ->
 					%trace_bridge:debug_fmt( "Seaplus directory is '~ts'.",
-					%					   [ RootDirectory ] ),
+					%						[ RootDirectory ] ),
 
 					TestFile = file_utils:join(
 								[ RootDirectory, "include", "seaplus.h" ] ),
@@ -270,7 +271,7 @@ get_seaplus_root( Options ) ->
 
 
 
-% @doc Transforms specified AST for Seaplus.
+% @doc Transforms the specified AST for Seaplus.
 -spec apply_seaplus_transform( ast(), parse_transform_options(),
 							   directory_path() ) -> { ast(), module_info() }.
 apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
@@ -287,7 +288,7 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 
 	% This allows to compare input and output ASTs more easily:
 	%ast_utils:write_ast_to_file( lists:sort( InputAST ),
-	%							 "Seaplus-input-AST-sorted.txt" ),
+	%							  "Seaplus-input-AST-sorted.txt" ),
 
 	% First preprocesses the AST based on the Myriad parse transform, in order
 	% to benefit from its corresponding module_info record:
@@ -328,8 +329,8 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 
 
 	%trace_bridge:debug_fmt(
-	%  "Module information after Seaplus: ~ts",
-	%  [ ast_info:module_info_to_string( FinalModuleInfo ) ] ),
+	%    "Module information after Seaplus: ~ts",
+	%    [ ast_info:module_info_to_string( FinalModuleInfo ) ] ),
 
 	?display_trace( "Module information processed, "
 					"recomposing corresponding AST." ),
@@ -346,7 +347,7 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 	%ast_utils:write_ast_to_file( OutputAST, OutputASTFilename ),
 
 	%OutputSortedASTFilename = text_utils:format(
-	%		   "Seaplus-sorted-output-AST-for-module-~ts.txt",
+	%			"Seaplus-sorted-output-AST-for-module-~ts.txt",
 	%			[ element( 1, FinalModuleInfo#module_info.module ) ] ),
 	%
 	%ast_utils:write_ast_to_file( lists:sort( OutputAST ),
