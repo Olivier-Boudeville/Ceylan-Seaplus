@@ -6,6 +6,11 @@
 .. comment stylesheet specified through GNUmakefile
 
 
+----------------------------------------------------------------
+Seaplus: Streamlining a safe execution of C/C++ code from Erlang
+----------------------------------------------------------------
+
+
 .. role:: raw-html(raw)
    :format: html
 
@@ -19,15 +24,9 @@
 
 
 
-:raw-html:`<center><img src="seaplus-title.png" id="responsive-image-small"></img></center>`
+:raw-html:`<center><img src="seaplus-title.png" id="responsive-image-small"></img>`
 :raw-latex:`\centering \includegraphics[scale=0.65]{seaplus-title.png}`
 
-
-
-
-----------------------------------------------------------------
-Seaplus: Streamlining a safe execution of C/C++ code from Erlang
-----------------------------------------------------------------
 
 
 :Organisation: Copyright (C) 2018-GENERATION_YEAR_TAG Olivier Boudeville
@@ -46,6 +45,8 @@ Seaplus: Streamlining a safe execution of C/C++ code from Erlang
 
 .. meta::
    :keywords: Seaplus, C, C++, integration, interface, bridge, Erlang
+
+:raw-html:`</center>`
 
 
 The latest version of this documentation is to be found at the `official Seaplus website <http://seaplus.esperide.org>`_ (``http://seaplus.esperide.org``).
