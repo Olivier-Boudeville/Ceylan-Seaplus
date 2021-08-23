@@ -114,7 +114,22 @@
 % The (Erlang-side) result of the execution of a function.
 
 
--export_type([ function_driver_id/0, function_params/0, function_result/0 ]).
+% Information stored in the process dictionary regarding an associated Seaplus
+% driver in order to help the integration troubleshooting:
+%
+% - ExecPath is the executable path of the driver
+% - ExtraEnv is the system environment applied when launching this driver
+% - OSPid is the OS-level PID of this driver (knowing that, in case of a crash
+% thereof, it will be too late to fetch it hence, for example, to determine the
+% name of its log file)
+%
+-type driver_info() :: { ExecPath :: bin_executable_path(),
+						 ExtraEnv :: environment(),
+						 OSPid :: maybe( system_utils:os_pid() ) }.
+
+
+-export_type([ function_driver_id/0, function_params/0, function_result/0,
+			   driver_info/0 ]).
 
 
 -define( service_port_key_prefix, "_seaplus_port_for_service_" ).
@@ -131,7 +146,9 @@
 
 -type executable_name() :: file_utils:executable_name().
 -type executable_path() :: file_utils:executable_path().
+-type bin_executable_path() :: file_utils:bin_executable_path().
 
+-type environment() :: system_utils:environment().
 
 
 % Thanks to the service_integration parse transform, a right, minimal, optimal
@@ -450,7 +467,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	% Not using anymore an intermediate process:
 	%naming_utils:register_as( _Pid=self(), _RegistrationName=ServiceName,
-	%						  local_only ),
+	%                          local_only ),
 
 	% Will store the spawned port for later use in the process dictionary of the
 	% calling user process:
@@ -529,6 +546,20 @@ init_driver( ServiceName, DriverExecPath ) ->
 	%
 	Port = open_port( { spawn, DriverCommand }, PortOptions ),
 
+	% Fetch as early as possible; could be 'undefined'; useful afterwards to
+	% automatically locate the log file of the corresponding Seaplus driver
+	% instance:
+	%
+	MaybeOSPid = case erlang:port_info( Port, os_pid ) of
+
+		undefined ->
+			undefined;
+
+		{ os_pid, DriverPid } ->
+			DriverPid
+
+	end,
+
 	cond_utils:if_defined( seaplus_debug_port, trace_bridge:debug_fmt(
 		"Storing port ~w under the service key '~ts' "
 		"in the process dictionary of ~p.", [ Port, ServiceKey, self() ] ) ),
@@ -537,9 +568,13 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	% Useful for a post-crash analysis:
 	ServiceDriverKey = get_service_driver_key_for( ServiceName ),
-	process_dictionary:put( ServiceDriverKey, { DriverExecPath, ExtraEnv } ).
 
-	% No need for a main loop, *we* drive the (direct) communication:
+	process_dictionary:put( ServiceDriverKey,
+		_DriverInfo={ DriverExecPath, ExtraEnv, MaybeOSPid } ).
+
+	% No need for a main loop, as this is this Erlang side of Seaplus that
+	% drives the (direct) communication:
+	%
 	%driver_main_loop( Port, ServiceName ).
 
 
@@ -549,7 +584,7 @@ init_driver( ServiceName, DriverExecPath ) ->
 % Defined as a separate function so that user code can anticipate this checking,
 % for example when it starts up.
 %
--spec check_driver_runnable( executable_path(), system_utils:environment() ) ->
+-spec check_driver_runnable( executable_path(), environment() ) ->
 			ustring() | system_utils:execution_outcome().
 check_driver_runnable( DriverExecPath, ExtraEnvironment ) ->
 
@@ -576,8 +611,7 @@ check_driver_runnable( DriverExecPath, ExtraEnvironment ) ->
 % @doc Displays runtime information about the specified driver, to help
 % troubleshooting.
 %
--spec display_driver_runtime_info( executable_path(),
-								   system_utils:environment() ) -> void().
+-spec display_driver_runtime_info( executable_path(), environment() ) -> void().
 display_driver_runtime_info( ExecPath, ExtraEnvironment ) ->
 
 	% At least as clear as 'readelf -d XXX':
@@ -590,7 +624,7 @@ display_driver_runtime_info( ExecPath, ExtraEnvironment ) ->
 		{ _RetCode=0, CmdOutput } ->
 			trace_bridge:info_fmt( "Library dependencies for '~ts' are:~n~ts~n"
 				"While being in '~ts':~n  PATH is '~ts'~n  "
-				"LD_LIBRARY_PATH is '~ts' (with extra environment ~p).",
+				"LD_LIBRARY_PATH is '~ts' (with extra environment ~p).~n",
 				[ ExecPath, CmdOutput, file_utils:get_current_directory(),
 				  system_utils:get_environment_variable( "PATH" ),
 				  system_utils:get_environment_variable( "LD_LIBRARY_PATH" ),
@@ -726,8 +760,47 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 					trace_bridge:error_fmt( "Unable to find driver key '~ts' "
 						"on ~w (abnormal).", [ DrivKey, self() ] );
 
-				{ ExecPath, ExtraEnv } ->
-					display_driver_runtime_info( ExecPath, ExtraEnv )
+				{ ExecPath, ExtraEnv, MaybeOSPid } ->
+					display_driver_runtime_info( ExecPath, ExtraEnv ),
+					case MaybeOSPid of
+
+						undefined ->
+							trace_bridge:warning( "No information could be "
+								"obtained regarding the OS-level PID of the "
+								"crashed driver." );
+
+						% The PID of the OS process that used to correspond to
+						% the driver of that port:
+						%
+						OSPid ->
+
+							LogFilename = file_utils:ensure_path_is_absolute(
+								text_utils:format( "seaplus-driver.~B.log",
+												   [ OSPid ] ) ),
+
+							case file_utils:is_existing_file( LogFilename ) of
+
+								true ->
+									LogContent = text_utils:binary_to_string(
+										file_utils:read_whole( LogFilename ) ),
+
+									ContentEnd = text_utils:tail( LogContent,
+										_MaxSize=1000 ),
+
+									trace_bridge:error_fmt( "Corresponding "
+										"driver logs found in '~ts':~n  ~ts",
+										[ LogFilename, ContentEnd ] );
+
+								false ->
+									trace_bridge:error_fmt( "Driver logs "
+										"searched as ~ts' (from '~ts'), yet "
+										"were not found (abnormal).",
+										[ LogFilename,
+										  file_utils:get_current_directory() ] )
+
+							end
+
+					end
 
 			end,
 
@@ -763,18 +836,16 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 
 
-% @doc Returns the key that shall be used to store information in the process
-% dictionary of the calling user process for the specified service.
+% @doc Returns the key that shall be used in order to store information in the
+% process dictionary of the calling user process for the specified service.
 %
 % Note: must agree with seaplus_parse_transform:get_port_dict_key_for/1.
 %
 -spec get_service_port_key_for( service_name() ) -> service_key().
 get_service_port_key_for( ServiceName ) ->
+	text_utils:atom_format( "~ts~ts",
+							[ ?service_port_key_prefix, ServiceName ] ).
 
-	PortKeyString = text_utils:format( "~ts~ts",
-									[ ?service_port_key_prefix, ServiceName ] ),
-
-	text_utils:string_to_atom( PortKeyString ).
 
 
 % @doc Reciprocal of get_service_port_key_for/1.
@@ -794,6 +865,7 @@ get_service_name_from_port_key( ServicePortKey ) ->
 	end.
 
 
+
 % @doc Returns the key that shall be used to store the executable path of the
 % driver for the specified service.
 %
@@ -801,11 +873,8 @@ get_service_name_from_port_key( ServicePortKey ) ->
 %
 -spec get_service_driver_key_for( service_name() ) -> service_key().
 get_service_driver_key_for( ServiceName ) ->
-
-	DriverKeyString = text_utils:format( "_seaplus_driver_path_for_service_~ts",
-										 [ ServiceName ] ),
-
-	text_utils:string_to_atom( DriverKeyString ).
+	text_utils:atom_format( "_seaplus_driver_path_for_service_~ts",
+							[ ServiceName ] ).
 
 
 
