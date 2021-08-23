@@ -577,6 +577,8 @@ Example content::
 
 .. [#] Including the PID in the filename allows notably, in case of driver restart, to ensure that the logs of the new instance do not overwrite the ones of the restarted one.
 
+The end of these logs is automatically located, fetched and displayed in the applicative traces by Seaplus in case of a driver crash, to help any troubleshooting thereof.
+
 Beyond being able to collect traces about the behaviour of the driver, Seaplus more generally supports **general-purpose logging** thanks to its use of Myriad's `trace_bridge <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/src/utils/trace_bridge.erl>`_ (see `trace_bridge_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/test/utils/trace_bridge_test.erl>`_ for an usage example thereof). This means that by default these messages will be output on the console (thanks to ``trace_utils``), yet that any more advanced compliant trace system can be used instead (see `trace_bridging_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Traces/blob/master/test/trace_bridging_test.erl>`_ for an usage example thereof). So any library that is made available through Seaplus should be able to integrate nicely into one's logging system of choice.
 
 
