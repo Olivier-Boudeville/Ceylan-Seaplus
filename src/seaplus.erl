@@ -276,7 +276,7 @@ start_link( ServiceName ) when is_atom( ServiceName ) ->
 start( ServiceName, DriverExecutableName )
   when is_atom( ServiceName ) andalso is_list( DriverExecutableName ) ->
 
-	DriverExecPath = get_driver_path( ServiceName, DriverExecutableName ),
+	DriverExecPath = secure_driver_path( ServiceName, DriverExecutableName ),
 
 	launch( ServiceName, DriverExecPath ).
 
@@ -293,7 +293,7 @@ start( ServiceName, DriverExecutableName )
 start_link( ServiceName, DriverExecutableName )
   when is_atom( ServiceName ) andalso is_list( DriverExecutableName ) ->
 
-	DriverExecPath = get_driver_path( ServiceName, DriverExecutableName ),
+	DriverExecPath = secure_driver_path( ServiceName, DriverExecutableName ),
 
 	launch_link( ServiceName, DriverExecPath ).
 
@@ -372,14 +372,65 @@ get_driver_name( ServiceName ) ->
 
 % @doc Returns the path to the executable corresponding to specified service.
 %
+% May enrich various OS process-level settings (ex: to locate executables).
+%
 % (helper)
 %
--spec get_driver_path( service_name(), executable_name() ) -> executable_path().
-get_driver_path( ServiceName, DriverExecutableName ) ->
+-spec secure_driver_path( service_name(), executable_name() ) ->
+			executable_path().
+secure_driver_path( ServiceName, DriverExecutableName ) ->
 
-	% Current directory may not be in user PATH:
+	% It is generally useful, at least as a last-resort measure (unless the user
+	% already did it), to enrich the PATH so that the executable of the
+	% corresponding driver can be found by Seaplus; with our native build
+	% system, it is as simple as locating the directory where mobile.beam lies.
+
+	% Here we rely on the Seaplus-based service name (ex: 'mobile') to establish
+	% where its implementation module (ex: "module.beam") lies, typically in
+	% $SERVICE_ROOT/src (ex: in "mobile/src/"); this is where the corresponding
+	% driver (mobile_seaplus_driver) is expected to be available as well, so it
+	% must be added to the current PATH:
+
+	ServiceModPath = case code_utils:is_beam_in_path( ServiceName ) of
+
+		not_found ->
+			trace_bridge:error_fmt( "Unable to locate the '~ts' service "
+				"module in the code path, knowing that the ~ts",
+				[ ServiceName, code_utils:get_code_path_as_string() ] ),
+			throw( { service_module_not_found, ServiceName } );
+
+		[ SrvPath ] ->
+			trace_bridge:debug( "Adding the directory of BEAM '~ts' to the "
+				"executable lookup paths in order to locate the Seaplus "
+				"driver generated for the '~ts' service.",
+				[ SrvPath, ServiceName ] ),
+			%system_utils:add_path_for_executable_lookup( Dir );
+			SrvPath;
+
+		MultipleSrvPaths ->
+			% Used to be a blocking error, now just a warning as rebar3 creates
+			% gadzillons of duplicated paths:
+			%
+			SrvPath = hd( MultipleSrvPaths ),
+			trace_bridge:warning_fmt( "The '~ts' service module was found "
+				"~B times in the code path, in ~ts, knowing that the ~ts; "
+				"relying on the first module path ('~ts').",
+				[ ServiceName, length( MultipleSrvPaths ),
+				  text_utils:strings_to_listed_string( MultipleSrvPaths ),
+				  code_utils:get_code_path_as_string(), SrvPath ] ),
+			%throw( { multiple_service_modules_found, ServiceName,
+			%         MultipleSrvPaths } )
+			SrvPath
+
+	end,
+
+	ServiceDir = file_utils:get_base_path( ServiceModPath ),
+
+	% We used to add also the current directory (".") in the user PATH, yet the
+	% driver is generally located elsewhere:
+	%
 	ExecPath = case executable_utils:lookup_executable(
-					DriverExecutableName, [ "." ] ) of
+					DriverExecutableName, [ ServiceDir ] ) of
 
 		false ->
 			PathStr = case system_utils:get_environment_variable( "PATH" ) of
@@ -401,15 +452,78 @@ get_driver_path( ServiceName, DriverExecutableName ) ->
 			throw( { executable_not_found, DriverExecutableName,
 					 ServiceName } );
 
-		Path ->
-			Path
+		EPath ->
+			EPath
 
 	end,
+
+	% Doing the same so that now the Seaplus library can be found:
+	SeaplusSrcDir = case code_utils:is_beam_in_path( seaplus ) of
+
+		not_found ->
+			trace_bridge:error_fmt( "Unable to locate the seaplus base "
+				"module in the code path, knowing that the ~ts",
+				[ code_utils:get_code_path_as_string() ] ),
+			throw( seaplus_module_not_found );
+
+		[ SeapModPath ] ->
+			trace_bridge:debug( "Adding the directory of BEAM '~ts' to the "
+				"library lookup paths in order to location the Seaplus "
+				"library.", [ SeapModPath ] ),
+			file_utils:get_base_path( SeapModPath );
+
+		MultipleSeapModPaths ->
+			% Thanks to rebar3, we can find seaplus.beam in 'ebin' in addition
+			% to in our expected 'src'; we remove the first one(s):
+			%				 .
+			_SeapModPaths = [ ChosenSeapDir | _T ] =
+									filter_ebin_dirs( MultipleSeapModPaths ),
+
+			trace_bridge:warning_fmt( "The Seaplus module was found "
+				"~B times in the code path, in ~ts, knowing that the ~ts; "
+				"after some filtering, returning '~ts'.",
+				[ length( MultipleSeapModPaths ),
+				  text_utils:strings_to_listed_string( MultipleSeapModPaths ),
+				  code_utils:get_code_path_as_string(), ChosenSeapDir ] ),
+			%throw( { multiple_service_modules_found, ServiceName,
+			%		 MultipleDirs } )
+			ChosenSeapDir
+
+	end,
+
+	system_utils:add_path_for_library_lookup( SeaplusSrcDir ),
 
 	%trace_bridge:debug_fmt( "Initializing service '~ts', "
 	%     "using executable '~ts'.", [ ServiceName, ExecPath ] ),
 
 	ExecPath.
+
+
+
+% Returns the base paths of the specified ones, except those ending with 'ebin'.
+filter_ebin_dirs( Paths ) ->
+	filter_ebin_dirs( Paths, _Acc=[] ).
+
+
+filter_ebin_dirs( _Paths=[], Acc ) ->
+	% Order does not matter:
+	Acc;
+
+filter_ebin_dirs( _Paths=[ FullPath | T ], Acc ) ->
+
+	% Removing module filename:
+	BasePath = file_utils:get_base_path( FullPath ),
+
+	case file_utils:get_last_path_element( BasePath ) of
+
+		"ebin" ->
+			filter_ebin_dirs( T, Acc );
+
+		_  ->
+			filter_ebin_dirs( T, [ BasePath | Acc ] )
+
+	end.
+
 
 
 
