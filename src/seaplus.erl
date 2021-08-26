@@ -347,8 +347,8 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 					ok
 
 			after 5000 ->
-					trace_bridge:error_fmt( "Time-out after waiting for the "
-											"stop of port ~w.", [ TargetPort ] )
+				trace_bridge:error_fmt( "Time-out after waiting for the "
+										"stop of port ~w.", [ TargetPort ] )
 
 		end
 
@@ -400,7 +400,7 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 			throw( { service_module_not_found, ServiceName } );
 
 		[ SrvPath ] ->
-			trace_bridge:debug( "Adding the directory of BEAM '~ts' to the "
+			trace_bridge:debug_fmt( "Adding the directory of BEAM '~ts' to the "
 				"executable lookup paths in order to locate the Seaplus "
 				"driver generated for the '~ts' service.",
 				[ SrvPath, ServiceName ] ),
@@ -467,7 +467,7 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 			throw( seaplus_module_not_found );
 
 		[ SeapModPath ] ->
-			trace_bridge:debug( "Adding the directory of BEAM '~ts' to the "
+			trace_bridge:debug_fmt( "Adding the directory of BEAM '~ts' to the "
 				"library lookup paths in order to location the Seaplus "
 				"library.", [ SeapModPath ] ),
 			file_utils:get_base_path( SeapModPath );
@@ -476,8 +476,8 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 			% Thanks to rebar3, we can find seaplus.beam in 'ebin' in addition
 			% to in our expected 'src'; we remove the first one(s):
 			%				 .
-			_SeapModPaths = [ ChosenSeapDir | _T ] =
-									filter_ebin_dirs( MultipleSeapModPaths ),
+			_SeapModPaths = [ ChosenSeapDir | _T ]
+								= filter_ebin_dirs( MultipleSeapModPaths ),
 
 			trace_bridge:warning_fmt( "The Seaplus module was found "
 				"~B times in the code path, in ~ts, knowing that the ~ts; "
@@ -486,7 +486,7 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 				  text_utils:strings_to_listed_string( MultipleSeapModPaths ),
 				  code_utils:get_code_path_as_string(), ChosenSeapDir ] ),
 			%throw( { multiple_service_modules_found, ServiceName,
-			%		 MultipleDirs } )
+			%         MultipleDirs } )
 			ChosenSeapDir
 
 	end,
@@ -858,7 +858,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			% reason is thrown:
 			%
 			%trace_bridge:warning_fmt( "Normal EXIT of port ~p.",
-			%						 [ TargetPort ] ),
+			%                          [ TargetPort ] ),
 
 			% In order to call display_driver_runtime_info
 			trace_bridge:error_fmt( "Crash of the driver port (~w) reported "
@@ -942,9 +942,9 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 		% No promiscuous mode, we have not to hijack the traffic of others:
 		%Unexpected ->
-		%	trace_bridge:error_fmt( "Driver call: unexpected message "
-		%		"received: ~p~n", [ Unexpected ] ),
-		%	throw( { unexpected_driver_message, Unexpected } )
+		%    trace_bridge:error_fmt( "Driver call: unexpected message "
+		%        "received: ~p~n", [ Unexpected ] ),
+		%    throw( { unexpected_driver_message, Unexpected } )
 
 	end.
 
