@@ -388,11 +388,10 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 	% Here we rely on the Seaplus-based service name (ex: 'mobile') to establish
 	% where its implementation module (ex: "module.beam") lies, typically in
 	% $SERVICE_ROOT/src (ex: in "mobile/src/"); this is where the corresponding
-	% driver (mobile_seaplus_driver) is expected to be available as well, so it
+	% driver (SERVICE_seaplus_driver) is expected to be available as well, so it
 	% must be added to the current PATH:
 
-	ServiceModPath = case code_utils:is_beam_in_path( ServiceName ) of
-
+	ServiceDir = case code_utils:is_beam_in_path( ServiceName ) of
 
 		not_found ->
 			trace_bridge:error_fmt( "Unable to locate the '~ts' service "
@@ -406,8 +405,8 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 				"executable lookup paths in order to locate the Seaplus "
 				"driver generated for the '~ts' service.",
 				[ SrvPath, ServiceName ] ),
-			%system_utils:add_path_for_executable_lookup( Dir );
-			SrvPath;
+			% Service BEAM file removed:
+			file_utils:get_base_path( SrvPath );
 
 
 		MultipleSrvPaths ->
@@ -434,7 +433,8 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 
 	end,
 
-	ServiceDir = file_utils:get_base_path( ServiceModPath ),
+	% So that SERVICE_seaplus_driver can be found according to our conventions:
+	system_utils:add_path_for_executable_lookup( ServiceDir ),
 
 	% We used to add also the current directory (".") in the user PATH, yet the
 	% driver is generally located elsewhere:
@@ -469,7 +469,6 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 
 	% Doing the same so that now the Seaplus library can be found:
 	SeaplusSrcDir = case code_utils:is_beam_in_path( seaplus ) of
-
 
 		not_found ->
 			trace_bridge:error_fmt( "Unable to locate the seaplus base "
