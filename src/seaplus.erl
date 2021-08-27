@@ -393,11 +393,13 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 
 	ServiceModPath = case code_utils:is_beam_in_path( ServiceName ) of
 
+
 		not_found ->
 			trace_bridge:error_fmt( "Unable to locate the '~ts' service "
 				"module in the code path, knowing that the ~ts",
 				[ ServiceName, code_utils:get_code_path_as_string() ] ),
 			throw( { service_module_not_found, ServiceName } );
+
 
 		[ SrvPath ] ->
 			trace_bridge:debug_fmt( "Adding the directory of BEAM '~ts' to the "
@@ -407,20 +409,28 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 			%system_utils:add_path_for_executable_lookup( Dir );
 			SrvPath;
 
+
 		MultipleSrvPaths ->
+
 			% Used to be a blocking error, now just a warning as rebar3 creates
-			% gadzillons of duplicated paths:
+			% gadzillons of duplicated paths; we do not want a path like
+			% PROJECT/_build/default/lib/SERVICE/ebin/SERVICE.beam' to be
+			% returned, we want
+			% PROJECT/_build/default/lib/SERVICE/src/SERVICE.beam' so that we
+			% can find afterwards the corresponding driver (ex:
+			% SERVICE_seaplus_driver):
 			%
-			SrvPath = hd( MultipleSrvPaths ),
+			ChosenSrvDir = hd( filter_ebin_dirs( MultipleSrvPaths ) ),
+
 			trace_bridge:warning_fmt( "The '~ts' service module was found "
-				"~B times in the code path, in ~ts, knowing that the ~ts; "
-				"relying on the first module path ('~ts').",
+				"~B times in the code path, in ~ts, knowing that the ~ts~n "
+				"After some filtering, returning '~ts'.",
 				[ ServiceName, length( MultipleSrvPaths ),
 				  text_utils:strings_to_listed_string( MultipleSrvPaths ),
-				  code_utils:get_code_path_as_string(), SrvPath ] ),
+				  code_utils:get_code_path_as_string(), ChosenSrvDir ] ),
 			%throw( { multiple_service_modules_found, ServiceName,
 			%         MultipleSrvPaths } )
-			SrvPath
+			ChosenSrvDir
 
 	end,
 
@@ -460,11 +470,13 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 	% Doing the same so that now the Seaplus library can be found:
 	SeaplusSrcDir = case code_utils:is_beam_in_path( seaplus ) of
 
+
 		not_found ->
 			trace_bridge:error_fmt( "Unable to locate the seaplus base "
 				"module in the code path, knowing that the ~ts",
 				[ code_utils:get_code_path_as_string() ] ),
 			throw( seaplus_module_not_found );
+
 
 		[ SeapModPath ] ->
 			trace_bridge:debug_fmt( "Adding the directory of BEAM '~ts' to the "
@@ -472,16 +484,17 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 				"library.", [ SeapModPath ] ),
 			file_utils:get_base_path( SeapModPath );
 
+
 		MultipleSeapModPaths ->
+
 			% Thanks to rebar3, we can find seaplus.beam in 'ebin' in addition
 			% to in our expected 'src'; we remove the first one(s):
-			%				 .
-			_SeapModPaths = [ ChosenSeapDir | _T ]
-								= filter_ebin_dirs( MultipleSeapModPaths ),
+			%
+			ChosenSeapDir = hd( filter_ebin_dirs( MultipleSeapModPaths ) ),
 
 			trace_bridge:warning_fmt( "The Seaplus module was found "
-				"~B times in the code path, in ~ts, knowing that the ~ts; "
-				"after some filtering, returning '~ts'.",
+				"~B times in the code path, in ~ts, knowing that the ~ts~n "
+				"After some filtering, returning '~ts'.",
 				[ length( MultipleSeapModPaths ),
 				  text_utils:strings_to_listed_string( MultipleSeapModPaths ),
 				  code_utils:get_code_path_as_string(), ChosenSeapDir ] ),
