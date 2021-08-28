@@ -911,7 +911,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 										file_utils:read_whole( LogFilename ) ),
 
 									ContentEnd = text_utils:tail( LogContent,
-										_MaxSize=1000 ),
+										_MaxSize=1500 ),
 
 									trace_bridge:error_fmt( "Corresponding "
 										"driver logs found in '~ts':~n  ~ts",
