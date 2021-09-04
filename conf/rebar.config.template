@@ -62,10 +62,18 @@
 %
 % We also transfer the BEAM of the Seaplus parse transform to the right
 % directory, depending on whether Seaplus is built by itself or as a dependency.
-%
-{pre_hooks,  [ {compile, "make rebar3-bulletproof-compile-pre-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
 
-{post_hooks, [ {compile, "make rebar3-bulletproof-compile-post-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
+
+%{pre_hooks,  [ {compile, "make rebar3-bulletproof-compile-pre-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
+
+% Verbosity disabled:
+{pre_hooks,  [ {compile, "make rebar3-bulletproof-compile-pre-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar'"} ]}.
+
+
+%{post_hooks, [ {compile, "make rebar3-bulletproof-compile-post-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
+
+% Verbosity disabled:
+{post_hooks, [ {compile, "make rebar3-bulletproof-compile-post-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar'"} ]}.
 
 
 
