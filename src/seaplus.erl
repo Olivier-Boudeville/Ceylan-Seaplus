@@ -401,11 +401,13 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 
 
 		[ SrvPath ] ->
-			trace_bridge:debug_fmt( "Adding the directory of BEAM '~ts' to the "
-				"executable lookup paths in order to locate the Seaplus "
-				"driver generated for the '~ts' service.",
-				[ SrvPath, ServiceName ] ),
-			% Service BEAM file removed:
+			cond_utils:if_defined( seaplus_debug_driver,
+				trace_bridge:debug_fmt( "Adding the directory of the '~ts' "
+					"BEAM file to the executable lookup paths in order to "
+					"locate the Seaplus driver generated for the '~ts' "
+					"service.", [ SrvPath, ServiceName ] ) ),
+
+			% Service BEAM file removed from:
 			file_utils:get_base_path( SrvPath );
 
 
