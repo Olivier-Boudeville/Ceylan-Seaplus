@@ -662,7 +662,7 @@ The situation is never hopeless, though; we will take the integration of the `li
 
 The type of errors that we want to track down are reported as such (real-life example of the execution of ``mobile_test`` while the Seaplus driver-level facilities was incorrectly dealing, memory-wise, with the parameters that were binary strings):
 
-.. code:: shell-session
+.. code::
 
   [...]
   [debug] Driver check successful, returned 'This is a Ceylan-Seaplus driver generated for service Ceylan-Mobile. It is not meant to be executed by itself, but to be run by the Erlang-based Seaplus integration logic. Exiting now.'.
@@ -710,7 +710,7 @@ So the driver crashed, we do not know precisely why (yet at least some key libra
 
 Indeed these driver logs (in ``seaplus-driver.1037076.log`` here) tell us:
 
-.. code:: shell-session
+.. code::
 
   [2021/2/14 12:09:21][debug] Logger for Seaplus driver: starting new session...
   [2021/2/14 12:09:21][debug] Starting the Seaplus C driver, with an input buffer of 32768 bytes.
@@ -788,7 +788,7 @@ In our case we used (as a one-liner), from the test directory, once a crash had 
 
 Following gdb command would then bring new information:
 
-.. code:: shell-session
+.. code::
 
   (gdb) core mobile_seaplus.core
   warning: core file may not match specified executable file.
@@ -824,7 +824,7 @@ One should then have a look to the ``init_driver/2`` function of the `seaplus.er
 
 Once using a Valgrind-based driver command and an updated environment (to select your debug library rather than the system's one), when looking at the specified log file (``/tmp/seaplus-valgrind.log``) you should end up with a report like:
 
-.. code:: shell-session
+.. code::
 
  ==12257== Invalid read of size 1
  ==12257==    at 0x483AC74: strlen (vg_replace_strmem.c:460)
