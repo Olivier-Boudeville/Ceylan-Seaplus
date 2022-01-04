@@ -21,6 +21,18 @@
 
 <h2><a name="types">Data Types</a></h2>
 
+<h3 class="typedecl"><a name="type-bin_executable_path">bin_executable_path()</a></h3>
+<p><tt>bin_executable_path() = <a href="file_utils.html#type-bin_executable_path">file_utils:bin_executable_path()</a></tt></p>
+
+
+<h3 class="typedecl"><a name="type-driver_info">driver_info()</a></h3>
+<p><tt>driver_info() = {ExecPath::<a href="#type-bin_executable_path">bin_executable_path()</a>, ExtraEnv::<a href="#type-environment">environment()</a>, OSPid::<a href="#type-maybe">maybe</a>(<a href="system_utils.html#type-os_pid">system_utils:os_pid()</a>)}</tt></p>
+
+
+<h3 class="typedecl"><a name="type-environment">environment()</a></h3>
+<p><tt>environment() = <a href="system_utils.html#type-environment">system_utils:environment()</a></tt></p>
+
+
 <h3 class="typedecl"><a name="type-executable_name">executable_name()</a></h3>
 <p><tt>executable_name() = <a href="file_utils.html#type-executable_name">file_utils:executable_name()</a></tt></p>
 
@@ -93,7 +105,7 @@ basic_utils:function_name().</p>
 
 <h3 class="function"><a name="check_driver_runnable-2">check_driver_runnable/2</a></h3>
 <div class="spec">
-<p><tt>check_driver_runnable(DriverExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="system_utils.html#type-environment">system_utils:environment()</a>) -&gt; <a href="#type-ustring">ustring()</a> | <a href="system_utils.html#type-execution_outcome">system_utils:execution_outcome()</a></tt><br></p>
+<p><tt>check_driver_runnable(DriverExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="#type-environment">environment()</a>) -&gt; <a href="#type-ustring">ustring()</a> | <a href="system_utils.html#type-execution_outcome">system_utils:execution_outcome()</a></tt><br></p>
 <p> </p>
 </div><p><p>Checks whether the driver for the specified service is runnable at all.</p>
 
@@ -103,7 +115,7 @@ basic_utils:function_name().</p>
 
 <h3 class="function"><a name="display_driver_runtime_info-2">display_driver_runtime_info/2</a></h3>
 <div class="spec">
-<p><tt>display_driver_runtime_info(ExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="system_utils.html#type-environment">system_utils:environment()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p><tt>display_driver_runtime_info(ExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="#type-environment">environment()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
 <p> </p>
 </div><p>Displays runtime information about the specified driver, to help
  troubleshooting.

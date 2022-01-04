@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.16: http://docutils.sourceforge.net/" />
 <title>Welcome to the Ceylan-Seaplus documentation</title>
 <meta content="Seaplus, C, C++, integration, interface, bridge, Erlang" name="keywords" />
 <link rel="stylesheet" href="pygments-default.css" type="text/css" />
@@ -23,7 +23,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Organisation:</th><td class="field-body"><p class="first">Copyright (C) 2018-2021 Olivier Boudeville</p>
+<tr class="field"><th class="field-name">Organisation:</th><td class="field-body"><p class="first">Copyright (C) 2018-2022 Olivier Boudeville</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Contact:</th><td class="field-body"><p class="first">about (dash) seaplus (at) esperide (dot) com</p>
@@ -32,10 +32,10 @@
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body"><p class="first">Sunday, December 23, 2018</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Monday, July 5, 2021</p>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Tuesday, January 4, 2022</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.1.5</p>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.1.6</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Status:</th><td class="field-body"><p class="first">Stable</p>
@@ -111,18 +111,18 @@ The next level of information is either to browse the <a class="reference extern
 <p>So we would have here a (possibly third-party) service (typically a library, directly usable from C, offering a set of functions) that we want to integrate, i.e. to make available from Erlang.</p>
 <p>Let's suppose that said service is named <tt class="docutils literal">Foobar</tt>, and that the functions it provides (hence on the C side) are declared as (typically in some <tt class="docutils literal">foobar.h</tt> header file <a class="footnote-reference" href="#id3" id="id2">[1]</a>, referring to a possibly opaque <tt class="docutils literal">foobar.so</tt> library - i.e. whose sources may remain unknown):</p>
 <pre class="code c literal-block">
-<span class="cp">#include</span> <span class="cpf">&lt;stdbool.h&gt;</span><span class="cp">
-</span>
-<span class="k">struct</span> <span class="nc">foo_data</span> <span class="p">{</span> <span class="kt">int</span> <span class="n">count</span><span class="p">;</span> <span class="kt">float</span> <span class="n">value</span> <span class="p">}</span> <span class="p">;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdbool.h&gt;</span><span class="cp">
+</span><span class="w">
+</span><span class="k">struct</span><span class="w"> </span><span class="nc">foo_data</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">;</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">;</span><span class="w">
 
-<span class="k">enum</span> <span class="n">foo_status</span> <span class="p">{</span><span class="n">low_speed</span><span class="p">,</span><span class="n">moderate_speed</span><span class="p">,</span><span class="n">full_speed</span><span class="p">};</span>
-<span class="k">enum</span> <span class="n">tur_status</span> <span class="p">{</span><span class="n">tur_value</span><span class="p">,</span><span class="n">non_tur_value</span><span class="p">};</span>
+</span><span class="k">enum</span><span class="w"> </span><span class="n">foo_status</span><span class="w"> </span><span class="p">{</span><span class="n">low_speed</span><span class="p">,</span><span class="n">moderate_speed</span><span class="p">,</span><span class="n">full_speed</span><span class="p">};</span><span class="w">
+</span><span class="k">enum</span><span class="w"> </span><span class="n">tur_status</span><span class="w"> </span><span class="p">{</span><span class="n">tur_value</span><span class="p">,</span><span class="n">non_tur_value</span><span class="p">};</span><span class="w">
 
-<span class="kt">int</span> <span class="nf">foo</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">);</span>
-<span class="k">struct</span> <span class="nc">foo_data</span> <span class="o">*</span> <span class="n">bar</span><span class="p">(</span><span class="kt">double</span> <span class="n">a</span><span class="p">,</span> <span class="k">enum</span> <span class="n">foo_status</span> <span class="n">status</span><span class="p">);</span>
-<span class="k">enum</span> <span class="n">tur_status</span> <span class="nf">baz</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">u</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">m</span><span class="p">);</span>
-<span class="kt">bool</span> <span class="nf">tur</span><span class="p">();</span>
-<span class="kt">char</span> <span class="o">*</span> <span class="nf">frob</span><span class="p">(</span><span class="k">enum</span> <span class="n">tur_status</span><span class="p">);</span>
+</span><span class="kt">int</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">a</span><span class="p">);</span><span class="w">
+</span><span class="k">struct</span><span class="w"> </span><span class="nc">foo_data</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">bar</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="n">foo_status</span><span class="w"> </span><span class="n">status</span><span class="p">);</span><span class="w">
+</span><span class="k">enum</span><span class="w"> </span><span class="n">tur_status</span><span class="w"> </span><span class="nf">baz</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">m</span><span class="p">);</span><span class="w">
+</span><span class="kt">bool</span><span class="w"> </span><span class="nf">tur</span><span class="p">();</span><span class="w">
+</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">frob</span><span class="p">(</span><span class="k">enum</span><span class="w"> </span><span class="n">tur_status</span><span class="p">);</span>
 </pre>
 <table class="docutils footnote" frame="void" id="id3" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
@@ -138,21 +138,21 @@ The next level of information is either to browse the <a class="reference extern
 <p>So such a service-specific API shall be devised by the service integrator (i.e. the developer in charge of the integration of the C/C++ code to Erlang). But how?</p>
 <p>At the very least, what will be offered on the Erlang side by our <tt class="docutils literal">foobar</tt> module shall be somehow specified. A very appropriate way of doing so is to list (only) the <a class="reference external" href="http://erlang.org/doc/reference_manual/typespec.html">type specifications</a> of the targeted counterpart functions meant to be ultimately available (defined and exported) from Erlang, like in <a class="footnote-reference" href="#id5" id="id4">[2]</a>:</p>
 <pre class="code erlang literal-block">
-<span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">foobar</span><span class="p">).</span>
+<span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">foobar</span><span class="p">).</span><span class="w">
 
-<span class="p">-</span><span class="ni">include</span><span class="p">(</span><span class="s">&quot;seaplus.hrl&quot;</span><span class="p">).</span>
+</span><span class="p">-</span><span class="ni">include</span><span class="p">(</span><span class="s">&quot;seaplus.hrl&quot;</span><span class="p">).</span><span class="w">
 
-<span class="p">-</span><span class="ni">record</span><span class="p">(</span><span class="nl">foo_data</span><span class="p">,</span> <span class="p">{</span><span class="n">count</span> <span class="p">::</span> <span class="n">integer</span><span class="p">(),</span> <span class="n">value</span> <span class="p">::</span> <span class="nb">float</span><span class="p">()}).</span>
-<span class="p">-</span><span class="ni">type</span> <span class="n">foo_data</span><span class="p">()</span> <span class="p">::</span> <span class="nl">#foo_data</span><span class="p">{}.</span>
+</span><span class="p">-</span><span class="ni">record</span><span class="p">(</span><span class="nl">foo_data</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="n">count</span><span class="w"> </span><span class="p">::</span><span class="w"> </span><span class="n">integer</span><span class="p">(),</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="p">::</span><span class="w"> </span><span class="nb">float</span><span class="p">()}).</span><span class="w">
+</span><span class="p">-</span><span class="ni">type</span><span class="w"> </span><span class="n">foo_data</span><span class="p">()</span><span class="w"> </span><span class="p">::</span><span class="w"> </span><span class="nl">#foo_data</span><span class="p">{}.</span><span class="w">
 
-<span class="p">-</span><span class="ni">type</span> <span class="n">foo_status</span><span class="p">()</span> <span class="p">::</span> <span class="n">'low_speed'</span><span class="p">|</span><span class="n">'moderate_speed'</span><span class="p">|</span><span class="n">'full_speed'</span><span class="p">.</span>
-<span class="p">-</span><span class="ni">type</span> <span class="n">tur_status</span><span class="p">()</span> <span class="p">::</span> <span class="n">'tur_value'</span><span class="p">|</span><span class="n">'non_tur_value'</span><span class="p">.</span>
+</span><span class="p">-</span><span class="ni">type</span><span class="w"> </span><span class="n">foo_status</span><span class="p">()</span><span class="w"> </span><span class="p">::</span><span class="w"> </span><span class="n">'low_speed'</span><span class="p">|</span><span class="n">'moderate_speed'</span><span class="p">|</span><span class="n">'full_speed'</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="ni">type</span><span class="w"> </span><span class="n">tur_status</span><span class="p">()</span><span class="w"> </span><span class="p">::</span><span class="w"> </span><span class="n">'tur_value'</span><span class="p">|</span><span class="n">'non_tur_value'</span><span class="p">.</span><span class="w">
 
-<span class="p">-</span><span class="ni">spec</span> <span class="n">foo</span><span class="p">(</span><span class="n">integer</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="n">integer</span><span class="p">().</span>
-<span class="p">-</span><span class="ni">spec</span> <span class="n">bar</span><span class="p">(</span><span class="nb">float</span><span class="p">(),</span> <span class="n">foo_status</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="n">foo_data</span><span class="p">().</span>
-<span class="p">-</span><span class="ni">spec</span> <span class="n">baz</span><span class="p">(</span><span class="n">integer</span><span class="p">(),</span> <span class="nn">text_utils</span><span class="p">:</span><span class="nf">ustring</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="n">tur_status</span><span class="p">().</span>
-<span class="p">-</span><span class="ni">spec</span> <span class="n">tur</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">boolean</span><span class="p">().</span>
-<span class="p">-</span><span class="ni">spec</span> <span class="n">frob</span><span class="p">(</span><span class="n">tur_status</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="nn">text_utils</span><span class="p">:</span><span class="nf">ustring</span><span class="p">().</span>
+</span><span class="p">-</span><span class="ni">spec</span><span class="w"> </span><span class="n">foo</span><span class="p">(</span><span class="n">integer</span><span class="p">())</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">integer</span><span class="p">().</span><span class="w">
+</span><span class="p">-</span><span class="ni">spec</span><span class="w"> </span><span class="n">bar</span><span class="p">(</span><span class="nb">float</span><span class="p">(),</span><span class="w"> </span><span class="n">foo_status</span><span class="p">())</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">foo_data</span><span class="p">().</span><span class="w">
+</span><span class="p">-</span><span class="ni">spec</span><span class="w"> </span><span class="n">baz</span><span class="p">(</span><span class="n">integer</span><span class="p">(),</span><span class="w"> </span><span class="nn">text_utils</span><span class="p">:</span><span class="nf">ustring</span><span class="p">())</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">tur_status</span><span class="p">().</span><span class="w">
+</span><span class="p">-</span><span class="ni">spec</span><span class="w"> </span><span class="n">tur</span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">boolean</span><span class="p">().</span><span class="w">
+</span><span class="p">-</span><span class="ni">spec</span><span class="w"> </span><span class="n">frob</span><span class="p">(</span><span class="n">tur_status</span><span class="p">())</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nn">text_utils</span><span class="p">:</span><span class="nf">ustring</span><span class="p">().</span>
 </pre>
 <table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
@@ -188,17 +188,17 @@ The next level of information is either to browse the <a class="reference extern
 <p>More precisely, for each of the function type specifications defined by the user in that module, a corresponding bridging implementation will be generated on the Erlang side and added (unless the <tt class="docutils literal">foobar</tt> module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.</p>
 <p>Here is a corresponding (mostly meaningless) usage example <a class="footnote-reference" href="#id9" id="id8">[4]</a> of this <tt class="docutils literal">foobar</tt> module, when executed from any given process (ex: a test one):</p>
 <pre class="code erlang literal-block">
-<span class="nn">foobar</span><span class="p">:</span><span class="nf">start</span><span class="p">(),</span>
-<span class="nv">MyFooData</span> <span class="o">=</span> <span class="nn">foobar</span><span class="p">:</span><span class="nf">bar</span><span class="p">(</span><span class="mi">3</span><span class="p">.</span><span class="mi">14</span><span class="p">,</span><span class="n">full_speed</span><span class="p">),</span>
-<span class="nv">NewCount</span> <span class="o">=</span> <span class="nn">foobar</span><span class="p">:</span><span class="nf">foo</span><span class="p">(</span><span class="nv">MyFooData</span><span class="nl">#foo_data.count</span><span class="p">),</span>
-<span class="nv">Res</span> <span class="o">=</span> <span class="k">case</span> <span class="nn">foobar</span><span class="p">:</span><span class="nf">tur</span><span class="p">()</span> <span class="k">of</span>
-  <span class="n">true</span> <span class="o">-&gt;</span>
-    <span class="nn">foobar</span><span class="p">:</span><span class="nf">baz</span><span class="p">(</span><span class="nv">NewCount</span><span class="p">,</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span>
-  <span class="n">false</span> <span class="o">-&gt;</span>
-    <span class="n">non_tur_value</span>
-<span class="k">end</span><span class="p">,</span>
-<span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;Having: </span><span class="si">~s~n</span><span class="s">&quot;</span><span class="p">,[</span><span class="nn">foobar</span><span class="p">:</span><span class="nf">frob</span><span class="p">(</span><span class="nv">Res</span><span class="p">)]),</span>
-<span class="nn">foobar</span><span class="p">:</span><span class="nf">stop</span><span class="p">().</span>
+<span class="nn">foobar</span><span class="p">:</span><span class="nf">start</span><span class="p">(),</span><span class="w">
+</span><span class="nv">MyFooData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">foobar</span><span class="p">:</span><span class="nf">bar</span><span class="p">(</span><span class="mi">3</span><span class="p">.</span><span class="mi">14</span><span class="p">,</span><span class="n">full_speed</span><span class="p">),</span><span class="w">
+</span><span class="nv">NewCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">foobar</span><span class="p">:</span><span class="nf">foo</span><span class="p">(</span><span class="nv">MyFooData</span><span class="nl">#foo_data.count</span><span class="p">),</span><span class="w">
+</span><span class="nv">Res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">case</span><span class="w"> </span><span class="nn">foobar</span><span class="p">:</span><span class="nf">tur</span><span class="p">()</span><span class="w"> </span><span class="k">of</span><span class="w">
+  </span><span class="n">true</span><span class="w"> </span><span class="o">-&gt;</span><span class="w">
+    </span><span class="nn">foobar</span><span class="p">:</span><span class="nf">baz</span><span class="p">(</span><span class="nv">NewCount</span><span class="p">,</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span><span class="w">
+  </span><span class="n">false</span><span class="w"> </span><span class="o">-&gt;</span><span class="w">
+    </span><span class="n">non_tur_value</span><span class="w">
+</span><span class="k">end</span><span class="p">,</span><span class="w">
+</span><span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;Having: </span><span class="si">~s~n</span><span class="s">&quot;</span><span class="p">,[</span><span class="nn">foobar</span><span class="p">:</span><span class="nf">frob</span><span class="p">(</span><span class="nv">Res</span><span class="p">)]),</span><span class="w">
+</span><span class="nn">foobar</span><span class="p">:</span><span class="nf">stop</span><span class="p">().</span>
 </pre>
 <table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
@@ -237,116 +237,116 @@ The next level of information is either to browse the <a class="reference extern
 <p>Seaplus offers moreover various helpers to facilitate the writing of this C driver (i.e. the filling of said generated template); they are gathered in the Seaplus library (typically <tt class="docutils literal">libseaplus.so</tt>) and available by including the Seaplus C header file, <tt class="docutils literal">seaplus.h</tt> (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus.h">here</a>).</p>
 <p>Based on these elements, the actual bridging code can be written, like in the following shortened version. The <tt class="docutils literal">FOO_1_ID</tt> case is among the simplest possible call, while the <tt class="docutils literal">BAR_2_ID</tt> one is more complex; for both calls no memory leak is involved (see the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_seaplus_driver.c">full source</a> of this test driver, notably for the conversion helpers used for <tt class="docutils literal">bar/2</tt>):</p>
 <pre class="code c literal-block">
-<span class="p">[...]</span>
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
+<span class="p">[...]</span><span class="w">
+</span><span class="kt">int</span><span class="w"> </span><span class="n">main</span><span class="p">()</span><span class="w">
+</span><span class="p">{</span><span class="w">
 
-  <span class="n">byte</span> <span class="o">*</span> <span class="n">current_read_buf</span><span class="p">;</span>
+  </span><span class="n">byte</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">current_read_buf</span><span class="p">;</span><span class="w">
 
-  <span class="n">input_buffer</span> <span class="n">read_buf</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current_read_buf</span><span class="p">;</span>
+  </span><span class="n">input_buffer</span><span class="w"> </span><span class="n">read_buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">current_read_buf</span><span class="p">;</span><span class="w">
 
-  <span class="c1">// Provided by the Seaplus library:
-</span>  <span class="n">start_seaplus_driver</span><span class="p">(</span><span class="n">read_buf</span><span class="p">);</span>
+  </span><span class="c1">// Provided by the Seaplus library:
+</span><span class="w">  </span><span class="n">start_seaplus_driver</span><span class="p">(</span><span class="n">read_buf</span><span class="p">);</span><span class="w">
 
-  <span class="c1">// For the mandatory result:
-</span>  <span class="n">output_buffer</span> <span class="n">output_sm_buf</span><span class="p">;</span>
+  </span><span class="c1">// For the mandatory result:
+</span><span class="w">  </span><span class="n">output_buffer</span><span class="w"> </span><span class="n">output_sm_buf</span><span class="p">;</span><span class="w">
 
-  <span class="cm">/* Reads a full command from (receive) buffer, based on its initial length:
+  </span><span class="cm">/* Reads a full command from (receive) buffer, based on its initial length:
    *
    * (a single term is expected hence read)
    *
-   */</span>
-  <span class="k">while</span> <span class="p">(</span><span class="n">read_command</span><span class="p">(</span><span class="n">read_buf</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-  <span class="p">{</span>
+   */</span><span class="w">
+  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">read_command</span><span class="p">(</span><span class="n">read_buf</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w">
+  </span><span class="p">{</span><span class="w">
 
-    <span class="c1">// Current index in the input buffer (for decoding purpose):
-</span>    <span class="n">buffer_index</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    </span><span class="c1">// Current index in the input buffer (for decoding purpose):
+</span><span class="w">    </span><span class="n">buffer_index</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">
 
-    <span class="cm">/* Will be set to the corresponding Seaplus-defined function identifier (ex:
+    </span><span class="cm">/* Will be set to the corresponding Seaplus-defined function identifier (ex:
      * whose value is FOO_1_ID):
      *
-     */</span>
-    <span class="n">fun_id</span> <span class="n">current_fun_id</span><span class="p">;</span>
+     */</span><span class="w">
+    </span><span class="n">fun_id</span><span class="w"> </span><span class="n">current_fun_id</span><span class="p">;</span><span class="w">
 
-    <span class="cm">/* Will be set to the number of parameters obtained from Erlang for the
+    </span><span class="cm">/* Will be set to the number of parameters obtained from Erlang for the
      * function whose identifier has been transmitted:
      *
-     */</span>
-    <span class="n">arity</span> <span class="n">param_count</span><span class="p">;</span>
+     */</span><span class="w">
+    </span><span class="n">arity</span><span class="w"> </span><span class="n">param_count</span><span class="p">;</span><span class="w">
 
-    <span class="n">read_function_information</span><span class="p">(</span><span class="n">read_buf</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">index</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">current_fun_id</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">param_count</span><span class="p">);</span>
+    </span><span class="n">read_function_information</span><span class="p">(</span><span class="n">read_buf</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">current_fun_id</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">param_count</span><span class="p">);</span><span class="w">
 
-    <span class="n">prepare_for_command</span><span class="p">(</span><span class="o">&amp;</span><span class="n">output_sm_buf</span><span class="p">);</span>
+    </span><span class="n">prepare_for_command</span><span class="p">(</span><span class="o">&amp;</span><span class="n">output_sm_buf</span><span class="p">);</span><span class="w">
 
 
-    <span class="c1">// Now, taking care of the corresponding function call:
-</span>    <span class="k">switch</span><span class="p">(</span><span class="n">current_fun_id</span><span class="p">)</span>
-    <span class="p">{</span>
+    </span><span class="c1">// Now, taking care of the corresponding function call:
+</span><span class="w">    </span><span class="k">switch</span><span class="p">(</span><span class="n">current_fun_id</span><span class="p">)</span><span class="w">
+    </span><span class="p">{</span><span class="w">
 
-      <span class="k">case</span> <span class="nl">FOO_1_ID</span><span class="p">:</span>
-        <span class="c1">// -spec foo(integer()) -&gt; integer() vs int foo(int a)
-</span>        <span class="n">check_arity_is</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">param_count</span><span class="p">,</span> <span class="n">FOO_1_ID</span><span class="p">);</span>
+      </span><span class="k">case</span><span class="w"> </span><span class="nl">FOO_1_ID</span><span class="p">:</span><span class="w">
+        </span><span class="c1">// -spec foo(integer()) -&gt; integer() vs int foo(int a)
+</span><span class="w">        </span><span class="n">check_arity_is</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">param_count</span><span class="p">,</span><span class="w"> </span><span class="n">FOO_1_ID</span><span class="p">);</span><span class="w">
 
-        <span class="cm">/*
+        </span><span class="cm">/*
          * So we expect the (single, hence first) parameter to
          * be an integer:
-         */</span>
-        <span class="kt">long</span> <span class="n">foo_a_param</span> <span class="o">=</span> <span class="n">read_int_parameter</span><span class="p">(</span><span class="n">read_buf</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">index</span><span class="p">);</span>
+         */</span><span class="w">
+        </span><span class="kt">long</span><span class="w"> </span><span class="n">foo_a_param</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_int_parameter</span><span class="p">(</span><span class="n">read_buf</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">index</span><span class="p">);</span><span class="w">
 
-        <span class="c1">// Actual call:
-</span>        <span class="kt">int</span> <span class="n">foo_result</span> <span class="o">=</span> <span class="n">foo</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span> <span class="n">foo_a_param</span><span class="p">);</span>
+        </span><span class="c1">// Actual call:
+</span><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">foo_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">foo</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="n">foo_a_param</span><span class="p">);</span><span class="w">
 
-        <span class="c1">// Sending of the result:
-</span>        <span class="n">write_int_result</span><span class="p">(</span><span class="o">&amp;</span><span class="n">output_sm_buf</span><span class="p">,</span> <span class="n">foo_result</span><span class="p">);</span>
+        </span><span class="c1">// Sending of the result:
+</span><span class="w">        </span><span class="n">write_int_result</span><span class="p">(</span><span class="o">&amp;</span><span class="n">output_sm_buf</span><span class="p">,</span><span class="w"> </span><span class="n">foo_result</span><span class="p">);</span><span class="w">
 
-        <span class="k">break</span><span class="p">;</span>
+        </span><span class="k">break</span><span class="p">;</span><span class="w">
 
-      <span class="k">case</span> <span class="nl">BAR_2_ID</span><span class="p">:</span>
+      </span><span class="k">case</span><span class="w"> </span><span class="nl">BAR_2_ID</span><span class="p">:</span><span class="w">
 
-        <span class="cm">/* -spec bar(float(), foo_status()) -&gt; foo_data() vs
+        </span><span class="cm">/* -spec bar(float(), foo_status()) -&gt; foo_data() vs
          * struct foo * bar(double a, enum foo_status status)
-         */</span>
-        <span class="n">check_arity_is</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">param_count</span><span class="p">,</span> <span class="n">BAR_2_ID</span><span class="p">);</span>
+         */</span><span class="w">
+        </span><span class="n">check_arity_is</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">param_count</span><span class="p">,</span><span class="w"> </span><span class="n">BAR_2_ID</span><span class="p">);</span><span class="w">
 
-        <span class="c1">// Getting first the Erlang float:
-</span>        <span class="kt">double</span> <span class="n">bar_double_param</span> <span class="o">=</span> <span class="n">read_double_parameter</span><span class="p">(</span><span class="n">read_buf</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">index</span><span class="p">);</span>
+        </span><span class="c1">// Getting first the Erlang float:
+</span><span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">bar_double_param</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_double_parameter</span><span class="p">(</span><span class="n">read_buf</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">index</span><span class="p">);</span><span class="w">
 
-        <span class="c1">// Then the atom for foo_status():
-</span>        <span class="kt">char</span> <span class="o">*</span> <span class="n">atom_name</span> <span class="o">=</span> <span class="n">read_atom_parameter</span><span class="p">(</span><span class="n">read_buf</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">index</span><span class="p">);</span>
+        </span><span class="c1">// Then the atom for foo_status():
+</span><span class="w">        </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">atom_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_atom_parameter</span><span class="p">(</span><span class="n">read_buf</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">index</span><span class="p">);</span><span class="w">
 
-        <span class="c1">// Converting said atom for the C API:
-</span>        <span class="k">enum</span> <span class="n">foo_status</span> <span class="n">bar_status_param</span> <span class="o">=</span>
-            <span class="n">get_foo_status_from_atom</span><span class="p">(</span><span class="n">atom_name</span><span class="p">);</span>
+        </span><span class="c1">// Converting said atom for the C API:
+</span><span class="w">        </span><span class="k">enum</span><span class="w"> </span><span class="n">foo_status</span><span class="w"> </span><span class="n">bar_status_param</span><span class="w"> </span><span class="o">=</span><span class="w">
+            </span><span class="n">get_foo_status_from_atom</span><span class="p">(</span><span class="n">atom_name</span><span class="p">);</span><span class="w">
 
-        <span class="n">free</span><span class="p">(</span> <span class="n">atom_name</span> <span class="p">)</span> <span class="p">;</span>
+        </span><span class="n">free</span><span class="p">(</span><span class="w"> </span><span class="n">atom_name</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">;</span><span class="w">
 
-        <span class="c1">// Actual call (ownership of struct_res transferred to this caller):
-</span>        <span class="k">struct</span> <span class="nc">foo_data</span> <span class="o">*</span> <span class="n">struct_res</span> <span class="o">=</span> <span class="n">bar</span><span class="p">(</span><span class="n">bar_double_param</span><span class="p">,</span>
-                                           <span class="n">bar_status_param</span><span class="p">);</span>
+        </span><span class="c1">// Actual call (ownership of struct_res transferred to this caller):
+</span><span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">foo_data</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">struct_res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bar</span><span class="p">(</span><span class="n">bar_double_param</span><span class="p">,</span><span class="w">
+                                           </span><span class="n">bar_status_param</span><span class="p">);</span><span class="w">
 
-        <span class="c1">// Defining a separated writing function is more convenient here:
-</span>        <span class="n">write_foo_data_record_from_struct</span><span class="p">(</span><span class="o">&amp;</span><span class="n">output_sm_buf</span><span class="p">,</span> <span class="n">struct_res</span><span class="p">);</span>
+        </span><span class="c1">// Defining a separated writing function is more convenient here:
+</span><span class="w">        </span><span class="n">write_foo_data_record_from_struct</span><span class="p">(</span><span class="o">&amp;</span><span class="n">output_sm_buf</span><span class="p">,</span><span class="w"> </span><span class="n">struct_res</span><span class="p">);</span><span class="w">
 
-        <span class="n">free</span><span class="p">(</span><span class="n">struct_res</span><span class="p">);</span>
+        </span><span class="n">free</span><span class="p">(</span><span class="n">struct_res</span><span class="p">);</span><span class="w">
 
-        <span class="k">break</span><span class="p">;</span>
+        </span><span class="k">break</span><span class="p">;</span><span class="w">
 
-    <span class="p">[...]</span>
+    </span><span class="p">[...]</span><span class="w">
 
-    <span class="k">default</span><span class="o">:</span>
-        <span class="n">raise_error</span><span class="p">(</span><span class="s">&quot;Unknown function identifier: %u&quot;</span><span class="p">,</span> <span class="n">current_fun_id</span><span class="p">);</span>
+    </span><span class="k">default</span><span class="o">:</span><span class="w">
+        </span><span class="n">raise_error</span><span class="p">(</span><span class="s">&quot;Unknown function identifier: %u&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">current_fun_id</span><span class="p">);</span><span class="w">
 
-    <span class="p">}</span>
+    </span><span class="p">}</span><span class="w">
 
-    <span class="n">finalize_command_after_writing</span><span class="p">(</span><span class="o">&amp;</span><span class="n">output_sm_buf</span><span class="p">)</span> <span class="p">;</span>
+    </span><span class="n">finalize_command_after_writing</span><span class="p">(</span><span class="o">&amp;</span><span class="n">output_sm_buf</span><span class="p">)</span><span class="w"> </span><span class="p">;</span><span class="w">
 
-  <span class="p">}</span>
+  </span><span class="p">}</span><span class="w">
 
-  <span class="c1">// output_sm_buf internally already freed appropriately.
-</span>
-  <span class="n">stop_seaplus_driver</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
+  </span><span class="c1">// output_sm_buf internally already freed appropriately.
+</span><span class="w">
+  </span><span class="n">stop_seaplus_driver</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span><span class="w">
 
-<span class="p">}</span>
+</span><span class="p">}</span>
 </pre>
 <p>One may finally compare the aforementioned <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c">generated template</a> with - once it has been appropriately filled by the service integrator - the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/test/c-test/foobar_seaplus_driver.c">final version</a> of this driver.</p>
 <p>This version of course compiles, links and allows to run the <tt class="docutils literal">foobar_test</tt> successfully (once Seaplus is built, one may run, from the <tt class="docutils literal"><span class="pre">test/c-test</span></tt> directory, <tt class="docutils literal">make test</tt> for that).</p>
@@ -461,6 +461,7 @@ Reciprocally this procedure applies to the projects based on it, such as <a clas
 <tr><td class="label"><a class="fn-backref" href="#id22">[6]</a></td><td>Including the PID in the filename allows notably, in case of driver restart, to ensure that the logs of the new instance do not overwrite the ones of the restarted one.</td></tr>
 </tbody>
 </table>
+<p>The end of these logs is automatically located, fetched and displayed in the applicative traces by Seaplus in case of a driver crash, to help any troubleshooting thereof.</p>
 <p>Beyond being able to collect traces about the behaviour of the driver, Seaplus more generally supports <strong>general-purpose logging</strong> thanks to its use of Myriad's <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/src/utils/trace_bridge.erl">trace_bridge</a> (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/test/utils/trace_bridge_test.erl">trace_bridge_test.erl</a> for an usage example thereof). This means that by default these messages will be output on the console (thanks to <tt class="docutils literal">trace_utils</tt>), yet that any more advanced compliant trace system can be used instead (see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Traces/blob/master/test/trace_bridging_test.erl">trace_bridging_test.erl</a> for an usage example thereof). So any library that is made available through Seaplus should be able to integrate nicely into one's logging system of choice.</p>
 </div>
 <div class="section" id="customising-function-bindings-on-the-erlang-side">
@@ -474,28 +475,28 @@ Reciprocally this procedure applies to the projects based on it, such as <a clas
 <p>For that, Seaplus provides facilities to build one's custom implementation, notably the <tt class="docutils literal">seaplus:call_port_for/3</tt> function that allows to automatically trigger a call on the C driver side.</p>
 <p>So the following code will trigger a call through the port and the driver, and return its result:</p>
 <pre class="code erlang literal-block">
-<span class="nf">get_backend_information</span><span class="p">()</span> <span class="o">-&gt;</span>
-    <span class="nv">PortKey</span> <span class="o">=</span> <span class="nn">seaplus</span><span class="p">:</span><span class="nf">get_service_port_key</span><span class="p">(),</span>
-    <span class="nv">FunctionDriverId</span> <span class="o">=</span> <span class="nn">seaplus</span><span class="p">:</span><span class="nf">get_function_driver_id</span><span class="p">(),</span>
-    <span class="p">{</span><span class="nv">Backend</span><span class="p">,</span><span class="nv">VersionString</span><span class="p">}</span> <span class="o">=</span>
-        <span class="nn">seaplus</span><span class="p">:</span><span class="nf">call_port_for</span><span class="p">(</span><span class="nv">PortKey</span><span class="p">,</span><span class="nv">FunctionDriverId</span><span class="p">,_</span><span class="nv">Args</span><span class="o">=</span><span class="p">[])</span>
-    <span class="c">% From here we can parse VersionString and return a triplet:
-</span>    <span class="p">[...]</span>
+<span class="nf">get_backend_information</span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w">
+    </span><span class="nv">PortKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">seaplus</span><span class="p">:</span><span class="nf">get_service_port_key</span><span class="p">(),</span><span class="w">
+    </span><span class="nv">FunctionDriverId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">seaplus</span><span class="p">:</span><span class="nf">get_function_driver_id</span><span class="p">(),</span><span class="w">
+    </span><span class="p">{</span><span class="nv">Backend</span><span class="p">,</span><span class="nv">VersionString</span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w">
+        </span><span class="nn">seaplus</span><span class="p">:</span><span class="nf">call_port_for</span><span class="p">(</span><span class="nv">PortKey</span><span class="p">,</span><span class="nv">FunctionDriverId</span><span class="p">,_</span><span class="nv">Args</span><span class="o">=</span><span class="p">[])</span><span class="w">
+    </span><span class="c">% From here we can parse VersionString and return a triplet:</span><span class="w">
+    </span><span class="p">[...]</span>
 </pre>
 <p>Of course, should we have instead of:</p>
 <pre class="code erlang literal-block">
-<span class="p">-</span><span class="ni">spec</span> <span class="n">get_backend_information</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">{</span><span class="n">backend_type</span><span class="p">(),</span> <span class="n">backend_version</span><span class="p">()}.</span>
+<span class="p">-</span><span class="ni">spec</span><span class="w"> </span><span class="n">get_backend_information</span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="n">backend_type</span><span class="p">(),</span><span class="w"> </span><span class="n">backend_version</span><span class="p">()}.</span>
 </pre>
 <p>a function like:</p>
 <pre class="code erlang literal-block">
-<span class="p">-</span><span class="ni">spec</span> <span class="n">compute_sum</span><span class="p">(</span><span class="n">integer</span><span class="p">(),</span> <span class="nb">float</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">().</span>
+<span class="p">-</span><span class="ni">spec</span><span class="w"> </span><span class="n">compute_sum</span><span class="p">(</span><span class="n">integer</span><span class="p">(),</span><span class="w"> </span><span class="nb">float</span><span class="p">())</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nb">float</span><span class="p">().</span>
 </pre>
 <p>we could override the default Seaplus implementation with a one-liner that would perform exactly the same, such as:</p>
 <pre class="code erlang literal-block">
-<span class="nf">compute_sum</span><span class="p">(</span><span class="nv">MyInt</span><span class="p">,</span><span class="nv">MyFloat</span><span class="p">)</span> <span class="o">-&gt;</span>
-    <span class="nn">seaplus</span><span class="p">:</span><span class="nf">call_port_for</span><span class="p">(</span><span class="nn">seaplus</span><span class="p">:</span><span class="nf">get_service_port_key</span><span class="p">(),</span>
-                          <span class="nn">seaplus</span><span class="p">:</span><span class="nf">get_function_driver_id</span><span class="p">(),</span>
-                          <span class="p">_</span><span class="nv">Args</span><span class="o">=</span><span class="p">[</span><span class="nv">MyInt</span><span class="p">,</span><span class="nv">MyFloat</span><span class="p">]).</span>
+<span class="nf">compute_sum</span><span class="p">(</span><span class="nv">MyInt</span><span class="p">,</span><span class="nv">MyFloat</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w">
+    </span><span class="nn">seaplus</span><span class="p">:</span><span class="nf">call_port_for</span><span class="p">(</span><span class="nn">seaplus</span><span class="p">:</span><span class="nf">get_service_port_key</span><span class="p">(),</span><span class="w">
+                          </span><span class="nn">seaplus</span><span class="p">:</span><span class="nf">get_function_driver_id</span><span class="p">(),</span><span class="w">
+                          </span><span class="p">_</span><span class="nv">Args</span><span class="o">=</span><span class="p">[</span><span class="nv">MyInt</span><span class="p">,</span><span class="nv">MyFloat</span><span class="p">]).</span>
 </pre>
 <p>A user-defined implementation just has to know:</p>
 <ul class="simple">
@@ -518,8 +519,8 @@ Reciprocally this procedure applies to the projects based on it, such as <a clas
 <p>Integrating C code is not so easy; more often than not, a SEGV will be encountered, and the fun begins in order to determine whom to blame, typically your integration code (possible), Seaplus (possible as well) or the integrated library itself (often less likely).</p>
 <p>The situation is never hopeless, though; we will take the integration of the <a class="reference external" href="https://wammu.eu/libgammu/">libgammu</a> library done by <a class="reference external" href="http://mobile.esperide.org">Ceylan-Mobile</a> on Arch Linux as a (slightly edited) mini-tutorial.</p>
 <p>The type of errors that we want to track down are reported as such (real-life example of the execution of <tt class="docutils literal">mobile_test</tt> while the Seaplus driver-level facilities was incorrectly dealing, memory-wise, with the parameters that were binary strings):</p>
-<pre class="code shell-session literal-block">
-<span class="go">[...]
+<pre class="code literal-block">
+[...]
 [debug] Driver check successful, returned 'This is a Ceylan-Seaplus driver generated for service Ceylan-Mobile. It is not meant to be executed by itself, but to be run by the Erlang-based Seaplus integration logic. Exiting now.'.
 [debug] DriverCommand: '/__w/Ceylan-Mobile/Ceylan-Mobile/src/mobile_seaplus_driver'.
 [debug] Storing port #Port&lt;0.10&gt; under the service key '_seaplus_port_for_service_mobile' in the process dictionary of &lt;0.9.0&gt;.
@@ -551,7 +552,7 @@ Error:  Crash of the driver port (#Port&lt;0.10&gt;) reported to calling process
 While being in '/__w/Ceylan-Mobile/Ceylan-Mobile/test':
   PATH is '/__w/Ceylan-Mobile/Ceylan-Mobile/src:/usr/local/lib/erlang/erts-11.1.4/bin:/usr/local/lib/erlang/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   LD_LIBRARY_PATH is '/__w/Ceylan-Mobile/seaplus/src:/__w/Ceylan-Mobile/Ceylan-Mobile/_build/default/lib/seaplus/src'.
-&quot;init terminating in do_boot&quot;,{{nocatch,{driver_crashed,unknown_reason}},[{seaplus,call_port_for,3,[{file,&quot;seaplus.erl&quot;},{line,705}]},{mobile,get_backend_information,0,[{file,&quot;mobile.erl&quot;},{line,420}]},{mobile_test,run,0,[{file,&quot;mobile_test.erl&quot;},{line,80}]},{erl_eval,do_apply,6,[{file,&quot;erl_eval.erl&quot;},{line,680}]},{init,start_it,1,[]},{init,start_em,1,[]},{init,do_boot,3,[]}]}}</span>
+&quot;init terminating in do_boot&quot;,{{nocatch,{driver_crashed,unknown_reason}},[{seaplus,call_port_for,3,[{file,&quot;seaplus.erl&quot;},{line,705}]},{mobile,get_backend_information,0,[{file,&quot;mobile.erl&quot;},{line,420}]},{mobile_test,run,0,[{file,&quot;mobile_test.erl&quot;},{line,80}]},{erl_eval,do_apply,6,[{file,&quot;erl_eval.erl&quot;},{line,680}]},{init,start_it,1,[]},{init,start_em,1,[]},{init,do_boot,3,[]}]}}
 </pre>
 <p>So the driver crashed, we do not know precisely why (yet at least some key library information is given), and, as we will see, with such problems not so many relevant information can be found in the Seaplus driver log (i.e. in <tt class="docutils literal"><span class="pre">seaplus-driver.*.log</span></tt>).</p>
 <div class="admonition note">
@@ -561,8 +562,8 @@ While being in '/__w/Ceylan-Mobile/Ceylan-Mobile/test':
 <p class="last">To better investigate such issues, now, if the <tt class="docutils literal">seaplus_check_driver</tt> compile flag is enabled (see <tt class="docutils literal">SEAPLUS_CHECK_FLAGS</tt> in <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc">GNUmakevars.inc</a>), then any generated Seaplus driver is automatically tested first like if it was just a basic executable that performs a simple console output and exits immediately afterwards. Once the driver proved that way that it can be launched successfully (ex: no lacking library dependency in the current setting), then only it is used by Seaplus as a port to interact with. This procedure is fully transparent to the Seaplus user.</p>
 </div>
 <p>Indeed these driver logs (in <tt class="docutils literal"><span class="pre">seaplus-driver.1037076.log</span></tt> here) tell us:</p>
-<pre class="code shell-session literal-block">
-<span class="go">[2021/2/14 12:09:21][debug] Logger for Seaplus driver: starting new session...
+<pre class="code literal-block">
+[2021/2/14 12:09:21][debug] Logger for Seaplus driver: starting new session...
 [2021/2/14 12:09:21][debug] Starting the Seaplus C driver, with an input buffer of 32768 bytes.
 [2021/2/14 12:09:21][trace] &lt;Ceylan-Seaplus driver for service Ceylan-Mobile now running&gt;
 [2021/2/14 12:09:21][debug] Starting Gammu.
@@ -587,7 +588,7 @@ While being in '/__w/Ceylan-Mobile/Ceylan-Mobile/test':
 [2021/2/14 12:09:21][debug] Function identifier is 16, arity is 4 (new index is 6).
 [2021/2/14 12:09:21][debug] Executing send_multipart_sms/4.
 [2021/2/14 12:09:21][debug] Will write 29 bytes.
-[...]</span>
+[...]
 </pre>
 <p>We nevertheless know which API function was called when the crash happened (should you have left the corresponding <tt class="docutils literal">LOG_DEBUG</tt> calls in your driver of course) - which is already a precious information.</p>
 <p>A first difficulty is that generally a (Linux) distribution will, at least by default, only include prebuilt binary packages whose libraries are stripped. For example:</p>
@@ -622,39 +623,39 @@ $ lz4 mobile_seaplus.core.lz4
 $ gdb mobile_seaplus_driver
 </pre>
 <p>Following gdb command would then bring new information:</p>
-<pre class="code shell-session literal-block">
-<span class="gp-VirtualEnv">(gdb)</span> <span class="go">core mobile_seaplus.core
+<pre class="code literal-block">
+(gdb) core mobile_seaplus.core
 warning: core file may not match specified executable file.
 [New LWP 11607]
 [Thread debugging using libthread_db enabled]
 Using host libthread_db library &quot;/usr/lib/libthread_db.so.1&quot;.
 Core was generated by `./mobile_seaplus_driver'.
 Program terminated with signal SIGSEGV, Segmentation fault.
-</span><span class="gp">#</span><span class="m">0</span>  0x00007f894b2a5a26 <span class="k">in</span> malloc <span class="o">()</span> from /usr/lib/libc.so.6
-<span class="go">
-</span><span class="gp-VirtualEnv">(gdb)</span> <span class="go">bt full
-</span><span class="gp">#</span><span class="m">0</span>  0x00007f894b2a5a26 <span class="k">in</span> malloc <span class="o">()</span> from /usr/lib/libc.so.6
-<span class="go">No symbol table info available.
-</span><span class="gp">#</span><span class="m">1</span>  0x00007f894b432742 <span class="k">in</span> GSM_PackSemiOctetNumber <span class="o">(</span><span class="nv">Number</span><span class="o">=</span>Number&#64;entry<span class="o">=</span>0x55822a55d68c &lt;sms+172&gt; <span class="s2">&quot;&quot;</span>, <span class="nv">Output</span><span class="o">=</span>Output&#64;entry<span class="o">=</span>0x7ffe3a9f20f2 <span class="s2">&quot;&quot;</span>,
-<span class="go">  semioctet=semioctet&#64;entry=1) at [...]/libgammu/misc/coding/coding.c:1168
+#0  0x00007f894b2a5a26 in malloc () from /usr/lib/libc.so.6
+
+(gdb) bt full
+#0  0x00007f894b2a5a26 in malloc () from /usr/lib/libc.so.6
+No symbol table info available.
+#1  0x00007f894b432742 in GSM_PackSemiOctetNumber (Number=Number&#64;entry=0x55822a55d68c &lt;sms+172&gt; &quot;&quot;, Output=Output&#64;entry=0x7ffe3a9f20f2 &quot;&quot;,
+  semioctet=semioctet&#64;entry=1) at [...]/libgammu/misc/coding/coding.c:1168
       format = &lt;optimized out&gt;
       length = 12
       i = &lt;optimized out&gt;
       skip = 0
 [...]
 
-</span><span class="gp-VirtualEnv">(gdb)</span> <span class="go">frame 2
-</span><span class="gp">#</span><span class="m">2</span>  0x00007f7189618329 <span class="k">in</span> GSM_EncodeSMSFrame <span class="o">()</span> from /usr/lib/libGammu.so.8
-<span class="gp-VirtualEnv">(gdb)</span> <span class="go">bt
-</span><span class="gp">#</span><span class="m">0</span>  0x00007f7189305a26 <span class="k">in</span> malloc <span class="o">()</span> from /usr/lib/libc.so.6
-<span class="go">[...]</span>
+(gdb) frame 2
+#2  0x00007f7189618329 in GSM_EncodeSMSFrame () from /usr/lib/libGammu.so.8
+(gdb) bt
+#0  0x00007f7189305a26 in malloc () from /usr/lib/libc.so.6
+[...]
 </pre>
 <p>While often useful, the debugger just tells us here that the SIGSEGV happened in a malloc that looks perfectly legit, and done by the inner workings of Gammu. We suspect that this library is not involved, but that we managed somehow to smash the heap in previous operations. Definitively not a good news!</p>
 <p>So now it is time to use use <a class="reference external" href="http://valgrind.org/">Valgrind</a> in order to investigate this possible error in memory management.</p>
 <p>One should then have a look to the <tt class="docutils literal">init_driver/2</tt> function of the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/src/seaplus.erl">seaplus.erl</a> module, to uncomment the <tt class="docutils literal">DriverCommand</tt> variation involving Valgrind.</p>
 <p>Once using a Valgrind-based driver command and an updated environment (to select your debug library rather than the system's one), when looking at the specified log file (<tt class="docutils literal"><span class="pre">/tmp/seaplus-valgrind.log</span></tt>) you should end up with a report like:</p>
-<pre class="code shell-session literal-block">
-<span class="go">==12257== Invalid read of size 1
+<pre class="code literal-block">
+==12257== Invalid read of size 1
 ==12257==    at 0x483AC74: strlen (vg_replace_strmem.c:460)
 ==12257==    by 0x10ACBE: main (mobile_seaplus_driver.c:438)
 ==12257==  Address 0x51b186c is 0 bytes after a block of size 12 alloc'd
@@ -665,7 +666,7 @@ Program terminated with signal SIGSEGV, Segmentation fault.
 ==12257==    by 0x484EE88: erl_decode_it (erl_marshal.c:1018)
 ==12257==    by 0x485042C: erl_decode (erl_marshal.c:1111)
 ==12257==    by 0x484B406: read_function_information (seaplus.c:498)
-==12257==    by 0x10A7D1: main (mobile_seaplus_driver.c:245)</span>
+==12257==    by 0x10A7D1: main (mobile_seaplus_driver.c:245)
 </pre>
 <p>We were reading the content of a binary like if it was a zero-terminated char * (and moreover we used to wrongly take ownership of that buffer).</p>
 <p>So neither the Ceylan-Mobile integration nor Gammu were the culprits, it was a Seaplus bug (of course fixed since then)!</p>
