@@ -26,7 +26,6 @@
 % Creation date: Tuesday, January 29, 2019.
 
 
-
 % @doc Overall <b>parse transform for the Seaplus layer</b>, in charge of
 % streamlining the integration of any C-based service.
 %
@@ -341,17 +340,17 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 	%trace_bridge:debug_fmt( "Seaplus output AST:~n~p", [ OutputAST ] ),
 
 	%OutputASTFilename = text_utils:format(
-	%		   "Seaplus-output-AST-for-module-~ts.txt",
-	%			[ element( 1, FinalModuleInfo#module_info.module ) ] ),
+	%   "Seaplus-output-AST-for-module-~ts.txt",
+	%   [ element( 1, FinalModuleInfo#module_info.module ) ] ),
 	%
 	%ast_utils:write_ast_to_file( OutputAST, OutputASTFilename ),
 
 	%OutputSortedASTFilename = text_utils:format(
-	%			"Seaplus-sorted-output-AST-for-module-~ts.txt",
-	%			[ element( 1, FinalModuleInfo#module_info.module ) ] ),
+	%   "Seaplus-sorted-output-AST-for-module-~ts.txt",
+	%   [ element( 1, FinalModuleInfo#module_info.module ) ] ),
 	%
 	%ast_utils:write_ast_to_file( lists:sort( OutputAST ),
-	%							  OutputSortedASTFilename ),
+	%                             OutputSortedASTFilename ),
 
 	{ OutputAST, ProcessedModuleInfo }.
 
@@ -387,11 +386,11 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 			FunExportTable = ModuleInfo#module_info.function_exports,
 
 			ShrunkFunExportTable = ast_info:ensure_function_not_exported(
-					MarkerFunId, ExportLocs, FunExportTable ),
+				MarkerFunId, ExportLocs, FunExportTable ),
 
 			ModuleInfo#module_info{
-			  function_exports=ShrunkFunExportTable,
-			  functions=ShrunkFunctionTable }
+				function_exports=ShrunkFunExportTable,
+				functions=ShrunkFunctionTable }
 
 	end.
 
@@ -416,7 +415,7 @@ process_module_info_from(
 	ReadyFunInfos = prepare_api_functions( ControleModuleInfo ),
 
 	SelectFunIds = [ { Name, Arity }
-			 || #function_info{ name=Name, arity=Arity } <- ReadyFunInfos ],
+			|| #function_info{ name=Name, arity=Arity } <- ReadyFunInfos ],
 
 	FullModuleInfo = case SelectFunIds of
 
@@ -429,7 +428,7 @@ process_module_info_from(
 			trace_bridge:debug_fmt( "Selected ~B function(s) for API: ~ts",
 				[ length( SelectFunIds ), text_utils:strings_to_string(
 					[ ast_info:function_id_to_string( Id )
-					  || Id <- SelectFunIds ] ) ] ),
+						   || Id <- SelectFunIds ] ) ] ),
 
 			% Generating the header for the driver:
 			HeaderFilename = generate_driver_header( ModName, SelectFunIds ),
@@ -473,7 +472,7 @@ handle_start_function( ModuleInfo=#module_info{
 
 	% This call shall be made in all cases:
 	SeaplusStartCall = { call, Line, { remote, Line, {atom,Line,seaplus},
-								{atom,Line,start} }, [ {atom,Line,ModName} ] },
+							{atom,Line,start} }, [ {atom,Line,ModName} ] },
 
 	%trace_bridge:debug_fmt( "Start call: '~p'.", [ SeaplusStartCall ] ),
 
@@ -488,7 +487,7 @@ handle_start_function( ModuleInfo=#module_info{
 								"(yet was exported), generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
-					   [ SeaplusStartCall ] },
+						[ SeaplusStartCall ] },
 
 			% Auto-exports:
 			meta_utils:add_function( StartFunId, _Clauses=[ Clause ],
@@ -501,7 +500,7 @@ handle_start_function( ModuleInfo=#module_info{
 								"generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
-					   [ SeaplusStartCall ] },
+						[ SeaplusStartCall ] },
 
 			% Auto-exports:
 			meta_utils:add_function( StartFunId, _Clauses=[ Clause ],
@@ -519,8 +518,8 @@ handle_start_function( ModuleInfo=#module_info{
 			% user code:
 			%
 			NewClauses = [ { clause, L, HSeq, GSeq,
-							 [ SeaplusStartCall | Body ] }
-						   || { clause, L, HSeq, GSeq, Body } <- Clauses ],
+							[ SeaplusStartCall | Body ] }
+								|| { clause, L, HSeq, GSeq, Body } <- Clauses ],
 
 			% Ensures exported exactly once:
 			NewExports = case Exports of
@@ -559,7 +558,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 						   {atom,Line,start_link} }, [ {atom,Line,ModName} ] },
 
 	%trace_bridge:debug_fmt( "Start link call: '~p'.",
-	%						[ SeaplusStartLinkCall ] ),
+	%                        [ SeaplusStartLinkCall ] ),
 
 	case table:extract_entry_if_existing( StartLinkFunId, FunctionTable ) of
 
@@ -576,7 +575,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 
 			% Auto-exports:
 			meta_utils:add_function( StartLinkFunId, _Clauses=[ Clause ],
-					 ModuleInfo#module_info{ functions=ShrunkTable } );
+				ModuleInfo#module_info{ functions=ShrunkTable } );
 
 
 		% Mostly the same:
@@ -585,7 +584,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 								"generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
-					   [ SeaplusStartLinkCall ] },
+						[ SeaplusStartLinkCall ] },
 
 			% Auto-exports:
 			meta_utils:add_function( StartLinkFunId, _Clauses=[ Clause ],
@@ -596,16 +595,16 @@ handle_start_link_function( ModuleInfo=#module_info{
 		{ FunInfo=#function_info{ clauses=Clauses,
 								  exported=Exports }, ShrunkTable } ->
 
-			trace_bridge:debug( "User-defined start_link/0 found, "
-								"enriching it." ),
+			trace_bridge:debug(
+				"User-defined start_link/0 found, enriching it." ),
 
 			% We just ensure that (all clauses of) this function call first
 			% seaplus:start_link( ?MODULE ), and then continue with the
 			% pre-existing user code:
 			%
 			NewClauses = [ { clause, L, HSeq, GSeq,
-							 [ SeaplusStartLinkCall | Body ] }
-						   || { clause, L, HSeq, GSeq, Body } <- Clauses ],
+							[ SeaplusStartLinkCall | Body ] }
+								|| { clause, L, HSeq, GSeq, Body } <- Clauses ],
 
 			% Ensures exported exactly once:
 			NewExports = case Exports of
@@ -640,7 +639,7 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 
 	% This call shall be made in all cases:
 	SeaplusStopCall = { call, Line, { remote, Line, {atom,Line,seaplus},
-								  {atom,Line,stop} }, [ {atom,Line,ModName} ] },
+							{atom,Line,stop} }, [ {atom,Line,ModName} ] },
 
 	%trace_bridge:debug_fmt( "Stop call: ~p", [ SeaplusStopCall ] ),
 
@@ -655,11 +654,11 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 							"(yet was exported), generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
-					   [ SeaplusStopCall ] },
+						[ SeaplusStopCall ] },
 
 			% Auto-exports:
 			meta_utils:add_function( StopFunId, _Clauses=[ Clause ],
-					 ModuleInfo#module_info{ functions=ShrunkTable } );
+				ModuleInfo#module_info{ functions=ShrunkTable } );
 
 
 		% Mostly the same:
@@ -669,7 +668,7 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 			  "No user-defined stop/0 found, generating it." ),
 
 			Clause = { clause, Line, _HeadPattSeq=[], _GuardSeq=[],
-					   [ SeaplusStopCall ] },
+						[ SeaplusStopCall ] },
 
 			% Auto-exports:
 			meta_utils:add_function( StopFunId, _Clauses=[ Clause ],
@@ -688,7 +687,7 @@ handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
 			%
 			NewClauses = [ { clause, L, HSeq, GSeq,
 				list_utils:append_at_end( SeaplusStopCall, Body ) }
-				|| { clause, L, HSeq, GSeq, Body } <- Clauses ],
+					|| { clause, L, HSeq, GSeq, Body } <- Clauses ],
 
 			% Ensures exported exactly once:
 			NewExports = case Exports of
@@ -796,7 +795,7 @@ manage_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 			trace_bridge:info_fmt( "No driver implementation ('~ts') found, "
 				"generating it.", [ SourceFilename ] ),
 			generate_driver_implementation( ServiceModuleName, FunIds,
-						HeaderFilename, SourceFilename, SeaplusRootDir )
+				HeaderFilename, SourceFilename, SeaplusRootDir )
 
 	end.
 
@@ -996,13 +995,13 @@ select_for_binding( [ FInfo=#function_info{ name=Name,
 
 		true ->
 			%trace_bridge:debug_fmt(
-			%  "Seaplus-defined ~ts/~B not selected in binding.",
-			%  [ Name, Arity ] ),
+			%   "Seaplus-defined ~ts/~B not selected in binding.",
+			%   [ Name, Arity ] ),
 			select_for_binding( T, SeaplusFunIds, Acc );
 
 		false ->
 			%trace_bridge:debug_fmt( "~ts/~B selected in binding.",
-			%					   [ Name, Arity ] ),
+			%                        [ Name, Arity ] ),
 			select_for_binding( T, SeaplusFunIds, [ FInfo | Acc ] )
 
 	end.
@@ -1042,7 +1041,7 @@ post_process_fun_infos( [ FInfo=#function_info{ %name=Name,
 	FunDriverId = Count,
 
 	%trace_bridge:debug_fmt( "Assigning Driver ID #~B to ~ts/~B.",
-	%						[ FunDriverId, Name, Arity ] ),
+	%                        [ FunDriverId, Name, Arity ] ),
 
 	Clauses = generate_clauses_for( FunDriverId, Arity, PortDictKey ),
 
@@ -1089,8 +1088,8 @@ post_process_fun_infos( [ FInfo=#function_info{ name=Name,
 
 	% Just update the right fields of the record template:
 	ThisTransform = Transform#ast_transforms{
-					  transformed_function_identifier=FunId,
-					  transformation_state={ PortDictKey, FunDriverId } },
+						transformed_function_identifier=FunId,
+						transformation_state={ PortDictKey, FunDriverId } },
 
 	% And apply that Seaplus transform:
 	{ NewClauses, _NewTransform } =
@@ -1098,10 +1097,10 @@ post_process_fun_infos( [ FInfo=#function_info{ name=Name,
 
 	NewFInfo = FInfo#function_info{
 
-				 clauses=NewClauses,
+		clauses=NewClauses,
 
-				 % The user is not expected to export the functions he defined:
-				 exported=[ ExportLoc ] },
+		% The user is not expected to export the functions he defined:
+		exported=[ ExportLoc ] },
 
 	post_process_fun_infos( T, PortDictKey, ExportLoc, DefLoc, Transform,
 							[ NewFInfo | Acc ], Count + 1 ).
@@ -1133,7 +1132,7 @@ call_transformer( _LineCall, _FunctionRef={ remote, _, {atom,_,seaplus},
 % Replacing here seaplus:get_function_driver_id() with FunDriverId value:
 call_transformer( _LineCall,
 				  _FunctionRef={ remote, _, {atom,_,seaplus},
-								 {atom,Line,get_function_driver_id} },
+									{atom,Line,get_function_driver_id} },
 				  _Params=[],
 				  Transforms=#ast_transforms{
 					transformation_state={ _PortDictKey, FunDriverId } } ) ->
