@@ -26,7 +26,6 @@
 % Creation date: December 16, 2018.
 
 
-
 % @doc The main Seaplus module gathers the generic elements useful to
 % <b>integrate any kind of C-based service</b> to Erlang.
 %
@@ -203,9 +202,9 @@
 %
 % [...]
 % case FOO_1_ID:
-%	  // Second one is its (single, int) parameter:
-%	  write_as_int( buffer, paramTuple, foo( get_as_int( 2, paramTuple ) ) ) ;
-%	  break ;
+%     // Second one is its (single, int) parameter:
+%     write_as_int( buffer, paramTuple, foo( get_as_int( 2, paramTuple ) ) ) ;
+%     break ;
 % [...]
 %
 % That'it! Thanks to these elements, user (Erlang) code shall be able to use the
@@ -214,7 +213,6 @@
 % [...]
 % Res = foobar:foo( 42 ),
 % [...]
-
 
 
 
@@ -274,7 +272,7 @@ start_link( ServiceName ) when is_atom( ServiceName ) ->
 %
 -spec start( service_name(), executable_name() ) -> void().
 start( ServiceName, DriverExecutableName )
-  when is_atom( ServiceName ) andalso is_list( DriverExecutableName ) ->
+		when is_atom( ServiceName ) andalso is_list( DriverExecutableName ) ->
 
 	DriverExecPath = secure_driver_path( ServiceName, DriverExecutableName ),
 
@@ -291,7 +289,7 @@ start( ServiceName, DriverExecutableName )
 %
 -spec start_link( service_name(), executable_name() ) -> void().
 start_link( ServiceName, DriverExecutableName )
-  when is_atom( ServiceName ) andalso is_list( DriverExecutableName ) ->
+		when is_atom( ServiceName ) andalso is_list( DriverExecutableName ) ->
 
 	DriverExecPath = secure_driver_path( ServiceName, DriverExecutableName ),
 
@@ -442,7 +440,7 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 	% driver is generally located elsewhere:
 	%
 	ExecPath = case executable_utils:lookup_executable(
-					DriverExecutableName, [ ServiceDir ] ) of
+						DriverExecutableName, [ ServiceDir ] ) of
 
 		false ->
 			PathStr = case system_utils:get_environment_variable( "PATH" ) of
@@ -481,8 +479,8 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 
 		[ SeapModPath ] ->
 			trace_bridge:debug_fmt( "Adding the directory of BEAM '~ts' to the "
-				"library lookup paths in order to location the Seaplus "
-				"library.", [ SeapModPath ] ),
+				"library lookup paths in order to be able to locate "
+				"the Seaplus library.", [ SeapModPath ] ),
 			file_utils:get_base_path( SeapModPath );
 
 
@@ -633,8 +631,8 @@ init_driver( ServiceName, DriverExecPath ) ->
 	% To help any driver-level debugging; notably to just *display* whether
 	% libseaplus-*.so will be found:
 	%
-%	cond_utils:if_defined( seaplus_debug_driver,
-%		display_driver_runtime_info( DriverExecPath, ExtraEnv ) ),
+	%cond_utils:if_defined( seaplus_debug_driver,
+	%   display_driver_runtime_info( DriverExecPath, ExtraEnv ) ),
 
 
 	% To perfom an actual check; user code might do the same unconditionally:
@@ -661,8 +659,8 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	% If wanting to run the driver through Valgrind instead:
 	%DriverCommand = text_utils:format(
-	%	"valgrind --log-file=/tmp/seaplus-valgrind.log ~ts",
-	%	[ DriverExecPath ] ),
+	%   "valgrind --log-file=/tmp/seaplus-valgrind.log ~ts",
+	%   [ DriverExecPath ] ),
 
 
 	cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
@@ -802,7 +800,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 	BinMessage = term_to_binary( Message ),
 
 	%trace_bridge:debug_fmt( "Sending command message '~p' (size: ~B bytes) "
-	%	"to port ~w.", [ Message, size( BinMessage ), TargetPort ] ),
+	%   "to port ~w.", [ Message, size( BinMessage ), TargetPort ] ),
 
 	% To be handled by the (C-based) driver:
 	%
@@ -850,7 +848,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 						[ self(), TargetPort, ServiceName, FunctionId,
 						  BinAnswer ] ),
 					throw( { incorrect_return, { service, ServiceName },
-							 { function_id, FunctionId }, BinAnswer } );
+								{ function_id, FunctionId }, BinAnswer } );
 
 				_:E ->
 					ServiceName = get_service_name_from_port_key( ServiceKey ),
@@ -860,7 +858,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 						"by ~B: ~p",
 						[ self(), TargetPort, ServiceName, FunctionId, E ] ),
 					throw( { invalid_return, { service, ServiceName },
-							 { function_id, FunctionId }, E } )
+								{ function_id, FunctionId }, E } )
 
 			end;
 
