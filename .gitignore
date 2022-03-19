@@ -25,3 +25,5 @@ src/seaplus.app.src
 
 # Generated:
 conf/rebar.config
+
+doc/mathjax
