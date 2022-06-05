@@ -26,4 +26,10 @@ src/seaplus.app.src
 # Generated:
 conf/rebar.config
 
+src/foobar_seaplus_api_mapping.h
+src/foobar_seaplus_driver.c
+src/seaplus_test
+test/c-test/foobar_seaplus_api_mapping.h
+test/c-test/foobar_seaplus_driver
+
 doc/mathjax
