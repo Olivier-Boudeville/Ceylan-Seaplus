@@ -391,7 +391,7 @@ ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MYRIAD) \
 # rebar3-based one)
 #
 ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS = \
-	$(OVERALL_PZ_OPT)                             \
+	$(OVERALL_PA_OPTS)                            \
 	-Dseaplus_root=\"$(SEAPLUS_TOP)\"             \
 	-pz $(SEAPLUS_TOP)/ebin                       \
 	-pz $(SEAPLUS_TOP)/src                        \
