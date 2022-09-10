@@ -79,9 +79,12 @@ export-doc-to-official: clean-doc create-links doc
 	@/bin/scp $(SP) -r $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Seaplus/
 
 
+# H option for 'cp', so that any local MathJax is copied (not symlinked to a
+# local directory) in target branch:
+#
 export-doc-to-mirror: clean-doc create-links doc
 	@echo "   Exporting Seaplus documentation to mirror website in $(SEAPLUS_WEB_MIRROR_BRANCH)"
-	@/bin/cp -rf $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
+	@/bin/cp -rfH $(WEB_CONTENT) $(SEAPLUS_WEB_MIRROR_BRANCH) && cd $(SEAPLUS_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Seaplus doc updated." && git push && git pull --ff-only
 
 
 clean-links: clean-links-local
