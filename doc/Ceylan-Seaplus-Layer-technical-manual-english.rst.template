@@ -862,12 +862,22 @@ Once `Myriad <https://myriad.esperide.org>`_ and Seaplus itself have been built 
 		  Reciprocally this procedure applies to the projects based on it (ex: `Mobile <https://mobile.esperide.org/>`_), so in terms of usability, at least some confidence should exist.
 
 
+
 Towards a more General C/C++ Interface
 --------------------------------------
 
-Functionally, `ei <http://erlang.org/doc/man/ei.html>`_ (not to mention `Erl_Interface <http://erlang.org/doc/apps/erl_interface/>`_) and the `Erlang NIF support <http://erlang.org/doc/man/erl_nif.html>`_ provide the same services, and **could probably be unified under a common API** (that one day Seaplus could provide).
+Functionally, `ei <http://erlang.org/doc/man/ei.html>`_ (not to mention `Erl_Interface <http://erlang.org/doc/apps/erl_interface/>`_) and the `Erlang NIF support <http://erlang.org/doc/man/erl_nif.html>`_ (see also `this section <https://howtos.esperide.org/Erlang.html#nif>`_ of our HOWTO) provide the same services, and **could probably be unified under a common API** (that one day Seaplus could provide).
 
 This could enable the possibility of integrating the same C/C++ code seamlessly as a C-Node and/or as a NIF, for a greater flexibility of use.
+
+
+
+C/C++ Code Formatting
+---------------------
+
+In some cases, integrating a C/C++ open source library leads to forking it, typically to correct/add elements. Then starting by applying cosmetic changes such as whitespace cleanup (see the ``fix-whitespaces*.sh`` scripts in `this section <https://hull.esperide.org/#to-fix-names-paths-permissions-content>`_ of Ceylan-Hull) and proper code formatting may be useful.
+
+For this last topic, we generally rely on `clang-format <https://clang.llvm.org/docs/ClangFormat.html>`_ and enforce the LLVM coding style. For that, we install the ``clang-format-static-bin`` Arch AUR package and run it like: ``clang-format --style=LLVM -i *.c *.h``, to perform in-place reformatting.
 
 
 
