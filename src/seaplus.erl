@@ -48,8 +48,8 @@
 % We have to rely on a side-effect means of getting that port, as user call
 % shall be as lean and mean as possible (no user-level context to keep).
 %
-% This could be done each thanks to a look-up in the (ex: local) name registery,
-% or through a value put in the process dictionary.
+% This could be done each thanks to a look-up in the (e.g. local) name
+% registery, or through a value put in the process dictionary.
 %
 % We went for the latter, as it is a per-process setting, as opposed to a
 % per-node one, allowing for more flexibility in the number of instances
@@ -102,7 +102,7 @@
 -type function_driver_id() :: basic_utils:count().
 % The identifier of a function for the driver, as determined by Seaplus.
 %
-% (ex: 1 for foo/1 in the toy example)
+% (e.g. 1 for foo/1 in the toy example)
 
 
 -type function_params() :: [ term() ].
@@ -266,7 +266,7 @@ start_link( ServiceName ) when is_atom( ServiceName ) ->
 % @doc Starts the support for the specified named service, relying on specified
 % executable name for the driver.
 %
-% Note: should the service itself or its driver crash (ex: in the context of a
+% Note: should the service itself or its driver crash (e.g. in the context of a
 % call being triggered), the service user process will receive an
 % {'EXIT',FromPort,Reason} message.
 %
@@ -283,7 +283,7 @@ start( ServiceName, DriverExecutableName )
 % @doc Starts and links to the caller the support for the specified named
 % service, relying on specified executable name for the driver.
 %
-% Note: should the service itself or its driver crash (ex: in the context of a
+% Note: should the service itself or its driver crash (e.g. in the context of a
 % call being triggered), the service user process will receive an exit signal
 % with an exit reason other than normal.
 %
@@ -296,7 +296,7 @@ start_link( ServiceName, DriverExecutableName )
 	launch_link( ServiceName, DriverExecPath ).
 
 
-% @doc Restarts the specific service support (ex: to overcome a detected crash
+% @doc Restarts the specific service support (e.g. to overcome a detected crash
 % thereof).
 %
 -spec restart( service_name() ) -> void().
@@ -305,7 +305,7 @@ restart( ServiceName ) ->
 	start( ServiceName ).
 
 
-% @doc Restarts the specific service support (ex: to overcome a detected crash
+% @doc Restarts the specific service support (e.g. to overcome a detected crash
 % thereof).
 %
 -spec restart( service_name(), executable_name() ) -> void().
@@ -370,7 +370,7 @@ get_driver_name( ServiceName ) ->
 
 % @doc Returns the path to the executable corresponding to specified service.
 %
-% May enrich various OS process-level settings (ex: to locate executables).
+% May enrich various OS process-level settings (e.g. to locate executables).
 %
 % (helper)
 %
@@ -383,11 +383,11 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 	% corresponding driver can be found by Seaplus; with our native build
 	% system, it is as simple as locating the directory where mobile.beam lies.
 
-	% Here we rely on the Seaplus-based service name (ex: 'mobile') to establish
-	% where its implementation module (ex: "module.beam") lies, typically in
-	% $SERVICE_ROOT/src (ex: in "mobile/src/"); this is where the corresponding
-	% driver (SERVICE_seaplus_driver) is expected to be available as well, so it
-	% must be added to the current PATH:
+	% Here we rely on the Seaplus-based service name (e.g. 'mobile') to
+	% establish where its implementation module (e.g. "module.beam") lies,
+	% typically in $SERVICE_ROOT/src (e.g. in "mobile/src/"); this is where the
+	% corresponding driver (SERVICE_seaplus_driver) is expected to be available
+	% as well, so it must be added to the current PATH:
 
 	ServiceDir = case code_utils:is_beam_in_path( ServiceName ) of
 
@@ -416,7 +416,7 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 			% PROJECT/_build/default/lib/SERVICE/ebin/SERVICE.beam' to be
 			% returned, we want
 			% PROJECT/_build/default/lib/SERVICE/src/SERVICE.beam' so that we
-			% can find afterwards the corresponding driver (ex:
+			% can find afterwards the corresponding driver (e.g.
 			% SERVICE_seaplus_driver):
 			%
 			ChosenSrvDir = hd( filter_ebin_dirs( MultipleSrvPaths ) ),
