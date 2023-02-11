@@ -6,7 +6,7 @@ SEAPLUS_TOP = .
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
 		prepare-release clean-release clean-archive clean-foobar stats   \
-		info-erlang-for-c info-paths info-compile info-c-compile         \
+		info-erlang-for-c info-paths-local info-compile info-c-compile   \
 		info-context info-versions
 
 
@@ -128,7 +128,9 @@ info-erlang-for-c:
 	@echo "ERL_INTERFACE = $(ERL_INTERFACE)"
 
 
-info-paths:
+info-paths: info-paths-local
+
+info-paths-local:
 	@echo "BEAM_PATH_OPT = $(BEAM_PATH_OPT)"
 
 
