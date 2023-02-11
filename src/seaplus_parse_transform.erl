@@ -48,9 +48,10 @@
 % Seaplus-injected code that would rely on Myriad conventions).
 %
 % One will get: 'undefined parse transform 'seaplus_parse_transform'' as soon as
-% a compiled module called by the parse transform (ex: text_utils.beam) will not
-% be found (hence even if the transform itself is available) or a non-exported
-% (or even not existing) function is called (ex: text_utils:format/1).
+% a compiled module called by the parse transform (e.g. text_utils.beam) will
+% not be found (hence even if the transform itself is available) or a
+% non-exported (or even not existing) function is called
+% (e.g. text_utils:format/1).
 
 
 % Regarding the Seaplus parse transform.
@@ -59,11 +60,11 @@
 % corresponding to a service.
 %
 % However, multiple modules exist in the Seaplus layer, some of which must
-% undergo such a transformation, some others not (ex: they are just helper
+% undergo such a transformation, some others not (e.g. they are just helper
 % modules).
 %
 % To discriminate between these two sets, we do not rely on the module name as
-% we do not want to constrain the name of the bridging module (ex: 'foobar' is
+% we do not want to constrain the name of the bridging module (e.g. 'foobar' is
 % fine, we do not want to make a longer form such as 'foobar_service'
 % compulsory).
 %
@@ -148,8 +149,8 @@
 %
 % This allows to benefit from all compilation error and warning messages,
 % whereas they are seldom available from a code directly run as a parse
-% transform (ex: 'undefined parse transform 'foobar'' as soon as a function or a
-% module is not found).
+% transform (e.g. 'undefined parse transform 'foobar'' as soon as a function or
+% a module is not found).
 %
 -spec run_standalone( file_name() ) -> { ast(), module_info() }.
 run_standalone( FileToTransform ) ->
@@ -163,8 +164,8 @@ run_standalone( FileToTransform ) ->
 %
 % This allows to benefit from all compilation error and warning messages,
 % whereas they are seldom available from a code directly run as a parse
-% transform (ex: 'undefined parse transform 'foobar'' as soon as a function or a
-% module is not found).
+% transform (e.g. 'undefined parse transform 'foobar'' as soon as a function or
+% a module is not found).
 %
 -spec run_standalone( file_name(), [ preprocessor_option() ] ) ->
 							{ ast(), module_info() }.
@@ -184,7 +185,7 @@ run_standalone( FileToTransform, PreprocessorOptions ) ->
 % Format code, before being itself converted in turn into an Erlang-compliant
 % Abstract Format code.
 %
--spec parse_transform( ast(), meta_util:parse_transform_options() ) -> ast().
+-spec parse_transform( ast(), meta_utils:parse_transform_options() ) -> ast().
 parse_transform( InputAST, Options ) ->
 
 	%trace_bridge:debug_fmt( "Seaplus input AST:~n~p~n", [ InputAST ] ),
@@ -320,7 +321,7 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 
 	end,
 
-	% In all cases, Myriad transformation shall happen (ex: at the very least,
+	% In all cases, Myriad transformation shall happen (e.g. at the very least,
 	% we want types like void() to be transformed):
 	%
 	{ FinalModuleInfo, _MyriadTransforms } =
@@ -448,7 +449,7 @@ process_module_info_from(
 
 
 
-% @doc Manages any user-defined control function (ex: start, stop).
+% @doc Manages any user-defined control function (e.g. start, stop).
 -spec handle_control_functions( module_info() ) -> module_info().
 handle_control_functions( ModuleInfo ) ->
 
@@ -887,11 +888,12 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
 		"\t\t// int i = read_int_parameter( read_buf, &index ) ;~n~n"
 		"\t\t// This allows then to call the C counterpart of~n"
 		"\t\t// the ~ts/~B function:~n"
-		"\t\t// Ex: float f = some_service_function( i ) ;~n~n"
+		"\t\t// For example float f = some_service_function( i ) ;~n~n"
 		"\t\t// Then write the returned result to the Erlang side:~n"
 		"\t\t// (refer to seaplus_setters.h for the conversion functions)"
 				"~n"
-		"\t\t// Ex: write_double_result( &output_sm_buf, (double) f ) ;~n~n"
+		"\t\t// For example write_double_result( &output_sm_buf, "
+		"(double) f ) ;~n~n"
 		"\t\t// Do not forget to deallocate any relevant memory!~n"
 		"\t\t// (refer to foobar_seaplus_driver.c for an example)~n~n"
 		"\t\tbreak ;~n",
@@ -1190,7 +1192,7 @@ get_port_dict_key_for( #module_info{ module={ ModName, _Loc } } ) ->
 % Example:
 %
 % bar( A, B ) ->
-%	seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 5, [ A, B ] ).
+%   seaplus:call_port_for( ?seaplus_foobar_port_dict_key, 5, [ A, B ] ).
 %
 % (helper)
 %
