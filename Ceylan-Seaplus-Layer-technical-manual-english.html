@@ -32,7 +32,7 @@
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body"><p class="first">Sunday, December 23, 2018</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Sunday, January 1, 2023</p>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Sunday, March 19, 2023</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.1.8</p>
@@ -102,7 +102,7 @@ The next level of information is either to browse the <a class="reference extern
 </ul>
 <p>In a nutshell, this approach consists on spawning a &quot;fake&quot; Erlang node written in C (the <tt class="docutils literal"><span class="pre">C-Node</span></tt>) and using the standard <em>Erlang external term format</em> in order to communicate with it (relying for that on the <tt class="docutils literal">ei</tt> facilities). Doing so allows a seamless communication to happen, in spite of language heterogeneity.</p>
 <p>C-Node and Erl_Interface/ei help a lot, yet, as shown in <a class="reference external" href="http://erlang.org/doc/tutorial/erl_interface.html#erlang-program">this reference example</a>, quite a lot of boiler-plate/bridging code (home-made encoding and conventions) remains needed.</p>
-<p>The <strong>goal of Seaplus is to reduce that interfacing effort</strong>, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that he can define precisely the mapping interface that he prefers (ex: with regards to naming, types introduced and used, management of resource ownership, etc.).</p>
+<p>The <strong>goal of Seaplus is to reduce that interfacing effort</strong>, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that he can define precisely the mapping interface that he prefers (e.g. with regards to naming, types introduced and used, management of resource ownership, etc.).</p>
 <p>As a result, the result of a Seaplus integration can be seen as an easily obtained ei-based C-Node on a bit of steroids.</p>
 <p><tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt> relies on various facilities offered by the <a class="reference external" href="http://myriad.esperide.org">Ceylan-Myriad</a> toolbox.</p>
 <p>The project repository is located <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">here</a>.</p>
@@ -135,7 +135,7 @@ The next level of information is either to browse the <a class="reference extern
 <p>What would be the corresponding ideal Erlang interface to make such a fantastic Foobar service available?</p>
 <p>First of all, multiple corresponding Erlang APIs can be considered, and some design choices have to be made (we can foresee that some are more elegant/convenient than others, and that a perfect, universal, one-size-fit-all automated mapping does not seem so achievable).</p>
 <p>An easy step is to decide, at least in most cases, to map each of these C functions to an Erlang counterpart function that, unsurprisingly, bears the same name and most of the time has the same arity, and to have them gathered into a single module that would be best named <tt class="docutils literal">foobar</tt> (and thus shall be defined in <tt class="docutils literal">foobar.erl</tt>).</p>
-<p>We believe that, in order to rely on a convenient Erlang-side API for this service, adaptations have to be made (ex: with regard to typing), and thus that it should preferably be defined in an ad-hoc manner (i.e. it should be tailor-made, rather than be automatically generated through a mapping possibly suffering from impedance mismatch).</p>
+<p>We believe that, in order to rely on a convenient Erlang-side API for this service, adaptations have to be made (e.g. with regard to typing), and thus that it should preferably be defined in an ad-hoc manner (i.e. it should be tailor-made, rather than be automatically generated through a mapping possibly suffering from impedance mismatch).</p>
 <p>So such a service-specific API shall be devised by the service integrator (i.e. the developer in charge of the integration of the C/C++ code to Erlang). But how?</p>
 <p>At the very least, what will be offered on the Erlang side by our <tt class="docutils literal">foobar</tt> module shall be somehow specified. A very appropriate way of doing so is to list (only) the <a class="reference external" href="http://erlang.org/doc/reference_manual/typespec.html">type specifications</a> of the targeted counterpart functions meant to be ultimately available (defined and exported) from Erlang, like in <a class="footnote-reference" href="#footnote-2" id="footnote-reference-2">[2]</a>:</p>
 <pre class="code erlang literal-block">
@@ -167,11 +167,11 @@ The next level of information is either to browse the <a class="reference extern
 -include_lib(&quot;seaplus/include/seaplus.hrl&quot;).
 </pre>
 <p>Comments (description, usage, examples) are also expected to be joined to these specs, they are omitted in this documentation only for brevity.</p>
-<p><strong>Facility functions</strong> that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (ex: to start/stop this service from Erlang), will also certainly be needed.</p>
+<p><strong>Facility functions</strong> that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (e.g. to start/stop this service from Erlang), will also certainly be needed.</p>
 <p>However, listing these facility functions in our <tt class="docutils literal">foobar</tt> module would offer little interest, should they involve no service-specific part; so these extra functions are to remain implicit here <a class="footnote-reference" href="#footnote-3" id="footnote-reference-3">[3]</a>.</p>
 <p>These service-level built-in functions automatically defined by Seaplus of user interest are, notably:</p>
 <ul class="simple">
-<li><tt class="docutils literal">start/0</tt>: starts said service, a <tt class="docutils literal">{driver_crashed,ErrorReason}</tt> exception being thrown should the driver or the integrated library crash (ex: SEGV)</li>
+<li><tt class="docutils literal">start/0</tt>: starts said service, a <tt class="docutils literal">{driver_crashed,ErrorReason}</tt> exception being thrown should the driver or the integrated library crash (e.g. SEGV)</li>
 <li><tt class="docutils literal">start_link/0</tt>: starts and links said service to the user process, expected to receive an EXIT signal (and thus, unless trapping them, crashing in turn) should the driver or the integrated library crash</li>
 <li><tt class="docutils literal">restart/0</tt>: restarts the service, typically after it was started with <tt class="docutils literal">start/0</tt>, failed and threw an exception (that was caught by the user code)</li>
 <li><tt class="docutils literal">stop/0</tt>: stops the service</li>
@@ -187,7 +187,7 @@ The next level of information is either to browse the <a class="reference extern
 </table>
 <p>Of course such a module, as it was defined above (i.e. just as a set of function specifications, with no implementation thereof), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) is available, the <tt class="docutils literal">Foobar</tt> service becomes fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.</p>
 <p>More precisely, for each of the function type specifications defined by the user in that module, a corresponding bridging implementation will be generated on the Erlang side and added (unless the <tt class="docutils literal">foobar</tt> module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.</p>
-<p>Here is a corresponding (mostly meaningless) usage example <a class="footnote-reference" href="#footnote-4" id="footnote-reference-4">[4]</a> of this <tt class="docutils literal">foobar</tt> module, when executed from any given process (ex: a test one):</p>
+<p>Here is a corresponding (mostly meaningless) usage example <a class="footnote-reference" href="#footnote-4" id="footnote-reference-4">[4]</a> of this <tt class="docutils literal">foobar</tt> module, when executed from any given process (e.g. a test one):</p>
 <pre class="code erlang literal-block">
 <span class="nn">foobar</span><span class="p">:</span><span class="nf">start</span><span class="p">(),</span><span class="w">
 </span><span class="nv">MyFooData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">foobar</span><span class="p">:</span><span class="nf">bar</span><span class="p">(</span><span class="mi">3</span><span class="p">.</span><span class="mi">14</span><span class="p">,</span><span class="n">full_speed</span><span class="p">),</span><span class="w">
@@ -263,7 +263,7 @@ The next level of information is either to browse the <a class="reference extern
     </span><span class="c1">// Current index in the input buffer (for decoding purpose):
 </span><span class="w">    </span><span class="n">buffer_index</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">
 
-    </span><span class="cm">/* Will be set to the corresponding Seaplus-defined function identifier (ex:
+    </span><span class="cm">/* Will be set to the corresponding Seaplus-defined function identifier (e.g.
      * whose value is FOO_1_ID):
      *
      */</span><span class="w">
@@ -375,7 +375,7 @@ The next level of information is either to browse the <a class="reference extern
 </ul>
 <p>This allows the use of the Seaplus code in as wide a variety of software projects as possible, while still maintaining copyleft on this code.</p>
 <p>Being triple-licensed means that someone (the licensee) who modifies and/or distributes it can choose which of the available sets of licence terms he/she is operating under.</p>
-<p>We hope that enhancements will be back-contributed (ex: thanks to merge requests), so that everyone will be able to benefit from them.</p>
+<p>We hope that enhancements will be back-contributed (e.g. thanks to merge requests), so that everyone will be able to benefit from them.</p>
 <p></p>
 </div>
 <div class="section" id="current-stable-version-download-build">
@@ -393,16 +393,16 @@ The next level of information is either to browse the <a class="reference extern
 <p>We try to ensure that the main line (in the <tt class="docutils literal">master</tt> branch) always stays functional. Evolutions are to take place in feature branches.</p>
 <p>Once proper Erlang and C environments are available, the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad repository</a> should be cloned and built, before doing the same with the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus repository</a>, like in:</p>
 <pre class="code bash literal-block">
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad myriad
-$ <span class="nb">cd</span> myriad <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus seaplus
-$ <span class="nb">cd</span> seaplus <span class="o">&amp;&amp;</span> make all
+$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Olivier-Boudeville/Ceylan-Myriad<span class="w"> </span>myriad<span class="w">
+</span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>myriad<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>all<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..<span class="w">
+</span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Olivier-Boudeville/Ceylan-Seaplus<span class="w"> </span>seaplus<span class="w">
+</span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>seaplus<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>all
 </pre>
 <p>(for OTP compliance, using short names, such as <tt class="docutils literal">myriad</tt> or <tt class="docutils literal">seaplus</tt>, for clones rather than long ones, such as <tt class="docutils literal"><span class="pre">Ceylan-Myriad</span></tt> or <tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt>, is recommended)</p>
 <p>One can then test the whole with:</p>
 <pre class="code bash literal-block">
-$ <span class="nb">cd</span> test/c-test
-$ make <span class="nb">test</span>
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>test/c-test<span class="w">
+</span>$<span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
 </pre>
 </div>
 <div class="section" id="using-rebar3">
@@ -410,9 +410,9 @@ $ make <span class="nb">test</span>
 <p>Most of the usual rebar3 machinery is in place and functional, at the price of some workarounds that are transparent for the users.</p>
 <p>So the only Seaplus prerequisite (<a class="reference external" href="https://myriad.esperide.org">Myriad</a>) and Seaplus itself can be obtained simply thanks to:</p>
 <pre class="code bash literal-block">
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus.git seaplus
-$ <span class="nb">cd</span> seaplus
-$ rebar3 compile
+$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Olivier-Boudeville/Ceylan-Seaplus.git<span class="w"> </span>seaplus<span class="w">
+</span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>seaplus<span class="w">
+</span>$<span class="w"> </span>rebar3<span class="w"> </span>compile
 </pre>
 <p>Then Seaplus and its tests shall be ready for a successful execution.</p>
 <p>Note that rebar3 is an alternate way of building Seaplus, as one may rely directly on our make-based system instead.</p>
@@ -421,7 +421,7 @@ $ rebar3 compile
 <h2><a class="toc-backref" href="#toc-entry-8">Testing Seaplus</a></h2>
 <p>Once <a class="reference external" href="https://myriad.esperide.org">Myriad</a> and Seaplus itself have been built (for that refer to either <a class="reference internal" href="#using-cutting-edge-git">Using Cutting-Edge GIT</a> or <a class="reference internal" href="#using-rebar3">Using Rebar3</a>), just run from the root directory of Seaplus:</p>
 <pre class="code bash literal-block">
-$ make <span class="nb">test</span>
+$<span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
 </pre>
 <p>The testing shall complete successfully (if it is not the case, see our <a class="reference internal" href="#support">support</a> section).</p>
 <div class="admonition note">
@@ -437,7 +437,7 @@ Reciprocally this procedure applies to the projects based on it, such as <a clas
 <h2><a class="toc-backref" href="#toc-entry-10">Seaplus Log System</a></h2>
 <p>When integrating a C service, the most difficult part is ensuring the sanity of the C driver, i.e. knowing what happens within it whenever converting terms back and forth, handling pointers, allocating memory, crashing unexpectedly, etc. (a.k.a. the joys of C programming).</p>
 <p>To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done <em>by the driver</em> (including the user code and the Seaplus facilities on which it relies).</p>
-<p>This log system is enabled by default. To disable it (then no runtime penalty will be incurred), set <tt class="docutils literal">SEAPLUS_ENABLE_LOG</tt> to <tt class="docutils literal">0</tt> (ex: add the <tt class="docutils literal"><span class="pre">-DSEAPLUS_ENABLE_LOG=0</span></tt> option when compiling the library, see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc">GNUmakevars.inc</a> for the various build settings).</p>
+<p>This log system is enabled by default. To disable it (then no runtime penalty will be incurred), set <tt class="docutils literal">SEAPLUS_ENABLE_LOG</tt> to <tt class="docutils literal">0</tt> (e.g. add the <tt class="docutils literal"><span class="pre">-DSEAPLUS_ENABLE_LOG=0</span></tt> option when compiling the library, see <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc">GNUmakevars.inc</a> for the various build settings).</p>
 <p>So running a Seaplus-integrated service, with log system enabled, should produce a <tt class="docutils literal"><span class="pre">seaplus-driver.N.log</span></tt> timestamped text log file, where <tt class="docutils literal">N</tt> is the (operating system level) PID <a class="footnote-reference" href="#footnote-6" id="footnote-reference-6">[6]</a> of the process corresponding to the driver.</p>
 <p>Example content:</p>
 <pre class="literal-block">
@@ -469,7 +469,7 @@ Reciprocally this procedure applies to the projects based on it, such as <a clas
 <h2><a class="toc-backref" href="#toc-entry-11">Customising Function Bindings on the Erlang Side</a></h2>
 <p>We saw that, by default, no specific implementation is to be provided by the user in order to include a set of Erlang-level functions into a binding - this implementation is generated by Seaplus, and the required conversions are to be done (only) in the driver, i.e. on the C side.</p>
 <p>However, in some cases, it may be convenient to perform transformations as well on the Erlang side, before and/or after that bridge, for example to adapt parameters or results, or to throw relevant exceptions instead of tagged tuples.</p>
-<p>Taking <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile.erl">this service</a> as an example, we can see that the <tt class="docutils literal">get_backend_information/0</tt> function is to return a version number that would be ideally a triplet (ex: <tt class="docutils literal">{1,40,0}</tt>) so that we can compare versions easily. However the C-side happens to obtain that version from the original service as a string (ex: <tt class="docutils literal">&quot;1.40.0&quot;</tt>). The parsing/conversion of that string into a relevant version triplet could be done in C (by building by steps a corresponding term), but it may be more convenient to do so in Erlang (ex: we may already have the right logic implemented for that).</p>
+<p>Taking <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile.erl">this service</a> as an example, we can see that the <tt class="docutils literal">get_backend_information/0</tt> function is to return a version number that would be ideally a triplet (e.g. <tt class="docutils literal">{1,40,0}</tt>) so that we can compare versions easily. However the C-side happens to obtain that version from the original service as a string (e.g. <tt class="docutils literal">&quot;1.40.0&quot;</tt>). The parsing/conversion of that string into a relevant version triplet could be done in C (by building by steps a corresponding term), but it may be more convenient to do so in Erlang (e.g. we may already have the right logic implemented for that).</p>
 <p>Similarly, <tt class="docutils literal">get_hardware_information/0</tt> may be not supported by the actual device, and one may prefer an exception to be thrown in that case rather than having to pattern-match the result of such a call against a tagged tuple like <tt class="docutils literal">{ok,Result}</tt> vs <tt class="docutils literal">{error,Error}</tt>.</p>
 <p>This implies having the ability to <strong>override</strong>, on a per-function basis, the default Erlang-side implementation that would be generated by Seaplus by a user-defined one - preferably in a simple manner.</p>
 <p>Fortunately, Seaplus offers a good support for that: should a user-provided <em>definition</em> of a function to bind be found in the service module (thus: in addition to its mere spec), it will be used (and a bit transformed automatically), instead of relying on the implementation that would be generated by default.</p>
@@ -559,8 +559,8 @@ While being in '/__w/Ceylan-Mobile/Ceylan-Mobile/test':
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>The fact that such a driver log simply exists already means that this driver could be launched at all, which is a first good news.</p>
-<p>Indeed, if Seaplus checks whether the driver can be found (ex: the <tt class="docutils literal">PATH</tt> environment variable may not be adequate) and is executable, a classical problem is that this driver may still fail to start because at least one of the shared libraries it relies upon cannot be found - typically because the <tt class="docutils literal">LD_LIBRARY_PATH</tt> environment variable has not been properly set (see <tt class="docutils literal">mobile_test</tt> for an example on how to deal with these topics). This is either the Seaplus library (<tt class="docutils literal"><span class="pre">libseaplus-x.y.z.so</span></tt>) that is lacking, and/or an integrated one (like <tt class="docutils literal">libGammu.so.x</tt> here).</p>
-<p class="last">To better investigate such issues, now, if the <tt class="docutils literal">seaplus_check_driver</tt> compile flag is enabled (see <tt class="docutils literal">SEAPLUS_CHECK_FLAGS</tt> in <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc">GNUmakevars.inc</a>), then any generated Seaplus driver is automatically tested first like if it was just a basic executable that performs a simple console output and exits immediately afterwards. Once the driver proved that way that it can be launched successfully (ex: no lacking library dependency in the current setting), then only it is used by Seaplus as a port to interact with. This procedure is fully transparent to the Seaplus user.</p>
+<p>Indeed, if Seaplus checks whether the driver can be found (e.g. the <tt class="docutils literal">PATH</tt> environment variable may not be adequate) and is executable, a classical problem is that this driver may still fail to start because at least one of the shared libraries it relies upon cannot be found - typically because the <tt class="docutils literal">LD_LIBRARY_PATH</tt> environment variable has not been properly set (see <tt class="docutils literal">mobile_test</tt> for an example on how to deal with these topics). This is either the Seaplus library (<tt class="docutils literal"><span class="pre">libseaplus-x.y.z.so</span></tt>) that is lacking, and/or an integrated one (like <tt class="docutils literal">libGammu.so.x</tt> here).</p>
+<p class="last">To better investigate such issues, now, if the <tt class="docutils literal">seaplus_check_driver</tt> compile flag is enabled (see <tt class="docutils literal">SEAPLUS_CHECK_FLAGS</tt> in <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc">GNUmakevars.inc</a>), then any generated Seaplus driver is automatically tested first like if it was just a basic executable that performs a simple console output and exits immediately afterwards. Once the driver proved that way that it can be launched successfully (e.g. no lacking library dependency in the current setting), then only it is used by Seaplus as a port to interact with. This procedure is fully transparent to the Seaplus user.</p>
 </div>
 <p>Indeed these driver logs (in <tt class="docutils literal"><span class="pre">seaplus-driver.1037076.log</span></tt> here) tell us:</p>
 <pre class="code literal-block">
@@ -594,34 +594,34 @@ While being in '/__w/Ceylan-Mobile/Ceylan-Mobile/test':
 <p>We nevertheless know which API function was called when the crash happened (should you have left the corresponding <tt class="docutils literal">LOG_DEBUG</tt> calls in your driver of course) - which is already a precious information.</p>
 <p>A first difficulty is that generally a (Linux) distribution will, at least by default, only include prebuilt binary packages whose libraries are stripped. For example:</p>
 <pre class="code bash literal-block">
-$ file /usr/lib/libGammu.so.8.1.40.0
-/usr/lib/libGammu.so.8.1.40.0: ELF <span class="m">64</span>-bit LSB shared object, x86-64, <span class="se">\
-</span>version <span class="m">1</span> <span class="o">(</span>SYSV<span class="o">)</span>, dynamically linked, BuildID<span class="o">[</span>sha1<span class="o">]=[</span>...<span class="o">]</span>, stripped
+$<span class="w"> </span>file<span class="w"> </span>/usr/lib/libGammu.so.8.1.40.0<span class="w">
+</span>/usr/lib/libGammu.so.8.1.40.0:<span class="w"> </span>ELF<span class="w"> </span><span class="m">64</span>-bit<span class="w"> </span>LSB<span class="w"> </span>shared<span class="w"> </span>object,<span class="w"> </span>x86-64,<span class="w"> </span><span class="se">\
+</span>version<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">(</span>SYSV<span class="o">)</span>,<span class="w"> </span>dynamically<span class="w"> </span>linked,<span class="w"> </span>BuildID<span class="o">[</span>sha1<span class="o">]=[</span>...<span class="o">]</span>,<span class="w"> </span>stripped
 </pre>
 <p>We <em>need</em> the debug symbols, otherwise we will lack much crucial information. Either your distribution provides a way of having unstripped, debug/development versions of some libraries, or you find it simpler and less system-jeopardizing to recompile your own unstripped versions, directly in your user account.</p>
 <p>We go for the latter, for example with:</p>
 <pre class="code bash literal-block">
-$ mkdir ~/Software/libgammu
-$ <span class="nb">cd</span> ~/Software/libgammu
-$ git clone https://github.com/gammu/gammu.git
-$ ./configure --enable-shared --enable-debug --enable-protection <span class="se">\
-</span>   --prefix<span class="o">=</span>~/Software/libgammu
-$ make all install
-$ file lib/libGammu.so.8.1.40.0
-lib/libGammu.so.8.1.40.0: ELF <span class="m">64</span>-bit LSB shared object, x86-64, <span class="se">\
-</span>version <span class="m">1</span> <span class="o">(</span>SYSV<span class="o">)</span>, dynamically linked, BuildID<span class="o">[</span>sha1<span class="o">]=[</span>...<span class="o">]</span>, with <span class="se">\
-</span>debug_info, not stripped
+$<span class="w"> </span>mkdir<span class="w"> </span>~/Software/libgammu<span class="w">
+</span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>~/Software/libgammu<span class="w">
+</span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/gammu/gammu.git<span class="w">
+</span>$<span class="w"> </span>./configure<span class="w"> </span>--enable-shared<span class="w"> </span>--enable-debug<span class="w"> </span>--enable-protection<span class="w"> </span><span class="se">\
+</span><span class="w">   </span>--prefix<span class="o">=</span>~/Software/libgammu<span class="w">
+</span>$<span class="w"> </span>make<span class="w"> </span>all<span class="w"> </span>install<span class="w">
+</span>$<span class="w"> </span>file<span class="w"> </span>lib/libGammu.so.8.1.40.0<span class="w">
+</span>lib/libGammu.so.8.1.40.0:<span class="w"> </span>ELF<span class="w"> </span><span class="m">64</span>-bit<span class="w"> </span>LSB<span class="w"> </span>shared<span class="w"> </span>object,<span class="w"> </span>x86-64,<span class="w"> </span><span class="se">\
+</span>version<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">(</span>SYSV<span class="o">)</span>,<span class="w"> </span>dynamically<span class="w"> </span>linked,<span class="w"> </span>BuildID<span class="o">[</span>sha1<span class="o">]=[</span>...<span class="o">]</span>,<span class="w"> </span>with<span class="w"> </span><span class="se">\
+</span>debug_info,<span class="w"> </span>not<span class="w"> </span>stripped
 </pre>
 <p>Same version number - yet much better for debugging!</p>
 <p>Now, provided that the Seaplus driver points to the right library, we should benefit from debug symbols.</p>
-<p>A first option would be to run the driver through <a class="reference external" href="https://www.gnu.org/software/gdb/">gdb</a> (ex: <tt class="docutils literal">gdb <span class="pre">-batch</span> <span class="pre">-ex</span> run mobile_seaplus_driver</tt>) when triggered by the application, yet we had not much luck with that approach.</p>
+<p>A first option would be to run the driver through <a class="reference external" href="https://www.gnu.org/software/gdb/">gdb</a> (e.g. <tt class="docutils literal">gdb <span class="pre">-batch</span> <span class="pre">-ex</span> run mobile_seaplus_driver</tt>) when triggered by the application, yet we had not much luck with that approach.</p>
 <p>Examining instead the core dump corresponding to the driver crash may offer relevant insights; provided that we find it and manage to study it.</p>
 <p>In our case we used (as a one-liner), from the test directory, once a crash had been triggered, the following commands:</p>
 <pre class="code bash literal-block">
-$ rm -f mobile_seaplus.core*
-$ cp /var/lib/systemd/coredump/core.mobile_seaplus* mobile_seaplus.core.lz4
-$ lz4 mobile_seaplus.core.lz4
-$ gdb mobile_seaplus_driver
+$<span class="w"> </span>rm<span class="w"> </span>-f<span class="w"> </span>mobile_seaplus.core*<span class="w">
+</span>$<span class="w"> </span>cp<span class="w"> </span>/var/lib/systemd/coredump/core.mobile_seaplus*<span class="w"> </span>mobile_seaplus.core.lz4<span class="w">
+</span>$<span class="w"> </span>lz4<span class="w"> </span>mobile_seaplus.core.lz4<span class="w">
+</span>$<span class="w"> </span>gdb<span class="w"> </span>mobile_seaplus_driver
 </pre>
 <p>Following gdb command would then bring new information:</p>
 <pre class="code literal-block">
@@ -677,12 +677,12 @@ No symbol table info available.
 <h2><a class="toc-backref" href="#toc-entry-13">Testing Seaplus</a></h2>
 <p>Once <a class="reference external" href="https://myriad.esperide.org">Myriad</a> and Seaplus itself have been built (for that refer to either <a class="reference internal" href="#using-cutting-edge-git">Using Cutting-Edge GIT</a> or <a class="reference internal" href="#using-rebar3">Using Rebar3</a>), just run from the root directory of Seaplus:</p>
 <pre class="code bash literal-block">
-$ make <span class="nb">test</span>
+$<span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
 </pre>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Seaplus is built and tested at each commit through <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus/actions?query=workflow%3A%22Erlang+CI%22">continuous integration</a>, and the same holds for its only prerequisite (<a class="reference external" href="https://myriad.esperide.org">Myriad</a>).
-Reciprocally this procedure applies to the projects based on it (ex: <a class="reference external" href="https://mobile.esperide.org/">Mobile</a>), so in terms of usability, at least some confidence should exist.</p>
+Reciprocally this procedure applies to the projects based on it (e.g. <a class="reference external" href="https://mobile.esperide.org/">Mobile</a>), so in terms of usability, at least some confidence should exist.</p>
 </div>
 </div>
 <div class="section" id="towards-a-more-general-c-c-interface">

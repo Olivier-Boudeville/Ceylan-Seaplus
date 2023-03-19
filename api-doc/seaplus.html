@@ -45,7 +45,7 @@
 <p><tt>function_driver_id() = <a href="basic_utils.html#type-count">basic_utils:count()</a></tt></p>
 <p><p> The identifier of a function for the driver, as determined by Seaplus.</p>
 
- (ex: 1 for foo/1 in the toy example)</p>
+ (e.g. 1 for foo/1 in the toy example)</p>
 
 <h3 class="typedecl"><a name="type-function_params">function_params()</a></h3>
 <p><tt>function_params() = [term()]</tt></p>
@@ -75,10 +75,8 @@ driver).</td></tr>
 <tr><td valign="top"><a href="#display_driver_runtime_info-2">display_driver_runtime_info/2</a></td><td>Displays runtime information about the specified driver, to help
  troubleshooting.</td></tr>
 <tr><td valign="top"><a href="#get_execution_target-0">get_execution_target/0</a></td><td></td></tr>
-<tr><td valign="top"><a href="#restart-1">restart/1</a></td><td>Restarts the specific service support (ex: to overcome a detected crash
- thereof).</td></tr>
-<tr><td valign="top"><a href="#restart-2">restart/2</a></td><td>Restarts the specific service support (ex: to overcome a detected crash
- thereof).</td></tr>
+<tr><td valign="top"><a href="#restart-1">restart/1</a></td><td>Restarts the specific service support (e.g.</td></tr>
+<tr><td valign="top"><a href="#restart-2">restart/2</a></td><td>Restarts the specific service support (e.g.</td></tr>
 <tr><td valign="top"><a href="#start-1">start/1</a></td><td>Starts the support for the specified named service.</td></tr>
 <tr><td valign="top"><a href="#start-2">start/2</a></td><td>Starts the support for the specified named service, relying on specified 
 executable name for the driver.</td></tr>
@@ -131,7 +129,7 @@ basic_utils:function_name().</p>
 <div class="spec">
 <p><tt>restart(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
 <p> </p>
-</div><p>Restarts the specific service support (ex: to overcome a detected crash
+</div><p>Restarts the specific service support (e.g. to overcome a detected crash
  thereof).
 </p>
 
@@ -139,7 +137,7 @@ basic_utils:function_name().</p>
 <div class="spec">
 <p><tt>restart(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
 <p> </p>
-</div><p>Restarts the specific service support (ex: to overcome a detected crash
+</div><p>Restarts the specific service support (e.g. to overcome a detected crash
  thereof).
 </p>
 
@@ -169,7 +167,7 @@ implemented in foobar.erl, is expected here to rely on the
 </div><p><p>Starts the support for the specified named service, relying on specified 
 executable name for the driver.</p>
 
- Note: should the service itself or its driver crash (ex: in the context of a
+ Note: should the service itself or its driver crash (e.g. in the context of a
  call being triggered), the service user process will receive an
  {'EXIT',FromPort,Reason} message.
 </p>
@@ -199,7 +197,7 @@ implemented in foobar.erl, is expected here to rely on the
 </div><p><p>Starts and links to the caller the support for the specified named 
 service, relying on specified executable name for the driver.</p>
 
- Note: should the service itself or its driver crash (ex: in the context of a
+ Note: should the service itself or its driver crash (e.g. in the context of a
  call being triggered), the service user process will receive an exit signal
  with an exit reason other than normal.
 </p>

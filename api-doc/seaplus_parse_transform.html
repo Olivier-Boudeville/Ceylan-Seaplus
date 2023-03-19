@@ -73,7 +73,7 @@ specified preprocessor options.</td></tr>
 
 <h3 class="function"><a name="parse_transform-2">parse_transform/2</a></h3>
 <div class="spec">
-<p><tt>parse_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="meta_util.html#type-parse_transform_options">meta_util:parse_transform_options()</a>) -&gt; <a href="#type-ast">ast()</a></tt><br></p>
+<p><tt>parse_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="meta_utils.html#type-parse_transform_options">meta_utils:parse_transform_options()</a>) -&gt; <a href="#type-ast">ast()</a></tt><br></p>
 <p> </p>
 </div><p>The parse transform itself, generating notably (Myriad-based) Abstract
  Format code, before being itself converted in turn into an Erlang-compliant
@@ -90,8 +90,8 @@ no specific preprocessor option.</p>
 
  This allows to benefit from all compilation error and warning messages,
  whereas they are seldom available from a code directly run as a parse
- transform (ex: 'undefined parse transform 'foobar'' as soon as a function or a
- module is not found).
+ transform (e.g. 'undefined parse transform 'foobar'' as soon as a function or
+ a module is not found).
 </p>
 
 <h3 class="function"><a name="run_standalone-2">run_standalone/2</a></h3>
@@ -104,8 +104,8 @@ specified preprocessor options.</p>
 
  This allows to benefit from all compilation error and warning messages,
  whereas they are seldom available from a code directly run as a parse
- transform (ex: 'undefined parse transform 'foobar'' as soon as a function or a
- module is not found).
+ transform (e.g. 'undefined parse transform 'foobar'' as soon as a function or
+ a module is not found).
 </p>
 <hr>
 
