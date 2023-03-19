@@ -92,7 +92,7 @@ In a nutshell, this approach consists on spawning a "fake" Erlang node written i
 
 C-Node and Erl_Interface/ei help a lot, yet, as shown in `this reference example <http://erlang.org/doc/tutorial/erl_interface.html#erlang-program>`_, quite a lot of boiler-plate/bridging code (home-made encoding and conventions) remains needed.
 
-The **goal of Seaplus is to reduce that interfacing effort**, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that he can define precisely the mapping interface that he prefers (ex: with regards to naming, types introduced and used, management of resource ownership, etc.).
+The **goal of Seaplus is to reduce that interfacing effort**, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that he can define precisely the mapping interface that he prefers (e.g. with regards to naming, types introduced and used, management of resource ownership, etc.).
 
 As a result, the result of a Seaplus integration can be seen as an easily obtained ei-based C-Node on a bit of steroids.
 
@@ -136,7 +136,7 @@ First of all, multiple corresponding Erlang APIs can be considered, and some des
 
 An easy step is to decide, at least in most cases, to map each of these C functions to an Erlang counterpart function that, unsurprisingly, bears the same name and most of the time has the same arity, and to have them gathered into a single module that would be best named ``foobar`` (and thus shall be defined in ``foobar.erl``).
 
-We believe that, in order to rely on a convenient Erlang-side API for this service, adaptations have to be made (ex: with regard to typing), and thus that it should preferably be defined in an ad-hoc manner (i.e. it should be tailor-made, rather than be automatically generated through a mapping possibly suffering from impedance mismatch).
+We believe that, in order to rely on a convenient Erlang-side API for this service, adaptations have to be made (e.g. with regard to typing), and thus that it should preferably be defined in an ad-hoc manner (i.e. it should be tailor-made, rather than be automatically generated through a mapping possibly suffering from impedance mismatch).
 
 So such a service-specific API shall be devised by the service integrator (i.e. the developer in charge of the integration of the C/C++ code to Erlang). But how?
 
@@ -172,13 +172,13 @@ It can be included in a more OTP-compliant fashion with::
 
 Comments (description, usage, examples) are also expected to be joined to these specs, they are omitted in this documentation only for brevity.
 
-**Facility functions** that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (ex: to start/stop this service from Erlang), will also certainly be needed.
+**Facility functions** that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (e.g. to start/stop this service from Erlang), will also certainly be needed.
 
 However, listing these facility functions in our ``foobar`` module would offer little interest, should they involve no service-specific part; so these extra functions are to remain implicit here [#]_.
 
 These service-level built-in functions automatically defined by Seaplus of user interest are, notably:
 
-- ``start/0``: starts said service, a ``{driver_crashed,ErrorReason}`` exception being thrown should the driver or the integrated library crash (ex: SEGV)
+- ``start/0``: starts said service, a ``{driver_crashed,ErrorReason}`` exception being thrown should the driver or the integrated library crash (e.g. SEGV)
 - ``start_link/0``: starts and links said service to the user process, expected to receive an EXIT signal (and thus, unless trapping them, crashing in turn) should the driver or the integrated library crash
 - ``restart/0``: restarts the service, typically after it was started with ``start/0``, failed and threw an exception (that was caught by the user code)
 - ``stop/0``: stops the service
@@ -195,7 +195,7 @@ Of course such a module, as it was defined above (i.e. just as a set of function
 
 More precisely, for each of the function type specifications defined by the user in that module, a corresponding bridging implementation will be generated on the Erlang side and added (unless the ``foobar`` module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.
 
-Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar`` module, when executed from any given process (ex: a test one):
+Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar`` module, when executed from any given process (e.g. a test one):
 
 .. code:: erlang
 
@@ -281,7 +281,7 @@ Based on these elements, the actual bridging code can be written, like in the fo
 	  // Current index in the input buffer (for decoding purpose):
 	  buffer_index index = 0;
 
-	  /* Will be set to the corresponding Seaplus-defined function identifier (ex:
+	  /* Will be set to the corresponding Seaplus-defined function identifier (e.g.
 	   * whose value is FOO_1_ID):
 	   *
 	   */
@@ -413,7 +413,7 @@ This allows the use of the Seaplus code in as wide a variety of software project
 
 Being triple-licensed means that someone (the licensee) who modifies and/or distributes it can choose which of the available sets of licence terms he/she is operating under.
 
-We hope that enhancements will be back-contributed (ex: thanks to merge requests), so that everyone will be able to benefit from them.
+We hope that enhancements will be back-contributed (e.g. thanks to merge requests), so that everyone will be able to benefit from them.
 
 
 
@@ -553,7 +553,7 @@ When integrating a C service, the most difficult part is ensuring the sanity of 
 
 To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done *by the driver* (including the user code and the Seaplus facilities on which it relies).
 
-This log system is enabled by default. To disable it (then no runtime penalty will be incurred), set ``SEAPLUS_ENABLE_LOG`` to ``0`` (ex: add the ``-DSEAPLUS_ENABLE_LOG=0`` option when compiling the library, see `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_ for the various build settings).
+This log system is enabled by default. To disable it (then no runtime penalty will be incurred), set ``SEAPLUS_ENABLE_LOG`` to ``0`` (e.g. add the ``-DSEAPLUS_ENABLE_LOG=0`` option when compiling the library, see `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_ for the various build settings).
 
 So running a Seaplus-integrated service, with log system enabled, should produce a ``seaplus-driver.N.log`` timestamped text log file, where ``N`` is the (operating system level) PID [#]_ of the process corresponding to the driver.
 
@@ -590,7 +590,7 @@ We saw that, by default, no specific implementation is to be provided by the use
 
 However, in some cases, it may be convenient to perform transformations as well on the Erlang side, before and/or after that bridge, for example to adapt parameters or results, or to throw relevant exceptions instead of tagged tuples.
 
-Taking `this service <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile.erl>`_ as an example, we can see that the ``get_backend_information/0`` function is to return a version number that would be ideally a triplet (ex: ``{1,40,0}``) so that we can compare versions easily. However the C-side happens to obtain that version from the original service as a string (ex: ``"1.40.0"``). The parsing/conversion of that string into a relevant version triplet could be done in C (by building by steps a corresponding term), but it may be more convenient to do so in Erlang (ex: we may already have the right logic implemented for that).
+Taking `this service <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile.erl>`_ as an example, we can see that the ``get_backend_information/0`` function is to return a version number that would be ideally a triplet (e.g. ``{1,40,0}``) so that we can compare versions easily. However the C-side happens to obtain that version from the original service as a string (e.g. ``"1.40.0"``). The parsing/conversion of that string into a relevant version triplet could be done in C (by building by steps a corresponding term), but it may be more convenient to do so in Erlang (e.g. we may already have the right logic implemented for that).
 
 Similarly, ``get_hardware_information/0`` may be not supported by the actual device, and one may prefer an exception to be thrown in that case rather than having to pattern-match the result of such a call against a tagged tuple like ``{ok,Result}`` vs ``{error,Error}``.
 
@@ -703,9 +703,9 @@ So the driver crashed, we do not know precisely why (yet at least some key libra
 
 .. Note:: The fact that such a driver log simply exists already means that this driver could be launched at all, which is a first good news.
 
-		  Indeed, if Seaplus checks whether the driver can be found (ex: the ``PATH`` environment variable may not be adequate) and is executable, a classical problem is that this driver may still fail to start because at least one of the shared libraries it relies upon cannot be found - typically because the ``LD_LIBRARY_PATH`` environment variable has not been properly set (see ``mobile_test`` for an example on how to deal with these topics). This is either the Seaplus library (``libseaplus-x.y.z.so``) that is lacking, and/or an integrated one (like ``libGammu.so.x`` here).
+		  Indeed, if Seaplus checks whether the driver can be found (e.g. the ``PATH`` environment variable may not be adequate) and is executable, a classical problem is that this driver may still fail to start because at least one of the shared libraries it relies upon cannot be found - typically because the ``LD_LIBRARY_PATH`` environment variable has not been properly set (see ``mobile_test`` for an example on how to deal with these topics). This is either the Seaplus library (``libseaplus-x.y.z.so``) that is lacking, and/or an integrated one (like ``libGammu.so.x`` here).
 
-		  To better investigate such issues, now, if the ``seaplus_check_driver`` compile flag is enabled (see ``SEAPLUS_CHECK_FLAGS`` in `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_), then any generated Seaplus driver is automatically tested first like if it was just a basic executable that performs a simple console output and exits immediately afterwards. Once the driver proved that way that it can be launched successfully (ex: no lacking library dependency in the current setting), then only it is used by Seaplus as a port to interact with. This procedure is fully transparent to the Seaplus user.
+		  To better investigate such issues, now, if the ``seaplus_check_driver`` compile flag is enabled (see ``SEAPLUS_CHECK_FLAGS`` in `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_), then any generated Seaplus driver is automatically tested first like if it was just a basic executable that performs a simple console output and exits immediately afterwards. Once the driver proved that way that it can be launched successfully (e.g. no lacking library dependency in the current setting), then only it is used by Seaplus as a port to interact with. This procedure is fully transparent to the Seaplus user.
 
 
 Indeed these driver logs (in ``seaplus-driver.1037076.log`` here) tell us:
@@ -773,7 +773,7 @@ Same version number - yet much better for debugging!
 
 Now, provided that the Seaplus driver points to the right library, we should benefit from debug symbols.
 
-A first option would be to run the driver through `gdb <https://www.gnu.org/software/gdb/>`_ (ex: ``gdb -batch -ex run mobile_seaplus_driver``) when triggered by the application, yet we had not much luck with that approach.
+A first option would be to run the driver through `gdb <https://www.gnu.org/software/gdb/>`_ (e.g. ``gdb -batch -ex run mobile_seaplus_driver``) when triggered by the application, yet we had not much luck with that approach.
 
 Examining instead the core dump corresponding to the driver crash may offer relevant insights; provided that we find it and manage to study it.
 
@@ -859,7 +859,7 @@ Once `Myriad <https://myriad.esperide.org>`_ and Seaplus itself have been built 
 
 
 .. Note:: Seaplus is built and tested at each commit through `continuous integration <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/actions?query=workflow%3A%22Erlang+CI%22>`_, and the same holds for its only prerequisite (`Myriad <https://myriad.esperide.org>`_).
-		  Reciprocally this procedure applies to the projects based on it (ex: `Mobile <https://mobile.esperide.org/>`_), so in terms of usability, at least some confidence should exist.
+		  Reciprocally this procedure applies to the projects based on it (e.g. `Mobile <https://mobile.esperide.org/>`_), so in terms of usability, at least some confidence should exist.
 
 
 
