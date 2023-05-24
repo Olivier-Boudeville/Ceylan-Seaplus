@@ -1,7 +1,7 @@
 SEAPLUS_TOP = .
 
 
-.PHONY: help help-intro help-seaplus all all-check                       \
+.PHONY: help help-seaplus all all-check                                  \
 		register-version-in-header register-seaplus list-beam-dirs       \
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
@@ -24,11 +24,6 @@ SEAPLUS_RELEASES = $(SEAPLUS_RELEASE_ARCHIVE_BZ2) \
 
 # First target for default:
 help: help-intro help-seaplus
-
-
-help-intro:
-	@echo " Following main make targets are available for package $(PACKAGE_NAME):"
-
 
 help-seaplus:
 	@cd $(MYRIAD_TOP) && $(MAKE) -s help-myriad
