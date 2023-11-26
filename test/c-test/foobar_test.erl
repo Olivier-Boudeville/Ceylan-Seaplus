@@ -113,7 +113,7 @@ run() ->
 
 	end,
 
-	FooCrashed andalso throw( foo_exception_not_raised ),
+	FooCrashed orelse throw( foo_exception_not_raised ),
 
 	test_facilities:display( "Next restart supposed to discover that this "
 		"(just crashed) service is not registered anymore." ),
