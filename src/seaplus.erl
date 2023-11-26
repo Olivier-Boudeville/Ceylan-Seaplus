@@ -505,7 +505,7 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 
 	system_utils:add_path_for_library_lookup( SeaplusSrcDir ),
 
-	%trace_bridge:debug_fmt( "Initializing service '~ts', "
+	%trace_bridge:debug_fmt( "Initialising service '~ts', "
 	%     "using executable '~ts'.", [ ServiceName, ExecPath ] ),
 
 	ExecPath.
