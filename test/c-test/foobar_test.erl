@@ -26,7 +26,6 @@
 % Creation date: December 16, 2018.
 
 
-
 % Allows to test the full chain, from the initial service call to the obtaining
 % of its result.
 %
@@ -51,7 +50,8 @@ run() ->
 	% As we want to locate the libraries both for Seaplus and this Foobar test
 	% example:
 	%
-	system_utils:add_paths_for_library_lookup( [ "../../src/", "foobar/lib" ] ),
+	system_utils:add_paths_for_library_lookup(
+		_Paths=[ "../../src/", "foobar/lib" ] ),
 
 	% Not foobar:start_link(), as here we want to survive a crash of the foobar
 	% service (i.e. to be able to handle test-generated failures explicitly, as
@@ -62,7 +62,12 @@ run() ->
 	MyFooData = foobar:bar( 3.14, full_speed ),
 
 	110 = MyFooData#foo_data.count,
-	0.0 = MyFooData#foo_data.value,
+
+	% Actually should be a strict equality, yet '0.0 = MyFooData#foo_data.value'
+	% now reports that matching on the float 0.0 does not match any longer also
+	% -0.0, so:
+	%
+	true = math_utils:are_equal( 0.0, MyFooData#foo_data.value ),
 
 	NewCount = foobar:foo( MyFooData#foo_data.count ),
 
@@ -108,15 +113,7 @@ run() ->
 
 	end,
 
-	case FooCrashed of
-
-		true ->
-			ok;
-
-		false ->
-			throw( foo_exception_not_raised )
-
-	end,
+	FooCrashed andalso throw( foo_exception_not_raised ),
 
 	test_facilities:display( "Next restart supposed to discover that this "
 		"(just crashed) service is not registered anymore." ),
