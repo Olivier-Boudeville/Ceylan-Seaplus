@@ -27,27 +27,27 @@ streamlining the integration of any C-based service.</p>
 <h2><a name="types">Data Types</a></h2>
 
 <h3 class="typedecl"><a name="type-ast">ast()</a></h3>
-<p><tt>ast() = <a href="ast_base.html#type-ast">ast_base:ast()</a></tt></p>
+<p><code>ast() = <a href="ast_base.html#type-ast">ast_base:ast()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-directory_path">directory_path()</a></h3>
-<p><tt>directory_path() = <a href="file_utils.html#type-directory_path">file_utils:directory_path()</a></tt></p>
+<p><code>directory_path() = <a href="file_utils.html#type-directory_path">file_utils:directory_path()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-file_name">file_name()</a></h3>
-<p><tt>file_name() = <a href="file_utils.html#type-file_name">file_utils:file_name()</a></tt></p>
+<p><code>file_name() = <a href="file_utils.html#type-file_name">file_utils:file_name()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-module_info">module_info()</a></h3>
-<p><tt>module_info() = <a href="ast_info.html#type-module_info">ast_info:module_info()</a></tt></p>
+<p><code>module_info() = <a href="ast_info.html#type-module_info">ast_info:module_info()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-parse_transform_options">parse_transform_options()</a></h3>
-<p><tt>parse_transform_options() = <a href="meta_utils.html#type-parse_transform_options">meta_utils:parse_transform_options()</a></tt></p>
+<p><code>parse_transform_options() = <a href="meta_utils.html#type-parse_transform_options">meta_utils:parse_transform_options()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-preprocessor_option">preprocessor_option()</a></h3>
-<p><tt>preprocessor_option() = <a href="ast_utils.html#type-preprocessor_option">ast_utils:preprocessor_option()</a></tt></p>
+<p><code>preprocessor_option() = <a href="ast_utils.html#type-preprocessor_option">ast_utils:preprocessor_option()</a></code></p>
 
 
 <h2><a name="index">Function Index</a></h2>
@@ -67,13 +67,13 @@ specified preprocessor options.</td></tr>
 
 <h3 class="function"><a name="apply_seaplus_transform-3">apply_seaplus_transform/3</a></h3>
 <div class="spec">
-<p><tt>apply_seaplus_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="#type-parse_transform_options">parse_transform_options()</a>, SeaplusRootDir::<a href="#type-directory_path">directory_path()</a>) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</tt><br></p>
+<p><code>apply_seaplus_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="#type-parse_transform_options">parse_transform_options()</a>, SeaplusRootDir::<a href="#type-directory_path">directory_path()</a>) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</code><br></p>
 <p> </p>
 </div><p>Transforms the specified AST for Seaplus.</p>
 
 <h3 class="function"><a name="parse_transform-2">parse_transform/2</a></h3>
 <div class="spec">
-<p><tt>parse_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="meta_utils.html#type-parse_transform_options">meta_utils:parse_transform_options()</a>) -&gt; <a href="#type-ast">ast()</a></tt><br></p>
+<p><code>parse_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="meta_utils.html#type-parse_transform_options">meta_utils:parse_transform_options()</a>) -&gt; <a href="#type-ast">ast()</a></code><br></p>
 <p> </p>
 </div><p>The parse transform itself, generating notably (Myriad-based) Abstract
  Format code, before being itself converted in turn into an Erlang-compliant
@@ -82,7 +82,7 @@ specified preprocessor options.</td></tr>
 
 <h3 class="function"><a name="run_standalone-1">run_standalone/1</a></h3>
 <div class="spec">
-<p><tt>run_standalone(FileToTransform::<a href="#type-file_name">file_name()</a>) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</tt><br></p>
+<p><code>run_standalone(FileToTransform::<a href="#type-file_name">file_name()</a>) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</code><br></p>
 <p> </p>
 </div><p><p>Runs the Seaplus parse transform defined here in a standalone way (that 
 is without being triggered by the usual, integrated compilation process), with 
@@ -96,7 +96,7 @@ no specific preprocessor option.</p>
 
 <h3 class="function"><a name="run_standalone-2">run_standalone/2</a></h3>
 <div class="spec">
-<p><tt>run_standalone(FileToTransform::<a href="#type-file_name">file_name()</a>, PreprocessorOptions::[<a href="#type-preprocessor_option">preprocessor_option()</a>]) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</tt><br></p>
+<p><code>run_standalone(FileToTransform::<a href="#type-file_name">file_name()</a>, PreprocessorOptions::[<a href="#type-preprocessor_option">preprocessor_option()</a>]) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</code><br></p>
 <p> </p>
 </div><p><p>Runs the Seaplus parse transform defined here in a standalone way (that 
 is without being triggered by the usual, integrated compilation process), with 

@@ -22,50 +22,50 @@
 <h2><a name="types">Data Types</a></h2>
 
 <h3 class="typedecl"><a name="type-bin_executable_path">bin_executable_path()</a></h3>
-<p><tt>bin_executable_path() = <a href="file_utils.html#type-bin_executable_path">file_utils:bin_executable_path()</a></tt></p>
+<p><code>bin_executable_path() = <a href="file_utils.html#type-bin_executable_path">file_utils:bin_executable_path()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-driver_info">driver_info()</a></h3>
-<p><tt>driver_info() = {ExecPath::<a href="#type-bin_executable_path">bin_executable_path()</a>, ExtraEnv::<a href="#type-environment">environment()</a>, OSPid::<a href="#type-maybe">maybe</a>(<a href="system_utils.html#type-os_pid">system_utils:os_pid()</a>)}</tt></p>
+<p><code>driver_info() = {ExecPath::<a href="#type-bin_executable_path">bin_executable_path()</a>, ExtraEnv::<a href="#type-environment">environment()</a>, OSPid::<a href="#type-maybe">maybe</a>(<a href="system_utils.html#type-os_pid">system_utils:os_pid()</a>)}</code></p>
 
 
 <h3 class="typedecl"><a name="type-environment">environment()</a></h3>
-<p><tt>environment() = <a href="system_utils.html#type-environment">system_utils:environment()</a></tt></p>
+<p><code>environment() = <a href="system_utils.html#type-environment">system_utils:environment()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-executable_name">executable_name()</a></h3>
-<p><tt>executable_name() = <a href="file_utils.html#type-executable_name">file_utils:executable_name()</a></tt></p>
+<p><code>executable_name() = <a href="file_utils.html#type-executable_name">file_utils:executable_name()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-executable_path">executable_path()</a></h3>
-<p><tt>executable_path() = <a href="file_utils.html#type-executable_path">file_utils:executable_path()</a></tt></p>
+<p><code>executable_path() = <a href="file_utils.html#type-executable_path">file_utils:executable_path()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-function_driver_id">function_driver_id()</a></h3>
-<p><tt>function_driver_id() = <a href="basic_utils.html#type-count">basic_utils:count()</a></tt></p>
+<p><code>function_driver_id() = <a href="basic_utils.html#type-count">basic_utils:count()</a></code></p>
 <p><p> The identifier of a function for the driver, as determined by Seaplus.</p>
 
  (e.g. 1 for foo/1 in the toy example)</p>
 
 <h3 class="typedecl"><a name="type-function_params">function_params()</a></h3>
-<p><tt>function_params() = [term()]</tt></p>
+<p><code>function_params() = [term()]</code></p>
 <p> The list of parameters to call the function stub with.</p>
 
 <h3 class="typedecl"><a name="type-function_result">function_result()</a></h3>
-<p><tt>function_result() = term()</tt></p>
+<p><code>function_result() = term()</code></p>
 <p> The (Erlang-side) result of the execution of a function.</p>
 
 <h3 class="typedecl"><a name="type-service_key">service_key()</a></h3>
-<p><tt>service_key() = <a href="process_dictionary.html#type-key">process_dictionary:key()</a></tt></p>
+<p><code>service_key() = <a href="process_dictionary.html#type-key">process_dictionary:key()</a></code></p>
 <p> A key corresponding to the port of a service instance, whose reference is to
  be stored in the process dictionary of the user process.</p>
 
 <h3 class="typedecl"><a name="type-service_name">service_name()</a></h3>
-<p><tt>service_name() = atom()</tt></p>
+<p><code>service_name() = atom()</code></p>
 <p> The name of a C-based service to make available.</p>
 
 <h3 class="typedecl"><a name="type-ustring">ustring()</a></h3>
-<p><tt>ustring() = <a href="text_utils.html#type-ustring">text_utils:ustring()</a></tt></p>
+<p><code>ustring() = <a href="text_utils.html#type-ustring">text_utils:ustring()</a></code></p>
 
 
 <h2><a name="index">Function Index</a></h2>
@@ -90,7 +90,7 @@ service, relying on specified executable name for the driver.</td></tr>
 
 <h3 class="function"><a name="call_port_for-3">call_port_for/3</a></h3>
 <div class="spec">
-<p><tt>call_port_for(ServiceKey::<a href="#type-service_key">service_key()</a>, FunctionId::<a href="#type-function_driver_id">function_driver_id()</a>, Params::<a href="#type-function_params">function_params()</a>) -&gt; <a href="#type-function_result">function_result()</a></tt><br></p>
+<p><code>call_port_for(ServiceKey::<a href="#type-service_key">service_key()</a>, FunctionId::<a href="#type-function_driver_id">function_driver_id()</a>, Params::<a href="#type-function_params">function_params()</a>) -&gt; <a href="#type-function_result">function_result()</a></code><br></p>
 <p> </p>
 </div><p><p>The actual bridge from the user code to the port (and then to the 
 driver).</p>
@@ -103,7 +103,7 @@ basic_utils:function_name().</p>
 
 <h3 class="function"><a name="check_driver_runnable-2">check_driver_runnable/2</a></h3>
 <div class="spec">
-<p><tt>check_driver_runnable(DriverExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="#type-environment">environment()</a>) -&gt; <a href="#type-ustring">ustring()</a> | <a href="system_utils.html#type-execution_outcome">system_utils:execution_outcome()</a></tt><br></p>
+<p><code>check_driver_runnable(DriverExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="#type-environment">environment()</a>) -&gt; <a href="#type-ustring">ustring()</a> | <a href="system_utils.html#type-execution_outcome">system_utils:execution_outcome()</a></code><br></p>
 <p> </p>
 </div><p><p>Checks whether the driver for the specified service is runnable at all.</p>
 
@@ -113,7 +113,7 @@ basic_utils:function_name().</p>
 
 <h3 class="function"><a name="display_driver_runtime_info-2">display_driver_runtime_info/2</a></h3>
 <div class="spec">
-<p><tt>display_driver_runtime_info(ExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="#type-environment">environment()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p><code>display_driver_runtime_info(ExecPath::<a href="#type-executable_path">executable_path()</a>, ExtraEnvironment::<a href="#type-environment">environment()</a>) -&gt; <a href="#type-void">void()</a></code><br></p>
 <p> </p>
 </div><p>Displays runtime information about the specified driver, to help
  troubleshooting.
@@ -121,13 +121,13 @@ basic_utils:function_name().</p>
 
 <h3 class="function"><a name="get_execution_target-0">get_execution_target/0</a></h3>
 <div class="spec">
-<p><tt>get_execution_target() -&gt; development</tt><br></p>
+<p><code>get_execution_target() -&gt; development</code><br></p>
 <p> </p>
 </div>
 
 <h3 class="function"><a name="restart-1">restart/1</a></h3>
 <div class="spec">
-<p><tt>restart(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p><code>restart(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></code><br></p>
 <p> </p>
 </div><p>Restarts the specific service support (e.g. to overcome a detected crash
  thereof).
@@ -135,7 +135,7 @@ basic_utils:function_name().</p>
 
 <h3 class="function"><a name="restart-2">restart/2</a></h3>
 <div class="spec">
-<p><tt>restart(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p><code>restart(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></code><br></p>
 <p> </p>
 </div><p>Restarts the specific service support (e.g. to overcome a detected crash
  thereof).
@@ -143,7 +143,7 @@ basic_utils:function_name().</p>
 
 <h3 class="function"><a name="start-1">start/1</a></h3>
 <div class="spec">
-<p><tt>start(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p><code>start(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></code><br></p>
 <p> </p>
 </div><p><p>Starts the support for the specified named service.</p>
 
@@ -162,7 +162,7 @@ implemented in foobar.erl, is expected here to rely on the
 
 <h3 class="function"><a name="start-2">start/2</a></h3>
 <div class="spec">
-<p><tt>start(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p><code>start(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></code><br></p>
 <p> </p>
 </div><p><p>Starts the support for the specified named service, relying on specified 
 executable name for the driver.</p>
@@ -174,7 +174,7 @@ executable name for the driver.</p>
 
 <h3 class="function"><a name="start_link-1">start_link/1</a></h3>
 <div class="spec">
-<p><tt>start_link(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p><code>start_link(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></code><br></p>
 <p> </p>
 </div><p><p>Starts and links the support for the specified named service.</p>
 
@@ -192,7 +192,7 @@ implemented in foobar.erl, is expected here to rely on the
 
 <h3 class="function"><a name="start_link-2">start_link/2</a></h3>
 <div class="spec">
-<p><tt>start_link(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p><code>start_link(ServiceName::<a href="#type-service_name">service_name()</a>, DriverExecutableName::<a href="#type-executable_name">executable_name()</a>) -&gt; <a href="#type-void">void()</a></code><br></p>
 <p> </p>
 </div><p><p>Starts and links to the caller the support for the specified named 
 service, relying on specified executable name for the driver.</p>
@@ -204,7 +204,7 @@ service, relying on specified executable name for the driver.</p>
 
 <h3 class="function"><a name="stop-1">stop/1</a></h3>
 <div class="spec">
-<p><tt>stop(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></tt><br></p>
+<p><code>stop(ServiceName::<a href="#type-service_name">service_name()</a>) -&gt; <a href="#type-void">void()</a></code><br></p>
 <p> </p>
 </div><p>Stops the specific service support.</p>
 <hr>
