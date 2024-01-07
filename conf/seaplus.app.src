@@ -23,7 +23,7 @@
 
   {description, "Ceylan-Seaplus, a way of streamlining a safe execution of C/C++ code from Erlang, as an OTP library application here (see http://seaplus.esperide.org)"},
 
-  {vsn, "VERSION_FOR_REBAR"},
+  {vsn, "VERSION_FOR_OTP"},
 
   % No process registered:
   {registered, []},
@@ -34,7 +34,7 @@
   %{env,[]},
 
   % Flat hierarchy in ebin here:
-  {modules, [MODULES_FOR_REBAR]},
+  {modules, [MODULES_FOR_OTP]},
 
   {licenses, ["Ceylan-Seaplus is licensed by its author (Olivier Boudeville) under a disjunctive tri-license, giving you the choice of one of the three following sets of free software/open source licensing terms:
 	- the Mozilla Public License (MPL), version 1.1 or later (very close to the former Erlang Public License, except aspects regarding Ericsson and/or the Swedish law)

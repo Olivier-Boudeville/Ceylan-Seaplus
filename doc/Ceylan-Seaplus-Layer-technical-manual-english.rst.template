@@ -506,7 +506,7 @@ Note that rebar3 is an alternate way of building Seaplus, as one may rely direct
 
   It can simply be generated with:.. code:: bash
 
-  $ make rebar3-create-app-file
+  $ make create-app-file
 
 .. The usual rebar3 machinery is in place and functional, so the only Seaplus prerequisite (`Myriad <https://myriad.esperide.org>`_) and Seaplus itself can be obtained simply thanks to:
 

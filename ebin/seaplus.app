@@ -23,7 +23,7 @@
 
   {description, "Ceylan-Seaplus, a way of streamlining a safe execution of C/C++ code from Erlang, as an OTP library application here (see http://seaplus.esperide.org)"},
 
-  {vsn, "1.1.11"},
+  {vsn, "1.1.12"},
 
   % No process registered:
   {registered, []},
