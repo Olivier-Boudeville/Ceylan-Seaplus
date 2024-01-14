@@ -76,7 +76,8 @@ ifeq ($(EXECUTION_TARGET),development)
 endif
 
 
-ERLANG_COMPILER_OPT_BASE += $(SEAPLUS_DEBUG_FLAGS) \
+ERLANG_COMPILER_OPT_BASE += -Dseaplus_version=\"$(SEAPLUS_VERSION)\" \
+						    $(SEAPLUS_DEBUG_FLAGS)                   \
 							$(SEAPLUS_CHECK_FLAGS)
 
 
@@ -109,8 +110,8 @@ ifndef PROJECT_NAME_FOR_OTP
 endif
 
 
-# The uniquely-defined version of this layer, for all uses (including rebar and
-# hex):
+# The uniquely-defined version of this layer, for all uses (including rebar, hex
+# and the code itself, see seaplus:get_seaplus_version{_string,}/0):
 #
 SEAPLUS_VERSION := 1.1.12
 

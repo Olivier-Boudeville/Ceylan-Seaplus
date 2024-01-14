@@ -26,8 +26,8 @@
 % Creation date: December 16, 2018.
 
 
-% Allows to test the full chain, from the initial service call to the obtaining
-% of its result.
+% @doc Allows to test the full chain, from the initial service call to the
+% obtaining of its result.
 %
 % Erlang counterpart translation of foobar_test.c, with additions at the end.
 %
@@ -44,6 +44,10 @@
 run() ->
 
 	test_facilities:start( ?MODULE ),
+
+	test_facilities:display( "The version of this currently tested Seaplus "
+		"library is ~ts (i.e. ~w).", [ seaplus:get_seaplus_version_string(),
+									   seaplus:get_seaplus_version() ] ),
 
 	test_facilities:display( "Testing the Erlang-integrated foobar service." ),
 

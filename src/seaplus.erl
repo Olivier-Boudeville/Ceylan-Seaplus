@@ -82,6 +82,8 @@
 % for easier, more transparent management.
 
 
+% Version-related functions.
+-export([ get_seaplus_version/0, get_seaplus_version_string/0 ]).
 
 
 -export([ start/1, start_link/1, start/2, start_link/2,
@@ -141,6 +143,8 @@
 
 % Shorthands:
 
+-type three_digit_version() :: basic_utils:three_digit_version().
+
 -type ustring() :: text_utils:ustring().
 
 -type executable_name() :: file_utils:executable_name().
@@ -148,6 +152,23 @@
 -type bin_executable_path() :: file_utils:bin_executable_path().
 
 -type environment() :: system_utils:environment().
+
+
+
+% Version-related functions.
+
+% @doc Returns the version of the Seaplus library being used.
+-spec get_seaplus_version() -> three_digit_version().
+get_seaplus_version() ->
+	basic_utils:parse_version( get_seaplus_version_string() ).
+
+
+% @doc Returns the version of the Seaplus library being used, as a string.
+-spec get_seaplus_version_string() -> ustring().
+get_seaplus_version_string() ->
+	% As defined (uniquely) in GNUmakevars.inc:
+	?seaplus_version.
+
 
 
 % Thanks to the service_integration parse transform, a right, minimal, optimal
@@ -328,8 +349,7 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 		undefined ->
 			trace_bridge:warning_fmt( "Service key '~ts', for service '~ts', "
 				"not found, so service is supposed not to be running - "
-				"hence not to be stopped.", [ ServiceKey, ServiceName ] ),
-			ok;
+				"hence not to be stopped.", [ ServiceKey, ServiceName ] );
 
 		TargetPort ->
 			%trace_bridge:debug( "Stopping Seaplus." ),
@@ -341,8 +361,8 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 				{ TargetPort, closed } ->
 					cond_utils:if_defined( seaplus_debug_port,
 						trace_bridge:debug_fmt( "Port ~w stopped.",
-												[ TargetPort ] ) ),
-					ok
+												[ TargetPort ] ),
+						ok )
 
 			after 5000 ->
 				trace_bridge:error_fmt( "Time-out after waiting for the "
@@ -600,18 +620,16 @@ init_driver( ServiceName, DriverExecPath ) ->
 
 	ServiceKey = get_service_port_key_for( ServiceName ),
 
-	case process_dictionary:get( ServiceKey ) of
+	process_dictionary:get( ServiceKey ) =:= undefined orelse
+		begin
 
-		undefined ->
-			ok;
-
-		_ ->
 			trace_bridge:error_fmt( "Service key '~ts', for service '~ts', "
 				"already registered; service already started?",
 				[ ServiceKey, ServiceName ] ),
+
 			throw( { service_key_already_set, ServiceKey } )
 
-	end,
+		end,
 
 	% Uncomment if wanting to force the selection of, typically, a library you
 	% specifically built with debug symbols, like for example:
@@ -917,7 +935,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 										"driver logs found in '~ts':~n  ~ts",
 										[ LogFilename, ContentEnd ] );
 
-								false ->
+								_False ->
 									trace_bridge:error_fmt( "Driver logs "
 										"searched as ~ts' (from '~ts'), yet "
 										"were not found (abnormal).",
