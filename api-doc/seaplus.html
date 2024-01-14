@@ -64,6 +64,10 @@
 <p><code>service_name() = atom()</code></p>
 <p> The name of a C-based service to make available.</p>
 
+<h3 class="typedecl"><a name="type-three_digit_version">three_digit_version()</a></h3>
+<p><code>three_digit_version() = <a href="basic_utils.html#type-three_digit_version">basic_utils:three_digit_version()</a></code></p>
+
+
 <h3 class="typedecl"><a name="type-ustring">ustring()</a></h3>
 <p><code>ustring() = <a href="text_utils.html#type-ustring">text_utils:ustring()</a></code></p>
 
@@ -75,6 +79,8 @@ driver).</td></tr>
 <tr><td valign="top"><a href="#display_driver_runtime_info-2">display_driver_runtime_info/2</a></td><td>Displays runtime information about the specified driver, to help
  troubleshooting.</td></tr>
 <tr><td valign="top"><a href="#get_execution_target-0">get_execution_target/0</a></td><td></td></tr>
+<tr><td valign="top"><a href="#get_seaplus_version-0">get_seaplus_version/0</a></td><td>Returns the version of the Seaplus library being used.</td></tr>
+<tr><td valign="top"><a href="#get_seaplus_version_string-0">get_seaplus_version_string/0</a></td><td>Returns the version of the Seaplus library being used, as a string.</td></tr>
 <tr><td valign="top"><a href="#restart-1">restart/1</a></td><td>Restarts the specific service support (e.g.</td></tr>
 <tr><td valign="top"><a href="#restart-2">restart/2</a></td><td>Restarts the specific service support (e.g.</td></tr>
 <tr><td valign="top"><a href="#start-1">start/1</a></td><td>Starts the support for the specified named service.</td></tr>
@@ -124,6 +130,18 @@ basic_utils:function_name().</p>
 <p><code>get_execution_target() -&gt; development</code><br></p>
 <p> </p>
 </div>
+
+<h3 class="function"><a name="get_seaplus_version-0">get_seaplus_version/0</a></h3>
+<div class="spec">
+<p><code>get_seaplus_version() -&gt; <a href="#type-three_digit_version">three_digit_version()</a></code><br></p>
+<p> </p>
+</div><p>Returns the version of the Seaplus library being used.</p>
+
+<h3 class="function"><a name="get_seaplus_version_string-0">get_seaplus_version_string/0</a></h3>
+<div class="spec">
+<p><code>get_seaplus_version_string() -&gt; <a href="#type-ustring">ustring()</a></code><br></p>
+<p> </p>
+</div><p>Returns the version of the Seaplus library being used, as a string.</p>
 
 <h3 class="function"><a name="restart-1">restart/1</a></h3>
 <div class="spec">
