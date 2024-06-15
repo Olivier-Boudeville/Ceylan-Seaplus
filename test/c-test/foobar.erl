@@ -5,25 +5,26 @@
 % It has been placed in the public domain.
 %
 % Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
+% Creation date: 2018.
 
-
-
-% Erlang-side API (minimal wrapper made available to the user code) in order to
-% interact with the foobar service through its driver.
-%
-% Relies on the service_support common facility that factors out the relevant
-% cross-service, generic features.
-%
-% Refer to inc/foobar.h for the vanilla, C foobar API.
-%
 -module(foobar).
 
+-moduledoc """
+Erlang-side API (minimal wrapper made available to the user code) in order to
+interact with the foobar service through its driver.
 
-% Detailed comment for foo_status/0.
+Relies on the service_support common facility that factors out the relevant
+cross-service, generic features.
+
+Refer to inc/foobar.h for the vanilla, C foobar API.
+""".
+
+
+-doc "Detailed comment for foo_status/0.".
 -type foo_status() :: 'low_speed' | 'moderate_speed' | 'full_speed'.
 
 
-% Detailed comment for tur_status/0.
+-doc "Detailed comment for tur_status/0.".
 -type tur_status() :: 'tur_value' | 'non_tur_value'.
 
 

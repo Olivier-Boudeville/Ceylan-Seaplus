@@ -25,13 +25,14 @@
 % Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
 % Creation date: December 16, 2018.
 
-
-% @doc Allows to test the full chain, from the initial service call to the
-% obtaining of its result.
-%
-% Erlang counterpart translation of foobar_test.c, with additions at the end.
-%
 -module(foobar_test).
+
+-moduledoc """
+Allows to test the full chain, from the initial service call to the obtaining of
+its result.
+
+Erlang counterpart translation of foobar_test.c, with additions at the end.
+""".
 
 
 -export([ run/0 ]).
