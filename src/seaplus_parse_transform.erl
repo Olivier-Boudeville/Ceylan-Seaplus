@@ -296,7 +296,7 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 
 	% This allows to compare input and output ASTs more easily:
 	%ast_utils:write_ast_to_file( lists:sort( InputAST ),
-	%							  "Seaplus-input-AST-sorted.txt" ),
+	%                             "Seaplus-input-AST-sorted.txt" ),
 
 	% First preprocesses the AST based on the Myriad parse transform, in order
 	% to benefit from its corresponding module_info record:
@@ -309,8 +309,8 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 	?display_trace( "Module information extracted." ),
 
 	%ast_utils:display_debug( "Module information, directly as obtained "
-	%	"from Myriad (untransformed): ~ts",
-	%	[ ast_info:module_info_to_string( WithOptsModuleInfo ) ] ),
+	%   "from Myriad (untransformed): ~ts",
+	%   [ ast_info:module_info_to_string( WithOptsModuleInfo ) ] ),
 
 	% The Seaplus augmentations must be applied only to modules corresponding to
 	% services to be integrated (not to all modules):
@@ -344,7 +344,7 @@ apply_seaplus_transform( InputAST, Options, SeaplusRootDir ) ->
 					"recomposing corresponding AST." ),
 
 	OutputAST = ast_info:recompose_ast_from_module_info(
-					FinalModuleInfo ),
+		FinalModuleInfo ),
 
 	%trace_bridge:debug_fmt( "Seaplus output AST:~n~p", [ OutputAST ] ),
 
@@ -420,12 +420,12 @@ process_module_info_from(
 	% be generated:
 	%
 	%trace_bridge:debug_fmt( "Control-augmented module: ~ts",
-	%	[ ast_info:module_info_to_string( ControleModuleInfo ) ] ),
+	%   [ ast_info:module_info_to_string( ControleModuleInfo ) ] ),
 
 	ReadyFunInfos = prepare_api_functions( ControleModuleInfo ),
 
 	SelectFunIds = [ { Name, Arity }
-			|| #function_info{ name=Name, arity=Arity } <- ReadyFunInfos ],
+		|| #function_info{ name=Name, arity=Arity } <- ReadyFunInfos ],
 
 	FullModuleInfo = case SelectFunIds of
 
@@ -438,7 +438,7 @@ process_module_info_from(
 			trace_bridge:debug_fmt( "Selected ~B function(s) for API: ~ts",
 				[ length( SelectFunIds ), text_utils:strings_to_string(
 					[ ast_info:function_id_to_string( Id )
-						   || Id <- SelectFunIds ] ) ] ),
+							|| Id <- SelectFunIds ] ) ] ),
 
 			% Generating the header for the driver:
 			HeaderFilename = generate_driver_header( ModName, SelectFunIds ),
@@ -501,7 +501,7 @@ handle_start_function( ModuleInfo=#module_info{
 
 			% Auto-exports:
 			meta_utils:add_function( StartFunId, _Clauses=[ Clause ],
-					ModuleInfo#module_info{ functions=ShrunkTable } );
+				ModuleInfo#module_info{ functions=ShrunkTable } );
 
 
 		% Mostly the same:
@@ -524,7 +524,7 @@ handle_start_function( ModuleInfo=#module_info{
 			trace_bridge:debug( "User-defined start/0 found, enriching it." ),
 
 			% We just ensure that (all clauses of) this function call first
-			% seaplus:start( ?MODULE ), and then continue with the pre-existing
+			% seaplus:start(?MODULE), and then continue with the pre-existing
 			% user code:
 			%
 			NewClauses = [ { clause, L, HSeq, GSeq,
@@ -737,7 +737,7 @@ generate_driver_header( ServiceModuleName, FunIds ) ->
 	StringModName = text_utils:atom_to_string( ServiceModuleName ),
 
 	IncGuard = text_utils:format( "_~ts_SEAPLUS_API_MAPPING_H_",
-						[ text_utils:to_uppercase( StringModName ) ] ),
+		[ text_utils:to_uppercase( StringModName ) ] ),
 
 	file_utils:write_ustring( HeaderFile, "#ifndef ~ts~n#define ~ts~n~n",
 							  [ IncGuard, IncGuard ] ),
@@ -805,6 +805,7 @@ manage_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 		false ->
 			trace_bridge:info_fmt( "No driver implementation ('~ts') found, "
 				"generating it.", [ SourceFilename ] ),
+
 			generate_driver_implementation( ServiceModuleName, FunIds,
 				HeaderFilename, SourceFilename, SeaplusRootDir )
 
@@ -829,7 +830,7 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 	HeaderContent = file_utils:read_whole( DriverHeaderFilename ),
 
 	%trace_bridge:debug_fmt( "Read content:~n~ts",
-	%                         [ HeaderContent ] ),
+	%                        [ HeaderContent ] ),
 
 	HHeaderContent = string:replace(  HeaderContent,
 	   "##SEAPLUS_SERVICE_HEADER_FILE##", HeaderFilename, all ),
@@ -978,7 +979,7 @@ select_for_binding( [ #function_info{ %name=Name,
 					SeaplusFunIds, Acc ) ->
 
 	%trace_bridge:debug_fmt( "~ts/~B skipped for binding (no spec).",
-	%					   [ Name, Arity ] ),
+	%                        [ Name, Arity ] ),
 
 	select_for_binding( T, SeaplusFunIds, Acc );
 
@@ -1087,8 +1088,8 @@ post_process_fun_infos( [ FInfo=#function_info{ name=Name,
 
 	% Just update the right fields of the record template:
 	ThisTransform = Transform#ast_transforms{
-						transformed_function_identifier=FunId,
-						transformation_state={ PortDictKey, FunDriverId } },
+		transformed_function_identifier=FunId,
+		transformation_state={ PortDictKey, FunDriverId } },
 
 	% And apply that Seaplus transform:
 	{ NewClauses, _NewTransform } =
@@ -1230,7 +1231,9 @@ inject_fun_infos( _FunInfos=[], FunctionTable ) ->
 
 inject_fun_infos( [ FunInfo=#function_info{ name=Name, arity=Arity } | T ],
 				  FunctionTable ) ->
+
 	% An already-existing (clauseless) entry is expected:
 	NewFunctionTable = table:update_entry( _Id={Name,Arity}, FunInfo,
 										   FunctionTable ),
+
 	inject_fun_infos( T, NewFunctionTable ).
