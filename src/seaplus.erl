@@ -93,6 +93,11 @@ Relies (only) on Ceylan-Myriad.
 		  check_driver_runnable/2, display_driver_runtime_info/2 ]).
 
 
+% A few helper facilities:
+-export([ get_call_debug_hints/3, get_driver_log_path/1,
+		  get_driver_log_path_from_os_pid/1,
+		  get_existing_driver_log_path_from_os_pid/1 ]).
+
 
 -doc "The name of a C-based service to make available.".
 -type service_name() :: atom().
@@ -111,8 +116,12 @@ stored in the process dictionary of the user process.
 The identifier of a function for the driver, as determined by Seaplus.
 
 (e.g. 1 for foo/1 in the toy example)
+
+No easy way of translating back such an identifier into a function name/arity,
+except by looking at the generated src/SERVICE_seaplus_api_mapping.h header
+file.
 """.
--type function_driver_id() :: basic_utils:count().
+-type function_driver_id() :: count().
 
 
 
@@ -137,7 +146,7 @@ name of its log file)
 """.
 -type driver_info() :: { ExecPath :: bin_executable_path(),
 						 ExtraEnv :: environment(),
-						 OSPid :: option( system_utils:os_pid() ) }.
+						 OSPid :: option( os_pid() ) }.
 
 
 -export_type([ function_driver_id/0, function_params/0, function_result/0,
@@ -154,6 +163,7 @@ name of its log file)
 
 % Type shorthands:
 
+-type count() :: basic_utils:count().
 -type three_digit_version() :: basic_utils:three_digit_version().
 
 -type ustring() :: text_utils:ustring().
@@ -161,9 +171,10 @@ name of its log file)
 -type executable_name() :: file_utils:executable_name().
 -type executable_path() :: file_utils:executable_path().
 -type bin_executable_path() :: file_utils:bin_executable_path().
+-type file_path() :: file_utils:file_path().
 
 -type environment() :: system_utils:environment().
-
+-type os_pid() :: system_utils:os_pid().
 
 
 % Version-related functions.
@@ -484,7 +495,7 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 	% driver is generally located elsewhere:
 	%
 	ExecPath = case executable_utils:lookup_executable(
-						DriverExecutableName, [ ServiceDir ] ) of
+			DriverExecutableName, [ ServiceDir ] ) of
 
 		false ->
 			PathStr = case system_utils:get_environment_variable( "PATH" ) of
@@ -819,7 +830,7 @@ display_driver_runtime_info( ExecPath, ExtraEnvironment ) ->
 -doc """
 The actual bridge from the user code to the port (and then to the driver).
 
-The identifier will suffice, no real need to pass along the
+The function driver identifier will suffice, no real need to pass along the
 basic_utils:function_name().
 
 Will return the result of the corresponding call, or will raise an exception.
@@ -832,10 +843,11 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 		undefined ->
 			trace_bridge:error_fmt( "Service key '~ts' not set in process "
-				"dictionary of ~p; has the corresponding service been started?",
+				"dictionary of ~p; has the corresponding Seaplus-based "
+				"service been started?",
 				[ ServiceKey, self() ] ),
 
-			throw( { service_key_not_set, ServiceKey } );
+			throw( { seaplus_service_key_not_set, ServiceKey } );
 
 		V ->
 			V
@@ -853,8 +865,8 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 	% To be handled by the (C-based) driver:
 	%
 	% (note that message structure and content are dictated by how Erlang ports
-	% have been defined; for example 'TargetPort ! { executeFunction, Message,
-	% self() }' would not be relevant here, see
+	% have been defined; for example 'TargetPort ! {executeFunction, Message,
+	% self()}' would not be relevant here, see
 	% http://erlang.org/doc/tutorial/c_port.html for more information)
 	%
 	% Message already encoded as wanted here:
@@ -867,7 +879,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 	receive
 
-		% Normal case, receiving the corresponding result:
+		% Normal case, receiving the corresponding result from the C node:
 		{ TargetPort, { data, BinAnswer } } ->
 
 			cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
@@ -884,28 +896,40 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 			%
 			try
 
+				% Not feeling the need for the 'safe' (untrusted C-node code) or
+				% 'used' (reporting the number of bytes decoded) options:
+				%
 				binary_to_term( BinAnswer )
 
 			catch
 
 				_:badarg ->
 					ServiceName = get_service_name_from_port_key( ServiceKey ),
+
 					trace_bridge:error_fmt( "Incorrect driver return received "
 						"by process ~w from port ~w for service '~ts' "
-						"regarding function identified by ~B:~n~p",
+						"regarding function identified by ~B:~n~p~n~ts",
 						[ self(), TargetPort, ServiceName, FunctionId,
-						  BinAnswer ] ),
-					throw( { incorrect_return, { service, ServiceName },
-								{ function_id, FunctionId }, BinAnswer } );
+						  BinAnswer, get_call_debug_hints( ServiceKey,
+										FunctionId, Params ) ] ),
+
+					% Not wanting pages of binary content on the console:
+					ShortBinAnswer = bin_utils:ellipse( BinAnswer ),
+
+					throw( { incorrect_driver_return, { service, ServiceName },
+								{ function_id, FunctionId },
+								{ shortened_answer, ShortBinAnswer } } );
 
 				_:E ->
 					ServiceName = get_service_name_from_port_key( ServiceKey ),
 					trace_bridge:error_fmt( "Exception raised for driver "
 						"return received by process ~w from port ~w "
 						"for service '~ts' regarding the function identified "
-						"by ~B: ~p",
-						[ self(), TargetPort, ServiceName, FunctionId, E ] ),
-					throw( { invalid_return, { service, ServiceName },
+						"by ~B: ~p~n~ts",
+						[ self(), TargetPort, ServiceName, FunctionId, E,
+						  get_call_debug_hints( ServiceKey, FunctionId,
+												Params ) ] ),
+					throw( { invalid_driver_return, { service, ServiceName },
 								{ function_id, FunctionId }, E } )
 
 			end;
@@ -947,29 +971,25 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 						% the driver of that port:
 						%
 						OSPid ->
-
-							LogFilename = file_utils:ensure_path_is_absolute(
-								text_utils:format( "seaplus-driver.~B.log",
-												   [ OSPid ] ) ),
-
-							case file_utils:is_existing_file( LogFilename ) of
+							LogPath = get_driver_log_path_from_os_pid( OSPid ),
+							case file_utils:is_existing_file( LogPath ) of
 
 								true ->
 									LogContent = text_utils:binary_to_string(
-										file_utils:read_whole( LogFilename ) ),
+										file_utils:read_whole( LogPath ) ),
 
 									ContentEnd = text_utils:tail( LogContent,
 										_MaxSize=1500 ),
 
 									trace_bridge:error_fmt( "Corresponding "
 										"driver logs found in '~ts':~n  ~ts",
-										[ LogFilename, ContentEnd ] );
+										[ LogPath, ContentEnd ] );
 
 								_False ->
 									trace_bridge:error_fmt( "Driver logs "
 										"searched as ~ts' (from '~ts'), yet "
 										"were not found (abnormal).",
-										[ LogFilename,
+										[ LogPath,
 										  file_utils:get_current_directory() ] )
 
 							end
@@ -1011,6 +1031,91 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 
 
 -doc """
+Returns debug hints to help the user in case of trouble about a function call.
+""".
+-spec get_call_debug_hints( service_key(), function_driver_id(),
+					   function_params() ) -> ustring().
+get_call_debug_hints( ServiceKey, FunctionId, Params ) ->
+	ServiceName = get_service_name_from_port_key( ServiceKey ),
+	Arity = length( Params ),
+	LogStr = case get_driver_log_path( ServiceKey ) of
+
+		undefined ->
+			"";
+
+		LogPath ->
+			text_utils:format( "~nExtra information may be found in the logs "
+				"of the Seaplus driver, in '~ts'.",
+				[ LogPath ] )
+
+	end,
+
+	text_utils:format( "The actual name of the crashing function "
+		"(of arity ~B) can be found either from its identifier (~B) in the "
+		"'src/~ts_seaplus_api_mapping.h' header file, or directly from the "
+		"reported stacktrace (just below the call to "
+		"seaplus:call_port_for/3).~n"
+		"The actual parameters for that call were:~n ~p~ts",
+		[ Arity, FunctionId, ServiceName, Params, LogStr ] ).
+
+
+
+-doc """
+Returns, if possible, the full path to the Seaplus driver log file, based on the
+specified service key.
+""".
+-spec get_driver_log_path( service_key() ) -> option( file_path() ).
+get_driver_log_path( PortServiceKey ) ->
+
+	DrivKey = get_service_driver_key_from_port_one( PortServiceKey ),
+
+	case process_dictionary:get( DrivKey ) of
+
+		undefined ->
+			undefined;
+
+		{ _ExecPath, _ExtraEnv, _MaybeOSPid=undefined } ->
+			undefined;
+
+		{ _ExecPath, _ExtraEnv, OSPid } ->
+			get_driver_log_path_from_os_pid( OSPid )
+
+	end.
+
+
+
+-doc """
+Returns the full path to the Seaplus driver log file, based on the specified
+OS-level PID.
+""".
+-spec get_driver_log_path_from_os_pid( os_pid() ) -> file_path().
+get_driver_log_path_from_os_pid( OSPid ) ->
+	file_utils:ensure_path_is_absolute(
+		text_utils:format( "seaplus-driver.~B.log", [ OSPid ] ) ).
+
+
+-doc """
+Returns the full path to the Seaplus driver log file, based on the specified
+OS-level PID - if that file exists.
+""".
+-spec get_existing_driver_log_path_from_os_pid( os_pid() ) ->
+										option( file_path() ).
+get_existing_driver_log_path_from_os_pid( OSPid ) ->
+	LogPath = get_driver_log_path_from_os_pid( OSPid ),
+
+	case file_utils:is_existing_file( LogPath ) of
+
+		true ->
+			LogPath;
+
+		false ->
+			undefined
+
+	end.
+
+
+
+-doc """
 Returns the key that shall be used in order to store information in the process
 dictionary of the calling user process for the specified service.
 
@@ -1028,7 +1133,7 @@ get_service_port_key_for( ServiceName ) ->
 get_service_name_from_port_key( ServicePortKey ) ->
 
 	case text_utils:split_after_prefix( ?service_port_key_prefix,
-							text_utils:atom_to_string( ServicePortKey ) ) of
+			text_utils:atom_to_string( ServicePortKey ) ) of
 
 		no_prefix ->
 			throw( { no_service_prefix, ?service_port_key_prefix,
@@ -1058,7 +1163,7 @@ get_service_driver_key_for( ServiceName ) ->
 Returns the key that shall be used to store the executable path of the driver
 for the specified service, based on the key for service port.
 
-Note: necessary to deduce one from another as Seaplus is mostly stateless.
+Note: necessary to deduce one from another, as Seaplus is mostly stateless.
 """.
 -spec get_service_driver_key_from_port_one( service_key() ) -> service_key().
 get_service_driver_key_from_port_one( ServicePortKey ) ->
