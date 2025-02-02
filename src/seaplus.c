@@ -80,7 +80,7 @@ FILE * log_file = NULL ;
 
 
 /**
- * Tells whether a list (ex: the top-level parameter one, or one that is nested
+ * Tells whether a list (e.g. the top-level parameter one, or one that is nested
  * in it) was wrongly encoded by term_to_binary/1 as a string (a series of
  * bytes, i.e. 8-bit characters) instead of a real list happening to contain
  * only small integers; see
@@ -190,7 +190,7 @@ void stop_logging()
 #define SEAPLUS_TIMESTAMP_FORMAT "[%d/%d/%d %d:%02d:%02d]"
 
 
-// Logs specified debug message.
+// Logs the specified debug message.
 void log_debug( const char * format, ... )
 {
 
@@ -217,7 +217,7 @@ void log_debug( const char * format, ... )
 }
 
 
-// Logs specified trace message.
+// Logs the specified trace message.
 void log_trace( const char * format, ... )
 {
 
@@ -244,7 +244,7 @@ void log_trace( const char * format, ... )
 }
 
 
-// Logs specified warning message.
+// Logs the specified warning message.
 void log_warning( const char * format, ... )
 {
 
@@ -272,7 +272,7 @@ void log_warning( const char * format, ... )
 
 
 
-/* Raises specified error, based on a specified arguments: reports it in logs,
+/* Raises the specified error, based on specified arguments: reports it in logs,
  * and halts.
  *
  */
@@ -290,8 +290,8 @@ void raise_error( const char * format, ... )
 }
 
 
-/* Raises specified error, based on a variadic argument: reports it in logs, and
- * halts.
+/* Raises the specified error, based on a variadic argument: reports it in logs,
+ * and halts.
  *
  * Useful to report errors from a driver. For an example, see in Ceylan-Mobile:
  *   void raise_gammu_error( GSM_StateMachine * gammu_fsm,
@@ -414,7 +414,7 @@ void clear_output_buffer( output_buffer * sm_buf )
 /**
  * Prepares for the encoding of the next, upcoming command.
  *
- * A (smart) buffer is specified, as in some cases (ex: interrupt handling)
+ * A (smart) buffer is specified, as in some cases (e.g. interrupt handling)
  * multiple output buffers may be useful.
  *
  */
@@ -617,8 +617,8 @@ void read_function_information( input_buffer input_buffer, buffer_index * index,
 	  "from index %i.", format_version, *index ) ;
 
 	/*
-	 * Reads a { FunId, FunParams } pair (ex: { 5, [ 140, true ] }) thanks to,
-	 * now, ei:
+	 * Reads a {FunId, FunParams} pair (e.g. {5, [140, true]}) thanks to, now,
+	 * ei:
 	 *
 	 * (see http://erlang.org/doc/man/ei.html)
 	 *
@@ -638,7 +638,7 @@ void read_function_information( input_buffer input_buffer, buffer_index * index,
 
 
 	/* Gets the first element of the pair, i.e. the Seaplus-defined function
-	 * identifier (ex: whose value is FOO_1_ID):
+	 * identifier (e.g. whose value is FOO_1_ID):
 	 *
 	 */
   if ( ei_decode_long( *input_buffer, index, current_fun_id ) != 0 )
@@ -673,8 +673,8 @@ void read_function_information( input_buffer input_buffer, buffer_index * index,
 
 
 /**
- * Raises an error should the actual arity not be the expected one for specified
- * function.
+ * Raises an error should the actual arity not be the expected one for the
+ * specified function.
  *
  */
 void check_arity_is( arity expected, arity actual, fun_id id )
@@ -693,7 +693,7 @@ void check_arity_is( arity expected, arity actual, fun_id id )
 
 
 /**
- * Returns the element at current buffer location, supposed to be a (long,
+ * Returns the element at the current buffer location, supposed to be a (long,
  * signed) integer.
  *
  */
@@ -813,7 +813,7 @@ double read_double_parameter( input_buffer decode_buffer,
 
 
 /**
- * Returns the element at current buffer location, supposed to be an atom,
+ * Returns the element at the current buffer location, supposed to be an atom,
  * translated to a char*, whose ownership is transferred to the caller (who is
  * thus supposed to deallocate it ultimately, with standard free/1).
  *
@@ -1006,7 +1006,7 @@ void read_list_header_parameter( input_buffer buffer, buffer_index * index,
 
 
 /**
- * Writes in specified return buffer the specified bool result.
+ * Writes in the specified return buffer the specified bool result.
  *
  */
 void write_bool_result( output_buffer * output_sm_buf, bool b )
@@ -1020,7 +1020,7 @@ void write_bool_result( output_buffer * output_sm_buf, bool b )
 
 
 /**
- * Writes in specified return buffer the specified (signed) integer result.
+ * Writes in the specified return buffer the specified (signed) integer result.
  *
  */
 void write_int_result( output_buffer * output_sm_buf, int i )
@@ -1034,7 +1034,7 @@ void write_int_result( output_buffer * output_sm_buf, int i )
 
 
 /**
- * Writes in specified return buffer the specified unsigned integer result.
+ * Writes in the specified return buffer the specified unsigned integer result.
  *
  */
 void write_unsigned_int_result( output_buffer * output_sm_buf, unsigned int u )
@@ -1048,7 +1048,7 @@ void write_unsigned_int_result( output_buffer * output_sm_buf, unsigned int u )
 
 
 /**
- * Writes in specified return buffer the specified double result.
+ * Writes in the specified return buffer the specified double result.
  *
  */
 void write_double_result( output_buffer * output_sm_buf, double d )
@@ -1062,7 +1062,7 @@ void write_double_result( output_buffer * output_sm_buf, double d )
 
 
 /**
- * Writes in specified return buffer the specified atom result, based on
+ * Writes in the specified return buffer the specified atom result, based on
  * specified (NULL-terminated) string.
  *
  * Note: not taking ownership of the input string.
@@ -1071,9 +1071,7 @@ void write_double_result( output_buffer * output_sm_buf, double d )
 void write_atom_result( output_buffer * output_sm_buf, const char * atom_name )
 {
 
-  size_t len = strlen( atom_name ) ;
-
-  if ( ei_x_encode_atom_len( output_sm_buf, atom_name, len ) != 0 )
+  if ( ei_x_encode_atom( output_sm_buf, atom_name ) != 0 )
 	raise_error( "Erlang atom encoding failed for '%s'.", atom_name ) ;
 
   // Not owned: free( atom_name ) ;
@@ -1082,8 +1080,8 @@ void write_atom_result( output_buffer * output_sm_buf, const char * atom_name )
 
 
 /**
- * Writes in specified return buffer the specified (NULL-terminated) string
- * result, of specified length.
+ * Writes in the specified return buffer the specified (NULL-terminated) string
+ * result, based on the directly-specified length.
  *
  * Note: not taking ownership of the input string.
  *
@@ -1104,7 +1102,7 @@ void write_string_with_length_result( output_buffer * output_sm_buf,
 
 
 /**
- * Writes in specified return buffer the specified (NULL-terminated) string
+ * Writes in the specified return buffer the specified (NULL-terminated) string
  * result.
  *
  * Note: not taking ownership of the input string.
@@ -1113,10 +1111,7 @@ void write_string_with_length_result( output_buffer * output_sm_buf,
 void write_string_result( output_buffer * output_sm_buf, const char * string )
 {
 
-  size_t len = strlen( string ) ;
-
-  // Not including the NULL terminator:
-  if ( ei_x_encode_string_len( output_sm_buf, string, len ) != 0 )
+  if ( ei_x_encode_string( output_sm_buf, string ) != 0 )
 	raise_error( "Erlang string encoding failed for '%s'.",
 				 string ) ;
 
@@ -1127,8 +1122,8 @@ void write_string_result( output_buffer * output_sm_buf, const char * string )
 
 
 /**
- * Writes in specified return buffer the specified binary result, of specified
- * size.
+ * Writes in the specified return buffer the specified binary result, of
+ * specified size.
  *
  * Note: not taking ownership of the input binary.
  *
@@ -1145,8 +1140,8 @@ void write_binary_result( output_buffer * output_sm_buf, const void * content,
 
 
 /**
- * Writes in specified return buffer the specified binary result obtained from a
- * string.
+ * Writes in the specified return buffer the specified binary result obtained
+ * from a string.
  *
  * Note: not taking ownership of the input string.
  *
@@ -1164,13 +1159,16 @@ void write_binary_string_result( output_buffer * output_sm_buf,
 
 
 /**
- * Writes in specified return buffer the specified list header result.
+ * Writes in the specified return buffer the specified list header result.
  *
  * For a list declared of size N (hence having N elements), the N next writes
- * will correspond to the expected terms to form said list.
+ * will correspond to the expected terms to form said list, and the N+1 element
+ * will be the cons one (corresponding to a pointer to another list (often the
+ * empty one). Indeed, [a, b, c] = [a | [b | [c | []]]].
  *
- * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header to handle lists
- * whose size is not known a priori (see also write_empty_list_result/1).
+ * See https://www.erlang.org/docs/24/man/ei#ei_encode_list_header to handle
+ * lists whose length is not known a priori (see also
+ * write_empty_list_result/1).
  *
  */
 void write_list_header_result( output_buffer * output_sm_buf, list_size size )
@@ -1184,13 +1182,12 @@ void write_list_header_result( output_buffer * output_sm_buf, list_size size )
 
 
 /**
- * Writes in specified return buffer an empty list.
+ * Writes in the specified return buffer an empty list.
  *
- * Especially useful to write lists whose size is not known a priori, by
+ * Especially useful to write lists whose length is not known a priori, by
  * cons'ing elements one by one until none is left.
  *
- * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header for more
- * information.
+ * See https://www.erlang.org/docs/24/man/ei#ei_encode_list_header
  *
  */
 void write_empty_list_result( output_buffer * output_sm_buf )
@@ -1204,7 +1201,7 @@ void write_empty_list_result( output_buffer * output_sm_buf )
 
 
 /**
- * Writes in specified return buffer the specified tuple header result.
+ * Writes in the specified return buffer the specified tuple header result.
  *
  * For a tuple declared of size N (hence having N elements), the N next writes
  * will correspond to the expected terms to form said tuple.
@@ -1242,7 +1239,7 @@ byte_count write_exact( byte * buf, byte_count len )
   do
   {
 
-	byte_count i = write( 1, buf+wrote, len-wrote ) ;
+	byte_count i = write( 1, buf + wrote, len - wrote ) ;
 
 	// Writing to file descriptor #1:
 	if ( i <= 0 )
@@ -1318,7 +1315,8 @@ void check_encoded_list()
 
 
 /**
- * Returns a string describing the type of the term located in specified buffer.
+ * Returns a string describing the type of the term located in the specified
+ * buffer.
  *
  * Ownership of that string is transferred to the caller.
  *
