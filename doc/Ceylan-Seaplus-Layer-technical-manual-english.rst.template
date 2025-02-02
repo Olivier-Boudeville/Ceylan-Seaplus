@@ -74,7 +74,7 @@ The latest version of this documentation is to be found at the `official Seaplus
 Overview
 ========
 
-A typical use-case is **having a C or C++ library of interest that we would like be able to use from Erlang**, whereas, for any reason (availability of sources, complexity, size, performance or interest), recoding it (in Erlang) is not desirable.
+A typical use-case of Seaplus is **having a C or C++ library of interest that we would like to be able to use from Erlang**, whereas, for any reason (availability of sources, complexity, size, performance or interest), recoding it (in Erlang) is not desirable.
 
 However tempting it may be to integrate tightly C/C++ code to the Erlang VM (typically through a `NIF <http://erlang.org/doc/tutorial/nif.html>`_), one may prefer trading maximum performances for safety, and run that C/C++ code (which is often at last partly foreign, hence possibly unreliable) into a separate, isolated (operating system) process.
 
@@ -85,20 +85,19 @@ Indeed, taking into account the Erlang `Interoperability Tutorial <http://erlang
 - raw **ports** and **linked-in drivers**: they are mostly obsolete for the task at hand (superseded by better counterparts)
 - ``os:cmd/1``: a rudimentary solution that offers little control and requires much syntactic parsing effort
 - custom **socket-based protocol**: quite low-level and complicated
-- ``NIF``: as mentioned, they may jeopardise the VM (depending on the use case, this may be acceptable or not)
+- ``NIF``: they offer the best performances yet, as mentioned, they may jeopardise the VM (depending on the use case, this may be acceptable or not)
 - `C-Node <http://erlang.org/doc/tutorial/cnode.html>`_ and, now, `ei <http://erlang.org/doc/man/ei.html>`_ (previously `Erl_Interface <http://erlang.org/doc/tutorial/erl_interface.html>`_): this is the combination that we preferred for Seaplus, and that we tried to streamline/automate here, at least partially
 
-In a nutshell, this approach consists on spawning a "fake" Erlang node written in C (the ``C-Node``) and using the standard *Erlang external term format* in order to communicate with it (relying for that on the ``ei`` facilities). Doing so allows a seamless communication to happen, in spite of language heterogeneity.
+In a nutshell, this approach consists in spawning a "fake" Erlang node written in C (the ``C-Node``) and using the standard *Erlang external term format* in order to communicate with it (relying for that on the ``ei`` facilities). Doing so allows a seamless communication to happen, in spite of language heterogeneity.
 
 C-Node and Erl_Interface/ei help a lot, yet, as shown in `this reference example <http://erlang.org/doc/tutorial/erl_interface.html#erlang-program>`_, quite a lot of boiler-plate/bridging code (home-made encoding and conventions) remains needed.
 
-The **goal of Seaplus is to reduce that interfacing effort**, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that he can define precisely the mapping interface that he prefers (e.g. with regards to naming, types introduced and used, management of resource ownership, etc.).
+The **goal of Seaplus is to reduce that interfacing effort**, thanks to a set of generic, transverse functions on either side (modules in Erlang, a library in C/C++) and the use of metaprogramming (i.e. the Seaplus parse transform) in order to generate at least a part of the code needed in both sides, while leaving to the developer enough leeway so that they can define precisely the mapping interface that they prefer (e.g. regarding naming, types introduced and used, management of resource ownership, etc.).
 
 As a result, the result of a Seaplus integration can be seen as an easily obtained ei-based C-Node on a bit of steroids.
 
-``Ceylan-Seaplus`` relies on various facilities offered by the `Ceylan-Myriad <http://myriad.esperide.org>`_ toolbox.
+``Ceylan-Seaplus`` relies on various facilities offered by the `Ceylan-Myriad <http://myriad.esperide.org>`_ toolbox, and the project repository is located `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_.
 
-The project repository is located `here <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_.
 
 
 Usage
@@ -112,10 +111,10 @@ Let's suppose that said service is named ``Foobar``, and that the functions it p
 
   #include <stdbool.h>
 
-  struct foo_data { int count; float value } ;
+  struct foo_data {int count; float value} ;
 
-  enum foo_status {low_speed,moderate_speed,full_speed};
-  enum tur_status {tur_value,non_tur_value};
+  enum foo_status {low_speed, moderate_speed, full_speed};
+  enum tur_status {tur_value, non_tur_value};
 
   int foo(int a);
   struct foo_data * bar(double a, enum foo_status status);
@@ -140,7 +139,7 @@ We believe that, in order to rely on a convenient Erlang-side API for this servi
 
 So such a service-specific API shall be devised by the service integrator (i.e. the developer in charge of the integration of the C/C++ code to Erlang). But how?
 
-At the very least, what will be offered on the Erlang side by our ``foobar`` module shall be somehow specified. A very appropriate way of doing so is to list (only) the `type specifications <http://erlang.org/doc/reference_manual/typespec.html>`_ of the targeted counterpart functions meant to be ultimately available (defined and exported) from Erlang, like in [#]_:
+At the very least, what will be offered on the Erlang side by our ``foobar`` module shall be somehow specified. A very appropriate way of doing so is to list (only) the `type specifications <http://erlang.org/doc/reference_manual/typespec.html>`_ of the targeted counterpart functions meant to be ultimately available (defined and exported) from Erlang (thus, by default, without being explicitly implemented in that module), like in [#]_:
 
 .. code:: erlang
 
@@ -151,8 +150,8 @@ At the very least, what will be offered on the Erlang side by our ``foobar`` mod
  -record(foo_data, {count :: integer(), value :: float()}).
  -type foo_data() :: #foo_data{}.
 
- -type foo_status() :: 'low_speed'|'moderate_speed'|'full_speed'.
- -type tur_status() :: 'tur_value'|'non_tur_value'.
+ -type foo_status() :: 'low_speed' | 'moderate_speed' | 'full_speed'.
+ -type tur_status() :: 'tur_value' | 'non_tur_value'.
 
  -spec foo(integer()) -> integer().
  -spec bar(float(), foo_status()) -> foo_data().
@@ -164,17 +163,24 @@ At the very least, what will be offered on the Erlang side by our ``foobar`` mod
 
 .. comment Not relevant anymore: Note that some pseudo-builtin types (like ``void/0`` or ``maybe/1``) are introduced here thanks to the use of Myriad - this does not matter for the current topic.
 
-The Seaplus header include allows notably to mark this ``foobar`` module as a service stub (so that the build system can determine this module is to be fleshed out).
+The Seaplus header include allows notably to mark this ``foobar`` module as a service stub (so that the build system can determine that this module is to be fleshed out with a proper implementation thereof).
 
 It can be included in a more OTP-compliant fashion with::
 
  -include_lib("seaplus/include/seaplus.hrl").
 
-Comments (description, usage, examples) are also expected to be joined to these specs, they are omitted in this documentation only for brevity.
+Comments (description, usage, examples) are also expected to be associated to these specs - they are omitted in this documentation only for the purpose of brevity.
 
 **Facility functions** that all integrated services will need, and whose signature (if not implementation) would be the same from a service to another (e.g. to start/stop this service from Erlang), will also certainly be needed.
 
-However, listing these facility functions in our ``foobar`` module would offer little interest, should they involve no service-specific part; so these extra functions are to remain implicit here [#]_.
+However, listing these facility functions in our ``foobar`` module would offer little interest, should they involve no service-specific part; so these extra functions can/should remain implicit here [#]_.
+
+.. [#] Note though that, at least for some services, specific initialisation/tear-down functions may exist in the vanilla, C version of that service. In that case, they should be triggered by the Seaplus-exposed ``start``/``stop`` service primitives.
+
+	   So, for each facility function ``start/0``, ``start_link/0`` and ``stop/0``, the Seaplus parse transform determines whether it is already defined in the service at hand (i.e., for example, whether the user defined specifically a ``foobar:start/0`` function). If yes, then Seaplus enriches automatically that code with the one needed for its own initialisation (Seaplus' one taking place *before* the service's initialisation). If no, then Seaplus defines a brand new ``start/0`` that is limited to its own needs.
+
+	   As a result, from the point of view of the service user, in all cases the service can be started or stopped with a single call (possibly taking care under the hood of both Seaplus and the service itself).
+
 
 These service-level built-in functions automatically defined by Seaplus of user interest are, notably:
 
@@ -184,14 +190,8 @@ These service-level built-in functions automatically defined by Seaplus of user 
 - ``stop/0``: stops the service
 
 
-.. [#] Note though that, at least for some services, specific initialisation/tear-down functions may exist in the vanilla, C version of that service. In that case, they should be triggered by the Seaplus-exposed ``start``/``stop`` service primitives.
 
-	   So, for each facility function ``start/0``, ``start_link/0`` and ``stop/0``, the Seaplus parse transform determines whether it is already defined in the service at hand (i.e., for example, whether the user defined specifically a ``foobar:start/0`` function). If yes, then Seaplus enriches automatically that code with the one needed for its own initialisation (Seaplus'one taking place *before* the service's initialisation). If no, then Seaplus defines a brand new ``start/0`` that is limited to its own needs.
-
-	   As a result, from the point of view of the service user, in all cases the service can be started or stopped with a single call (possibly taking care under the hood of both Seaplus and the service itself).
-
-
-Of course such a module, as it was defined above (i.e. just as a set of function specifications, with no implementation thereof), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) is available, the ``Foobar`` service becomes fully usable from Erlang, with no extra boilerplate code to be added by the Erlang integrator.
+Of course such a module, as it was defined above (i.e. just as a set of function specifications, with no implementation thereof), is useless and would not even compile as such. But the Seaplus parse transform will automatically enrich and transform it so that, once the C part (the driver) is available, the ``Foobar`` service becomes fully usable from Erlang, with no extra boilerplate code to be added on the Erlang side by the developer in charge of the integration.
 
 More precisely, for each of the function type specifications defined by the user in that module, a corresponding bridging implementation will be generated on the Erlang side and added (unless the ``foobar`` module already includes one, so that the user can selectively override the Seaplus code generation), whilst all the needed facility functions will be included as well.
 
@@ -200,15 +200,15 @@ Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar
 .. code:: erlang
 
   foobar:start(),
-  MyFooData = foobar:bar(3.14,full_speed),
+  MyFooData = foobar:bar(3.14, full_speed),
   NewCount = foobar:foo(MyFooData#foo_data.count),
   Res = case foobar:tur() of
 	true ->
-	  foobar:baz(NewCount,"Hello");
+	  foobar:baz(NewCount, "Hello");
 	false ->
 	  non_tur_value
   end,
-  io:format("Having: ~s~n",[foobar:frob(Res)]),
+  io:format("Having: ~s~n", [foobar:frob(Res)]),
   foobar:stop().
 
 
@@ -217,7 +217,7 @@ Here is a corresponding (mostly meaningless) usage example [#]_ of this ``foobar
 
 At this point, one may think that, thanks to these function specs, the full counterpart C bridging code might have been automagically generated as well, in the same movement as the Erlang bridging code? Unfortunately, not exactly! At least, not yet; maybe some day (if ever possible and tractable). Currently: only *parts* of it are generated.
 
-C-side elements will have been produced indeed by the Seaplus parse-transform (notably the function mapping include, used to map functions on either sides, and also, if not already existing, a compilable template of the C driver), but the conversion (thanks to `ei <http://erlang.org/doc/man/ei.html>`_ now) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.
+C-side elements will have been produced indeed by the Seaplus parse-transform (notably the function mapping include, used to map functions on either sides, and also, if not already existing, a compilable template of the C driver), but the actual, precise conversion (thanks to `ei <http://erlang.org/doc/man/ei.html>`_ now) from the Erlang terms received by the port into arguments that will feed the C functions and on the other way round (i.e. from the C results to the Erlang terms that shall be sent back) is still left to the service integrator.
 
 This work remains, yet it is also a chance to better adapt the bridging code to the interfacing contract one would like to be fulfilled, for example with regard to resource ownership. Indeed, should the C part take pointers as arguments, shall it delete them once having used them? Conversely, should a C function return a pointer to a dynamically allocated memory, who is responsible for the eventual deallocation of it? How the C implementation can maintain a state of its own between calls?
 
@@ -241,10 +241,12 @@ This indicates that for example the ``baz/2`` Erlang function, as hinted by its 
 
 The C part of the bridge (i.e., the service driver), typically defined in ``foobar_seaplus_driver.c``, is thus to include that ``foobar_seaplus_api_mapping.h`` generated header in order to map the Erlang function identifier in a call request to its processing.
 
-Should no such driver implementation already exist, Seaplus will generate a template version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:
+Should no such driver implementation already exist, Seaplus will generate a code template [#]_ version of it (a template that can nevertheless be successfully compiled and linked), which will include everything needed but the (service-specific) C logic that shall be added by the service integrator in order to:
 
-1. convert the received arguments (Erlang terms) into their C counterparts (see `seaplus_getters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus_getters.h>`_ for that, typically the ``read_*_parameter`` functions)
-2. call the corresponding C integrated function
+.. [#] (unrelated to any C++ template)
+
+1. convert the received arguments (Erlang terms) into their C counterparts (generally thanks to the convenience `seaplus_getters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus_getters.h>`_ for that, typically the ``read_*_parameter`` functions)
+2. call the corresponding C integrated function (whichever it is, and as found appropriate)
 3. convert its result the other way round, so that a relevant Erlang term is returned (see `seaplus_setters.h <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/include/seaplus_setters.h>`_ for that, typically the ``write_*_result`` functions)
 
 See the full, unedited version of the generated `foobar_seaplus_driver.c template <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/doc/foobar_seaplus_driver.c>`_  corresponding to the Foobar service (one may note the placeholders in each ``case`` branch of the function identifier switch).
@@ -445,7 +447,7 @@ Refer to the corresponding `Myriad prerequisite section <http://myriad.esperide.
 
 
 
-Using Cutting-Edge GIT
+Using Cutting-Edge Git
 ----------------------
 
 We try to ensure that the main line (in the ``master`` branch) always stays functional. Evolutions are to take place in feature branches.
@@ -527,7 +529,7 @@ Note that rebar3 is an alternate way of building Seaplus, as one may rely direct
 Testing Seaplus
 ---------------
 
-Once `Myriad <https://myriad.esperide.org>`_ and Seaplus itself have been built (for that refer to either `Using Cutting-Edge GIT`_ or `Using Rebar3`_), just run from the root directory of Seaplus:
+Once `Myriad <https://myriad.esperide.org>`_ and Seaplus itself have been built (for that refer to either `Using Cutting-Edge Git`_ or `Using Rebar3`_), just run from the root directory of Seaplus:
 
 .. code:: bash
 
@@ -851,7 +853,7 @@ Hopefully with this example one will be less afraid to hack around shared librar
 Testing Seaplus
 ---------------
 
-Once `Myriad <https://myriad.esperide.org>`_ and Seaplus itself have been built (for that refer to either `Using Cutting-Edge GIT`_ or `Using Rebar3`_), just run from the root directory of Seaplus:
+Once `Myriad <https://myriad.esperide.org>`_ and Seaplus itself have been built (for that refer to either `Using Cutting-Edge Git`_ or `Using Rebar3`_), just run from the root directory of Seaplus:
 
 .. code:: bash
 
@@ -885,7 +887,7 @@ For this last topic, we generally rely on `clang-format <https://clang.llvm.org/
 Issues & Planned Enhancements
 =============================
 
-- thorough testing of the C-side should be done, notably with regard to the hunt for memory leaks; so the `Valgrind-based <http://valgrind.org/>`_ runtime mode for the driver is surely be useful and should be tested on a regular basis (note though that, when ``Erl_Interface`` was used prior to ``ei``, ``erl_eterm_statistics/2`` and ``erl_eterm_release/0`` were used to monitor these issues at runtime, in debug mode - in order to ensure that on the C side no term was ever leaked)
+- thorough testing of the C-side should be done, notably with regard to the hunt for memory leaks; so the `Valgrind-based <http://valgrind.org/>`_ runtime mode for the driver is surely useful and should be tested on a regular basis (note though that, when ``Erl_Interface`` was used prior to ``ei``, ``erl_eterm_statistics/2`` and ``erl_eterm_release/0`` were used to monitor these issues at runtime, in debug mode - in order to ensure that on the C side no term was ever leaked)
 
 
 :raw-latex:`\pagebreak`
