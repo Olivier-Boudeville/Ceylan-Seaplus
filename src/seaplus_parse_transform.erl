@@ -64,10 +64,10 @@ to ease the development of the corresponding C-side driver
 % undergo such a transformation, some others not (e.g. they are just helper
 % modules).
 %
-% To discriminate between these two sets, we do not rely on the module name as
+% To discriminate between these two sets, we do not rely on the module name, as
 % we do not want to constrain the name of the bridging module (e.g. 'foobar' is
 % fine, we do not want to make a longer form such as 'foobar_service'
-% compulsory).
+% mandatory).
 %
 % So the trigger of the actual Seaplus transformations will be the definition of
 % a specific function, activate_seaplus/1, a default implementation of which
@@ -76,6 +76,12 @@ to ease the development of the corresponding C-side driver
 % As a result, including that header will imply that the module at hand is a
 % Seaplus stub.
 
+
+% Possible improvement: generate and store in SERVICE.beam a reverse table in
+% order to be able to translate a function driver ID (e.g. specified as '#define
+% GET_SIGNAL_QUALITY_0_ID 9' in SERVICE_seaplus_api_mapping.h) into the name and
+% arity of that function (e.g. get_signal_quality/0); useful notably to better
+% report errors.
 
 
 -export([ run_standalone/1, run_standalone/2,
@@ -231,10 +237,10 @@ get_seaplus_root( Options ) ->
 
 				true ->
 					%trace_bridge:debug_fmt( "Seaplus directory is '~ts'.",
-					%						[ RootDirectory ] ),
+					%                        [ RootDirectory ] ),
 
 					TestFile = file_utils:join(
-								[ RootDirectory, "include", "seaplus.h" ] ),
+						[ RootDirectory, "include", "seaplus.h" ] ),
 
 					case file_utils:is_existing_file( TestFile ) of
 
@@ -408,8 +414,8 @@ is_integration_module( ModuleInfo=#module_info{ functions=FunctionTable } ) ->
 -doc "Applies the actual Seaplus transformations.".
 -spec process_module_info_from( module_info(), directory_name() ) ->
 									module_info().
-process_module_info_from(
-  ModuleInfo=#module_info{ module={ ModName, _Loc } }, SeaplusRootDir ) ->
+process_module_info_from( ModuleInfo=#module_info{ module={ ModName, _Loc } },
+						  SeaplusRootDir ) ->
 
 	% Should start, stop, etc. be specifically defined by the integration
 	% module:
@@ -833,7 +839,7 @@ generate_driver_implementation( ServiceModuleName, FunIds, HeaderFilename,
 	%                        [ HeaderContent ] ),
 
 	HHeaderContent = string:replace(  HeaderContent,
-	   "##SEAPLUS_SERVICE_HEADER_FILE##", HeaderFilename, all ),
+		"##SEAPLUS_SERVICE_HEADER_FILE##", HeaderFilename, all ),
 
 	%trace_bridge:debug_fmt( "New content:~n~ts", [ HHeaderContent ] ),
 
