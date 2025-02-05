@@ -1101,7 +1101,7 @@ void write_string_with_length_result( output_buffer * output_sm_buf,
   const char * string, size_t length )
 {
 
-  // Not including the NULL terminator:
+  // Must not include the NULL terminator:
   if ( ei_x_encode_string_len( output_sm_buf, string, length ) != 0 )
 	raise_error( "Erlang string encoding failed for '%s' (with length: %i).",
 	  string, length ) ;
