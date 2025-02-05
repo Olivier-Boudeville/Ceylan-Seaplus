@@ -885,8 +885,9 @@ char * read_string_parameter( input_buffer decode_buffer, buffer_index * index )
 
 /**
  * Returns the element at current buffer location, supposed to be a binary,
- * returned as a string whose ownership is transferred to the caller (who is
- * thus supposed to deallocate it ultimately, with standard free/1).
+ * returned as a (plain, null-terminated) string whose ownership is transferred
+ * to the caller (who is thus supposed to deallocate it ultimately, with
+ * standard free/1).
  *
  */
 char * read_binary_parameter( input_buffer decode_buffer, buffer_index * index )
@@ -904,22 +905,32 @@ char * read_binary_parameter( input_buffer decode_buffer, buffer_index * index )
 	  index, strerror( error ) ) ;
 
   if ( type != ERL_BINARY_EXT )
-	raise_error( "Not a binary at index %i, got %s.", index,
+	raise_error( "Not a binary at index %i; got %s instead.", index,
 	  interpret_type_at( decode_buffer, index ) ) ;
 
-  // No null terminator here:
-  char * res = (char*) malloc( size * sizeof( char ) ) ;
+  // Incremented for null terminator:
+  size_t buf_size = (size+1) * sizeof( char ) ;
+  char * res = (char*) malloc( buf_size ) ;
 
   if ( res == NULL )
 	raise_error( "Failed to allocate binary buffer." ) ;
 
-  // Not used:
   long l_size ;
 
   if ( ei_decode_binary( *decode_buffer, index, res, &l_size ) != 0 )
 	raise_error( "Parameter at index %i cannot be decoded to binary: %s; "
 	  "its actual type is %s.", index, strerror( error ),
 	  interpret_type_at( decode_buffer, index ) ) ;
+
+  // Never expected to happen:
+  if ( l_size > buf_size )
+	raise_error( "Buffer overrun when decoding binary." );
+
+  /* Makes it a null-terminated string; proved necessary (otherwise the rest of
+   * the buffer will be read):
+   *
+   */
+  res[l_size] = (char) 0 ;
 
   LOG_DEBUG( "Read binary: '%s'.", res ) ;
 
