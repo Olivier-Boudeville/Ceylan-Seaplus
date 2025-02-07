@@ -28,7 +28,6 @@
  *
  */
 
-
 /* Simple test to ensure that the Seaplus library can be linked to with no
  * problem.
  *
@@ -36,25 +35,22 @@
 
 #include "seaplus.h"
 
+int main() {
 
-int main()
-{
+  const char *log_filename = "seaplus_test.log";
 
-  const char * log_filename = "seaplus_test.log" ;
+  printf("Simple test of the Seaplus library, see '%s' for more information.",
+		 log_filename);
 
-  printf( "Simple test of the Seaplus library, see '%s' for more information.",
-	log_filename ) ;
+  start_logging(log_filename);
 
-  start_logging( log_filename ) ;
+  log_debug("Hello!");
 
-  log_debug( "Hello!" ) ;
+  log_debug("Hello %s!", "there");
 
-  log_debug( "Hello %s!", "there" ) ;
+  log_trace("Some trace.");
 
-  log_trace( "Some trace." ) ;
+  log_trace("With two numbers: %i and %i.", 42, 0);
 
-  log_trace( "With two numbers: %i and %i.", 42, 0 ) ;
-
-  stop_logging() ;
-
+  stop_logging();
 }
