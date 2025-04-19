@@ -10,103 +10,67 @@
 <hr>
 
 <h1>Module seaplus_parse_transform</h1>
-<ul class="index"><li><a href="#description">Description</a></li><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>Overall <b>parse transform for the Seaplus layer</b>, in charge of 
-streamlining the integration of any C-based service.
+<ul class="index"><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>
 
-
-<h2><a name="description">Description</a></h2><p>Overall <b>parse transform for the Seaplus layer</b>, in charge of 
-streamlining the integration of any C-based service.</p>
-
- <p>Meant, for a Foobar service, to operate on a foobar.erl stub, so that:</p>
-
- <p>- a fully-functional foobar module becomes available</p>
-
- - a corresponding foobar_seaplus_api_mapping.h C header is generated in order
- to ease the development of the corresponding C-side driver
 
 <h2><a name="types">Data Types</a></h2>
 
 <h3 class="typedecl"><a name="type-ast">ast()</a></h3>
-<p><code>ast() = <a href="ast_base.html#type-ast">ast_base:ast()</a></code></p>
+<p><code>ast() = <a href="ast_base.html#type-ast" docgen-rel="seetype" docgen-href="ast_base#ast/0">ast_base:ast()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-directory_path">directory_path()</a></h3>
-<p><code>directory_path() = <a href="file_utils.html#type-directory_path">file_utils:directory_path()</a></code></p>
+<p><code>directory_path() = <a href="file_utils.html#type-directory_path" docgen-rel="seetype" docgen-href="file_utils#directory_path/0">file_utils:directory_path()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-file_name">file_name()</a></h3>
-<p><code>file_name() = <a href="file_utils.html#type-file_name">file_utils:file_name()</a></code></p>
+<p><code>file_name() = <a href="file_utils.html#type-file_name" docgen-rel="seetype" docgen-href="file_utils#file_name/0">file_utils:file_name()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-module_info">module_info()</a></h3>
-<p><code>module_info() = <a href="ast_info.html#type-module_info">ast_info:module_info()</a></code></p>
+<p><code>module_info() = <a href="ast_info.html#type-module_info" docgen-rel="seetype" docgen-href="ast_info#module_info/0">ast_info:module_info()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-parse_transform_options">parse_transform_options()</a></h3>
-<p><code>parse_transform_options() = <a href="meta_utils.html#type-parse_transform_options">meta_utils:parse_transform_options()</a></code></p>
+<p><code>parse_transform_options() = <a href="meta_utils.html#type-parse_transform_options" docgen-rel="seetype" docgen-href="meta_utils#parse_transform_options/0">meta_utils:parse_transform_options()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-preprocessor_option">preprocessor_option()</a></h3>
-<p><code>preprocessor_option() = <a href="ast_utils.html#type-preprocessor_option">ast_utils:preprocessor_option()</a></code></p>
+<p><code>preprocessor_option() = <a href="ast_utils.html#type-preprocessor_option" docgen-rel="seetype" docgen-href="ast_utils#preprocessor_option/0">ast_utils:preprocessor_option()</a></code></p>
 
 
 <h2><a name="index">Function Index</a></h2>
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#apply_seaplus_transform-3">apply_seaplus_transform/3</a></td><td>Transforms the specified AST for Seaplus.</td></tr>
-<tr><td valign="top"><a href="#parse_transform-2">parse_transform/2</a></td><td>The parse transform itself, generating notably (Myriad-based) Abstract
- Format code, before being itself converted in turn into an Erlang-compliant
- Abstract Format code.</td></tr>
-<tr><td valign="top"><a href="#run_standalone-1">run_standalone/1</a></td><td>Runs the Seaplus parse transform defined here in a standalone way (that 
-is without being triggered by the usual, integrated compilation process), with 
-no specific preprocessor option.</td></tr>
-<tr><td valign="top"><a href="#run_standalone-2">run_standalone/2</a></td><td>Runs the Seaplus parse transform defined here in a standalone way (that 
-is without being triggered by the usual, integrated compilation process), with 
-specified preprocessor options.</td></tr>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#apply_seaplus_transform-3">apply_seaplus_transform/3</a></td><td></td></tr>
+<tr><td valign="top"><a href="#parse_transform-2">parse_transform/2</a></td><td></td></tr>
+<tr><td valign="top"><a href="#run_standalone-1">run_standalone/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#run_standalone-2">run_standalone/2</a></td><td></td></tr>
 </table>
 
 <h2><a name="functions">Function Details</a></h2>
 
 <h3 class="function"><a name="apply_seaplus_transform-3">apply_seaplus_transform/3</a></h3>
 <div class="spec">
-<p><code>apply_seaplus_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="#type-parse_transform_options">parse_transform_options()</a>, SeaplusRootDir::<a href="#type-directory_path">directory_path()</a>) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</code><br></p>
+<p><code>apply_seaplus_transform(InputAST::<a href="#type-ast" docgen-rel="seetype" docgen-href="#ast/0">ast()</a>, Options::<a href="#type-parse_transform_options" docgen-rel="seetype" docgen-href="#parse_transform_options/0">parse_transform_options()</a>, SeaplusRootDir::<a href="#type-directory_path" docgen-rel="seetype" docgen-href="#directory_path/0">directory_path()</a>) -&gt; {<a href="#type-ast" docgen-rel="seetype" docgen-href="#ast/0">ast()</a>, <a href="#type-module_info" docgen-rel="seetype" docgen-href="#module_info/0">module_info()</a>}</code><br></p>
 <p> </p>
-</div><p>Transforms the specified AST for Seaplus.</p>
+</div>
 
 <h3 class="function"><a name="parse_transform-2">parse_transform/2</a></h3>
 <div class="spec">
-<p><code>parse_transform(InputAST::<a href="#type-ast">ast()</a>, Options::<a href="meta_utils.html#type-parse_transform_options">meta_utils:parse_transform_options()</a>) -&gt; <a href="#type-ast">ast()</a></code><br></p>
+<p><code>parse_transform(InputAST::<a href="#type-ast" docgen-rel="seetype" docgen-href="#ast/0">ast()</a>, Options::<a href="meta_utils.html#type-parse_transform_options" docgen-rel="seetype" docgen-href="meta_utils#parse_transform_options/0">meta_utils:parse_transform_options()</a>) -&gt; <a href="#type-ast" docgen-rel="seetype" docgen-href="#ast/0">ast()</a></code><br></p>
 <p> </p>
-</div><p>The parse transform itself, generating notably (Myriad-based) Abstract
- Format code, before being itself converted in turn into an Erlang-compliant
- Abstract Format code.
-</p>
+</div>
 
 <h3 class="function"><a name="run_standalone-1">run_standalone/1</a></h3>
 <div class="spec">
-<p><code>run_standalone(FileToTransform::<a href="#type-file_name">file_name()</a>) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</code><br></p>
+<p><code>run_standalone(FileToTransform::<a href="#type-file_name" docgen-rel="seetype" docgen-href="#file_name/0">file_name()</a>) -&gt; {<a href="#type-ast" docgen-rel="seetype" docgen-href="#ast/0">ast()</a>, <a href="#type-module_info" docgen-rel="seetype" docgen-href="#module_info/0">module_info()</a>}</code><br></p>
 <p> </p>
-</div><p><p>Runs the Seaplus parse transform defined here in a standalone way (that 
-is without being triggered by the usual, integrated compilation process), with 
-no specific preprocessor option.</p>
-
- This allows to benefit from all compilation error and warning messages,
- whereas they are seldom available from a code directly run as a parse
- transform (e.g. 'undefined parse transform 'foobar'' as soon as a function or
- a module is not found).
-</p>
+</div>
 
 <h3 class="function"><a name="run_standalone-2">run_standalone/2</a></h3>
 <div class="spec">
-<p><code>run_standalone(FileToTransform::<a href="#type-file_name">file_name()</a>, PreprocessorOptions::[<a href="#type-preprocessor_option">preprocessor_option()</a>]) -&gt; {<a href="#type-ast">ast()</a>, <a href="#type-module_info">module_info()</a>}</code><br></p>
+<p><code>run_standalone(FileToTransform::<a href="#type-file_name" docgen-rel="seetype" docgen-href="#file_name/0">file_name()</a>, PreprocessorOptions::[<a href="#type-preprocessor_option" docgen-rel="seetype" docgen-href="#preprocessor_option/0">preprocessor_option()</a>]) -&gt; {<a href="#type-ast" docgen-rel="seetype" docgen-href="#ast/0">ast()</a>, <a href="#type-module_info" docgen-rel="seetype" docgen-href="#module_info/0">module_info()</a>}</code><br></p>
 <p> </p>
-</div><p><p>Runs the Seaplus parse transform defined here in a standalone way (that 
-is without being triggered by the usual, integrated compilation process), with 
-specified preprocessor options.</p>
-
- This allows to benefit from all compilation error and warning messages,
- whereas they are seldom available from a code directly run as a parse
- transform (e.g. 'undefined parse transform 'foobar'' as soon as a function or
- a module is not found).
-</p>
+</div>
 <hr>
 
 <div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
