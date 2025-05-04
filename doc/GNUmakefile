@@ -42,8 +42,7 @@ all:
 	@echo "  Run 'make doc' to generate the documentation of the 'Seaplus' layer."
 
 
-# ex_doc currently failing:
-doc: html pdf #create-api-doc
+doc: html pdf create-api-doc
 
 
 html: local-html
