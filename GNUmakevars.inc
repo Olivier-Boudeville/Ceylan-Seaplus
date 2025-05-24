@@ -278,13 +278,23 @@ endif
 
 # As installation structures may vary:
 
-# Typically if installed thanks to our install-erlang.sh script:
+# Typically if installed thanks to our install-erlang.sh script in one's user
+# account:
+#
 ERL_BASE_FIRST_CANDIDATE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/..
 
-# Typically if using Github's continuous integration:
+
+# Typically if installed thanks to our install-erlang.sh script in the system
+# tree (hence as /usr/local/lib):
+#
 ERL_BASE_SECOND_CANDIDATE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/../../..
 
-ERL_BASE = $(shell if [ -d $(ERL_BASE_FIRST_CANDIDATE)/lib/erlang/lib/erl_interface-* ]; then echo "$(ERL_BASE_FIRST_CANDIDATE)"; else echo "$(ERL_BASE_SECOND_CANDIDATE)"; fi)
+# Typically if using an erlang:latest image (e.g. in Github's continuous
+# integration):
+#
+ERL_BASE_THIRD_CANDIDATE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/../../../..
+
+ERL_BASE = $(shell if [ -d $(ERL_BASE_FIRST_CANDIDATE)/lib/erlang/lib/erl_interface-* ]; then echo "$(ERL_BASE_FIRST_CANDIDATE)"; elif [ -d $(ERL_BASE_SECOND_CANDIDATE)/lib/erlang/lib/erl_interface-* ]; then echo "$(ERL_BASE_SECOND_CANDIDATE)"; else  echo "$(ERL_BASE_THIRD_CANDIDATE)"; fi)
 
 
 # As version numbers are in the way:
