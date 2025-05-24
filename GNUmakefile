@@ -126,6 +126,8 @@ info-erlang-for-c:
 info-paths: info-paths-local
 
 info-paths-local:
+	@echo "ERLANG_INTERPRETER = $(ERLANG_INTERPRETER)"
+	@echo "ERL_BASE = $(ERL_BASE)"
 	@echo "BEAM_PATH_OPT = $(BEAM_PATH_OPT)"
 
 

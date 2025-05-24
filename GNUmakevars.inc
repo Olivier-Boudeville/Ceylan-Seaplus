@@ -269,8 +269,8 @@ endif
 # Erlang subsection.
 
 
-# Base Erlang installation either hardcoded or deduced from selected
-# interpreter:
+# Base Erlang installation (e.g the base directory from which lib/erlang/emacs
+# can be found), either hardcoded or deduced from the selected interpreter:
 #
 #ERL_BASE := $(HOME)/Software/Erlang/Erlang-current-install
 #ERL_BASE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/..
@@ -282,9 +282,9 @@ endif
 ERL_BASE_FIRST_CANDIDATE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/..
 
 # Typically if using Github's continuous integration:
-ERL_BASE_SECOND_CANDIDATE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/../../../..
+ERL_BASE_SECOND_CANDIDATE = $(shell dirname $(ERLANG_INTERPRETER) 2>/dev/null)/../../..
 
-ERL_BASE = $(shell if [ -d $(ERL_BASE_FIRST_CANDIDATE)/lib/erlang/lib/erl_interface-* ]; then echo "$(ERL_BASE_FIRST_CANDIDATE)" ; else echo "$(ERL_BASE_SECOND_CANDIDATE)" ; fi)
+ERL_BASE = $(shell if [ -d $(ERL_BASE_FIRST_CANDIDATE)/lib/erlang/lib/erl_interface-* ]; then echo "$(ERL_BASE_FIRST_CANDIDATE)"; else echo "$(ERL_BASE_SECOND_CANDIDATE)"; fi)
 
 
 # As version numbers are in the way:
