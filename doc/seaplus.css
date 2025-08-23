@@ -9,20 +9,24 @@
 /* Updated: Michal Guerquin (michalg@gmail.com) */
 
 
+/* For blocks of code (introduced with '.. code::'): */
 pre.code {
 	margin-left: 3%;
-	background: #e1e1ee;
+	background: #dbdbee;
 	text-indent: 0%;
 }
 
 
+/* For inline (in-text) literals (i.e. surrounded with '``'): */
 .literal {
-	color: #162143;
-	font-weight: bold;
+	font-family: monospace, serif;
+	background: #dbdbee;
+	white-space: pre-wrap;
+	font-size: 90%;
 }
 
 
-/* For command printouts: */
+/* For command printouts (introduced with '::' then a block): */
 .literal-block {
 	background: #dbdbee;
 	margin-left: 2%;
@@ -41,8 +45,9 @@ pre.code {
 */
 
 
+/* Unused: */
 div.box {
-	color: #FF0000;
+	/*color: #FF0000;*/
 	background: #FFFFFF;
 	border: solid;
 	padding: 5px;
@@ -385,7 +390,7 @@ th {
 
 
 td {
-	background: #a0add4;
+	background: #dbdbee;
 	font-size: 14px;
 }
 
