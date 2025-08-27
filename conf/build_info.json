@@ -4,18 +4,18 @@
   "apps": [
 
     {
-		"_comment": "The value for the src_dirs entry for this layer can be generated/updated by executing: 'make list-src-dirs' from the root of this layer, and copying them verbatim below (relative paths already correct). The same applies for extra_src_dirs, with 'make list-extra-src-dirs'",
+	  "_comment": "The value for the src_dirs entry for this layer can be generated/updated by executing: 'make list-src-dirs' from the root of this layer, and copying them verbatim below (relative paths already correct). The same applies for extra_src_dirs, with 'make list-extra-src-dirs'",
       "name": "seaplus",
       "dir": "..",
       "src_dirs": ["./src"],
       "extra_src_dirs": ["test/c-test"],
-       "include_dirs": [
+      "include_dirs": [
         "include"
       ],
 
       "macros": {
-        "myriad_debug_mode": "true",
-        "wooper_debug_mode": "true"
+        "seaplus_debug_mode": "true",
+        "myriad_debug_mode": "true"
       }
     },
 
