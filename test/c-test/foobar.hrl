@@ -15,13 +15,13 @@
 % Mirrors foobar's struct foo_data:
 -record( foo_data, {
 
-	% Some comment about count:
-	count :: integer(),
+    % Some comment about count:
+    count :: integer(),
 
-	% Some comment about value:
-	% (note that this corresponds to a C double - not the original float)
-	%
-	value :: float()
+    % Some comment about value:
+    % (note that this corresponds to a C double - not the original float)
+    %
+    value :: float()
 
 } ).
 

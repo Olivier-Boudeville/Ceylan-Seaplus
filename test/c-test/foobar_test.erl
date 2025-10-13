@@ -44,106 +44,106 @@ Erlang counterpart translation of foobar_test.c, with additions at the end.
 
 run() ->
 
-	test_facilities:start( ?MODULE ),
+    test_facilities:start( ?MODULE ),
 
-	test_facilities:display( "The version of this currently tested Seaplus "
-		"library is ~ts (i.e. ~w).", [ seaplus:get_seaplus_version_string(),
-									   seaplus:get_seaplus_version() ] ),
+    test_facilities:display( "The version of this currently tested Seaplus "
+        "library is ~ts (i.e. ~w).", [ seaplus:get_seaplus_version_string(),
+                                       seaplus:get_seaplus_version() ] ),
 
-	test_facilities:display( "Testing the Erlang-integrated foobar service." ),
+    test_facilities:display( "Testing the Erlang-integrated foobar service." ),
 
-	% As we want to locate the libraries both for Seaplus and this Foobar test
-	% example:
-	%
-	system_utils:add_paths_for_library_lookup(
-		_Paths=[ "../../src/", "foobar/lib" ] ),
+    % As we want to locate the libraries both for Seaplus and this Foobar test
+    % example:
+    %
+    system_utils:add_paths_for_library_lookup(
+        _Paths=[ "../../src/", "foobar/lib" ] ),
 
-	% Not foobar:start_link(), as here we want to survive a crash of the foobar
-	% service (i.e. to be able to handle test-generated failures explicitly, as
-	% messages received by this test process):
-	%
-	foobar:start(),
+    % Not foobar:start_link(), as here we want to survive a crash of the foobar
+    % service (i.e. to be able to handle test-generated failures explicitly, as
+    % messages received by this test process):
+    %
+    foobar:start(),
 
-	MyFooData = foobar:bar( 3.14, full_speed ),
+    MyFooData = foobar:bar( 3.14, full_speed ),
 
-	110 = MyFooData#foo_data.count,
+    110 = MyFooData#foo_data.count,
 
-	% Actually should be a strict equality, yet '0.0 = MyFooData#foo_data.value'
-	% now reports that matching on the float 0.0 does not match any longer also
-	% -0.0, so:
-	%
-	true = math_utils:are_equal( 0.0, MyFooData#foo_data.value ),
+    % Actually should be a strict equality, yet '0.0 = MyFooData#foo_data.value'
+    % now reports that matching on the float 0.0 does not match any longer also
+    % -0.0, so:
+    %
+    true = math_utils:are_equal( 0.0, MyFooData#foo_data.value ),
 
-	NewCount = foobar:foo( MyFooData#foo_data.count ),
-
-
-	Res = case foobar:tur() of
-
-		true ->
-			foobar:baz( NewCount, "Hello" ) ;
-
-		false ->
-			non_tur_value
-
-	end,
-
-	io:format( "Having: ~ts~n", [ foobar:frob( Res ) ] ),
+    NewCount = foobar:foo( MyFooData#foo_data.count ),
 
 
-	test_facilities:display( "Now, some more extensive, extra testing." ),
+    Res = case foobar:tur() of
 
-	% Better than {ok, 4}, as we rely on exception support:
-	4 = foobar:foo( 3 ),
+        true ->
+            foobar:baz( NewCount, "Hello" ) ;
 
-	test_facilities:display( "Base testing successful.~nNow triggering on "
-		"purpose a crash of the integrated service "
-		"(so an error report should be displayed just next)." ),
+        false ->
+            non_tur_value
 
-	% Throwing an exception is better than returning {error, FailReason}:
-	FooCrashed = try
+    end,
 
-		% Expected to crash:
-		foobar:foo( 0 ),
-		false
-
-	catch throw:{ driver_crashed, ErrorReason } ->
-
-		test_facilities:display( "Exception thrown as expected, and is: ~p",
-								 [ ErrorReason ] ),
-
-		% Check (best option: read the seaplus log to investigate real crashes):
-		unknown_reason = ErrorReason,
-
-		true
-
-	end,
-
-	FooCrashed orelse throw( foo_exception_not_raised ),
-
-	test_facilities:display( "Next restart supposed to discover that this "
-		"(just crashed) service is not registered anymore." ),
-
-	foobar:restart(),
+    io:format( "Having: ~ts~n", [ foobar:frob( Res ) ] ),
 
 
-	test_facilities:display( "Performing extra operations on this newly "
-							 "restarted service instance." ),
+    test_facilities:display( "Now, some more extensive, extra testing." ),
 
-	#foo_data{ count=4, value = -20.0 } = foobar:bar( 2.0, moderate_speed ),
+    % Better than {ok, 4}, as we rely on exception support:
+    4 = foobar:foo( 3 ),
 
-	tur_value = foobar:baz( 10, "cat" ),
-	non_tur_value = foobar:baz( 7, "dog" ),
+    test_facilities:display( "Base testing successful.~nNow triggering on "
+        "purpose a crash of the integrated service "
+        "(so an error report should be displayed just next)." ),
 
-	true = foobar:tur(),
+    % Throwing an exception is better than returning {error, FailReason}:
+    FooCrashed = try
 
-	"this is tur" = foobar:frob( tur_value ),
-	"this is non-tur" = foobar:frob( non_tur_value ),
+        % Expected to crash:
+        foobar:foo( 0 ),
+        false
 
-	% To add: a test with a returned binary string, such as:
-	%<<"My beautiful binary">> = foobar:frob_bin( "beautiful" ),
+    catch throw:{ driver_crashed, ErrorReason } ->
 
-	test_facilities:display( "Finally stopping the tested service." ),
+        test_facilities:display( "Exception thrown as expected, and is: ~p",
+                                 [ ErrorReason ] ),
 
-	foobar:stop(),
+        % Check (best option: read the seaplus log to investigate real crashes):
+        unknown_reason = ErrorReason,
 
-	test_facilities:stop().
+        true
+
+    end,
+
+    FooCrashed orelse throw( foo_exception_not_raised ),
+
+    test_facilities:display( "Next restart supposed to discover that this "
+        "(just crashed) service is not registered anymore." ),
+
+    foobar:restart(),
+
+
+    test_facilities:display( "Performing extra operations on this newly "
+                             "restarted service instance." ),
+
+    #foo_data{ count=4, value = -20.0 } = foobar:bar( 2.0, moderate_speed ),
+
+    tur_value = foobar:baz( 10, "cat" ),
+    non_tur_value = foobar:baz( 7, "dog" ),
+
+    true = foobar:tur(),
+
+    "this is tur" = foobar:frob( tur_value ),
+    "this is non-tur" = foobar:frob( non_tur_value ),
+
+    % To add: a test with a returned binary string, such as:
+    %<<"My beautiful binary">> = foobar:frob_bin( "beautiful" ),
+
+    test_facilities:display( "Finally stopping the tested service." ),
+
+    foobar:stop(),
+
+    test_facilities:stop().

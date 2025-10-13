@@ -4,7 +4,7 @@
   "apps": [
 
     {
-	  "_comment": "The value for the src_dirs entry for this layer can be generated/updated by executing: 'make list-src-dirs' from the root of this layer, and copying them verbatim below (relative paths already correct). The same applies for extra_src_dirs, with 'make list-extra-src-dirs'",
+      "_comment": "The value for the src_dirs entry for this layer can be generated/updated by executing: 'make list-src-dirs' from the root of this layer, and copying them verbatim below (relative paths already correct). The same applies for extra_src_dirs, with 'make list-extra-src-dirs'",
       "name": "seaplus",
       "dir": "..",
       "src_dirs": ["./src"],

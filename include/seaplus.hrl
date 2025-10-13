@@ -40,11 +40,11 @@
 
 -export([ % Base service behaviour:
 
-		  % Auto-exported by the Seaplus parse transform:
-		  % start/0, start_link/0, stop/0,
+          % Auto-exported by the Seaplus parse transform:
+          % start/0, start_link/0, stop/0,
 
-		  restart/0,
-		  activate_seaplus/1 ]).
+          restart/0,
+          activate_seaplus/1 ]).
 
 
 
@@ -64,8 +64,8 @@
 %
 %-spec start() -> void().
 %start() ->
-	% Allows to register and identify target executable:
-%	seaplus:start( ?service_module_name ).
+    % Allows to register and identify target executable:
+%   seaplus:start( ?service_module_name ).
 
 
 
@@ -79,8 +79,8 @@
 %
 %-spec start_link() -> void().
 %start_link() ->
-	% Allows to register and identify target executable:
-%	seaplus:start_link( ?service_module_name ).
+    % Allows to register and identify target executable:
+%   seaplus:start_link( ?service_module_name ).
 
 
 
@@ -91,16 +91,16 @@
 %
 -spec restart() -> void().
 restart() ->
-	% So that user-code (not Seaplus one only) is triggered as well:
-	stop(),
-	start().
+    % So that user-code (not Seaplus one only) is triggered as well:
+    stop(),
+    start().
 
 
 
 % Stops the service.
 %-spec stop() -> void().
 %stop() ->
-%	seaplus:stop( ?service_module_name ).
+%   seaplus:stop( ?service_module_name ).
 
 
 
@@ -118,7 +118,7 @@ restart() ->
 %
 -spec activate_seaplus( [ seaplus_option() ] ) -> void().
 activate_seaplus( Options ) ->
-	Options.
+    Options.
 
 
 -endif. % override_seaplus_activation
