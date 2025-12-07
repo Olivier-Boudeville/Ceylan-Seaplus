@@ -88,7 +88,7 @@ Relies (only) on Ceylan-Myriad.
 
 
 -export([ start/1, start_link/1, start/2, start_link/2,
-          restart/1, restart/2, stop/1,
+          restart/1, restart/2, stop/1, stop/2,
           call_port_for/3, get_execution_target/0,
           check_driver_runnable/2, display_driver_runtime_info/2 ]).
 
@@ -115,10 +115,10 @@ stored in the process dictionary of the user process.
 -doc """
 The identifier of a function for the driver, as determined by Seaplus.
 
-(e.g. 1 for foo/1 in the toy example)
+(e.g. `1` for `foo/1` in the toy example)
 
 No easy way of translating back such an identifier into a function name/arity,
-except by looking at the generated src/SERVICE_seaplus_api_mapping.h header
+except by looking at the generated `src/SERVICE_seaplus_api_mapping.h` header
 file.
 """.
 -type function_driver_id() :: count().
@@ -138,9 +138,9 @@ file.
 -doc """
 Information stored in the process dictionary regarding an associated Seaplus
 driver in order to help the integration troubleshooting:
-- ExecPath is the executable path of the driver
-- ExtraEnv is the system environment applied when launching this driver
-- OSPid is the OS-level PID of this driver (knowing that, in case of a crash
+- `ExecPath` is the executable path of the driver
+- `ExtraEnv` is the system environment applied when launching this driver
+- `OSPid` is the OS-level PID of this driver (knowing that, in case of a crash
 thereof, it will be too late to fetch it hence, for example, to determine the
 name of its log file)
 """.
@@ -265,10 +265,10 @@ get_seaplus_version_string() ->
 Starts the support for the specified named service.
 
 The corresponding executable driver is implicit here, so its name is expected to
-be the one of the service once suffixed with "_seaplus_driver".
+be the one of the service once suffixed with `"_seaplus_driver"`.
 
-For example, a service 'foobar', hence having the Erlang-side bridge implemented
-in foobar.erl, is expected here to rely on the 'foobar_seaplus_driver' generated
+For example, a service `foobar`, hence having the Erlang-side bridge implemented
+in foobar.erl, is expected here to rely on the `foobar_seaplus_driver` generated
 executable.
 
 Note: as the created port is not linked here, as a side-effect the caller (user)
@@ -290,15 +290,15 @@ start( ServiceName ) when is_atom( ServiceName ) ->
 Starts and links the support for the specified named service.
 
 The corresponding driver is implicit here, so its name is expected to be the one
-of the service once suffixed with "_seaplus_driver".
+of the service once suffixed with `"_seaplus_driver"`.
 
-For example, a service 'foobar', hence having the Erlang-side bridge implemented
-in foobar.erl, is expected here to rely on the 'foobar_seaplus_driver' generated
+For example, a service `foobar`, hence having the Erlang-side bridge implemented
+in foobar.erl, is expected here to rely on the `foobar_seaplus_driver` generated
 executable.
 
 Note: as the created port is linked here, as a side-effect the caller (user)
 process will be set to *not* trapping exit signals; so it will die whenever a
-port-side problem happens. This is not the recommended choice, prefer start/1.
+port-side problem happens. This is not the recommended choice, prefer `start/1`.
 """.
 -spec start_link( service_name() ) -> void().
 start_link( ServiceName ) when is_atom( ServiceName ) ->
@@ -311,12 +311,12 @@ start_link( ServiceName ) when is_atom( ServiceName ) ->
 
 
 -doc """
-Starts the support for the specified named service, relying on specified
+Starts the support for the specified named service, relying on the specified
 executable name for the driver.
 
 Note: should the service itself or its driver crash (e.g. in the context of a
-call being triggered), the service user process will receive an
-{'EXIT',FromPort,Reason} message.
+call being triggered), the service user process will receive a
+`{'EXIT', FromPort, Reason}` message.
 """.
 -spec start( service_name(), executable_name() ) -> void().
 start( ServiceName, DriverExecutableName )
@@ -370,7 +370,13 @@ restart( ServiceName, DriverExecutableName ) ->
 
 -doc "Stops the specific service support.".
 -spec stop( service_name() ) -> void().
-stop( ServiceName ) when is_atom( ServiceName ) ->
+stop( ServiceName ) ->
+    stop( ServiceName, _IsVerbose=false ).
+
+
+-doc "Stops, verbosily or not, the specific service support.".
+-spec stop( service_name(), boolean() ) -> void().
+stop( ServiceName, IsVerbose ) when is_atom( ServiceName ) ->
 
     cond_utils:if_defined( seaplus_debug_general, trace_bridge:debug_fmt(
         "Stopping the '~ts' service.", [ ServiceName ] ) ),
@@ -380,8 +386,9 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
     case process_dictionary:get( ServiceKey ) of
 
         undefined ->
-            trace_bridge:warning_fmt( "Service key '~ts', for service '~ts', "
-                "not found, so service is supposed not to be running - "
+            IsVerbose andalso trace_bridge:warning_fmt(
+                "Service key '~ts', for service '~ts', not found "
+                "so service is supposed not to be running - "
                 "hence not to be stopped.", [ ServiceKey, ServiceName ] );
 
         TargetPort ->
@@ -413,8 +420,6 @@ stop( ServiceName ) when is_atom( ServiceName ) ->
 
 -doc """
 Returns the filename of the executable corresponding to specified service.
-
-(helper)
 """.
 -spec get_driver_name( service_name() ) -> executable_name().
 get_driver_name( ServiceName ) ->
@@ -426,8 +431,6 @@ get_driver_name( ServiceName ) ->
 Returns the path to the executable corresponding to specified service.
 
 May enrich various OS process-level settings (e.g. to locate executables).
-
-(helper)
 """.
 -spec secure_driver_path( service_name(), executable_name() ) ->
             executable_path().
@@ -568,7 +571,7 @@ secure_driver_path( ServiceName, DriverExecutableName ) ->
 
 
 -doc """
-Returns the base paths of the specified ones, except those ending with 'ebin'.
+Returns the base paths of the specified ones, except those ending with `ebin`.
 """.
 filter_ebin_dirs( Paths ) ->
     filter_ebin_dirs( Paths, _Acc=[] ).
@@ -596,11 +599,9 @@ filter_ebin_dirs( _Paths=[ FullPath | T ], Acc ) ->
 
 
 -doc """
-Launches specified service support.
+Launches the specified service support.
 
-DriverExecPath supposed already checked for existence.
-
-(helper)
+`DriverExecPath` supposed already checked for existence.
 """.
 -spec launch( service_name(), executable_path() ) -> void().
 launch( ServiceName, DriverExecPath ) ->
@@ -632,9 +633,7 @@ launch_link( ServiceName, DriverExecPath ) ->
 -doc """
 Inits the driver of specified service.
 
-DriverExecPath supposed already checked for existence.
-
-(helper)
+`DriverExecPath` supposed already checked for existence.
 """.
 init_driver( ServiceName, DriverExecPath ) ->
 
@@ -831,12 +830,12 @@ display_driver_runtime_info( ExecPath, ExtraEnvironment ) ->
 The actual bridge from the user code to the port (and then to the driver).
 
 The function driver identifier will suffice, no real need to pass along the
-basic_utils:function_name().
+`basic_utils:function_name/0`.
 
 Will return the result of the corresponding call, or will raise an exception.
 """.
 -spec call_port_for( service_key(), function_driver_id(), function_params() ) ->
-                        function_result().
+                                                function_result().
 call_port_for( ServiceKey, FunctionId, Params ) ->
 
     TargetPort = case process_dictionary:get( ServiceKey ) of
@@ -844,8 +843,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
         undefined ->
             trace_bridge:error_fmt( "Service key '~ts' not set in process "
                 "dictionary of ~p; has the corresponding Seaplus-based "
-                "service been started?",
-                [ ServiceKey, self() ] ),
+                "service been started?", [ ServiceKey, self() ] ),
 
             throw( { seaplus_service_key_not_set, ServiceKey } );
 
@@ -883,9 +881,9 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
         { TargetPort, { data, BinAnswer } } ->
 
             cond_utils:if_defined( seaplus_debug_driver, trace_bridge:debug_fmt(
-                "Term received by ~w from C side "
-                "(port: ~w) for service '~ts', in answer to "
-                "a call to the function whose identifier is ~B:~n~p",
+                "Term received by ~w from C side (port: ~w) for service '~ts', "
+                "in answer to a call to the function whose identifier "
+                "is ~B:~n~p",
                 [ self(), TargetPort,
                   get_service_name_from_port_key( ServiceKey ), FunctionId,
                   BinAnswer ] ) ),
@@ -944,7 +942,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
             %trace_bridge:warning_fmt( "Normal EXIT of port ~p.",
             %                          [ TargetPort ] ),
 
-            % In order to call display_driver_runtime_info
+            % In order to call display_driver_runtime_info:
             trace_bridge:error_fmt( "Crash of the driver port (~w) reported "
                 "to calling process ~w (no reason was specified).",
                 [ TargetPort, self() ] ),
@@ -1119,7 +1117,7 @@ get_existing_driver_log_path_from_os_pid( OSPid ) ->
 Returns the key that shall be used in order to store information in the process
 dictionary of the calling user process for the specified service.
 
-Note: must agree with seaplus_parse_transform:get_port_dict_key_for/1.
+Note: must agree with `seaplus_parse_transform:get_port_dict_key_for/1`.
 """.
 -spec get_service_port_key_for( service_name() ) -> service_key().
 get_service_port_key_for( ServiceName ) ->
@@ -1128,7 +1126,7 @@ get_service_port_key_for( ServiceName ) ->
 
 
 
--doc "Reciprocal of get_service_port_key_for/1.".
+-doc "Reciprocal of `get_service_port_key_for/1`.".
 -spec get_service_name_from_port_key( service_key() ) -> service_name().
 get_service_name_from_port_key( ServicePortKey ) ->
 
