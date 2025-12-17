@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2025 Olivier Boudeville
+ * Copyright (C) 2018-2026 Olivier Boudeville
  *
  * This file is part of the Ceylan-Seaplus library.
  *
@@ -24,7 +24,7 @@
  * <http://www.mozilla.org/MPL/>.
  *
  * Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
- * Creation date: Sunday, December 16, 2018
+ * Creation date: Sunday, December 16, 2018.
  *
  */
 
@@ -37,56 +37,58 @@
 
 
 /**
- * Writes in specified return buffer the specified boolean result.
+ * Writes in the specified return buffer the specified boolean result.
  *
  */
 void write_bool_result( output_buffer * output_sm_buf, bool b ) ;
 
 
 /**
- * Writes in specified return buffer the specified (signed) integer result.
+ * Writes in the specified return buffer the specified (signed) integer result.
  *
  */
 void write_int_result( output_buffer * output_sm_buf, int i ) ;
 
 
 /**
- * Writes in specified return buffer the specified unsigned integer result.
+ * Writes in the specified return buffer the specified unsigned integer result.
  *
  */
-void write_unsigned_int_result( output_buffer * output_sm_buf, unsigned int u ) ;
+void write_unsigned_int_result( output_buffer * output_sm_buf,
+								unsigned int u ) ;
 
 
 /**
- * Writes in specified return buffer the specified double result.
+ * Writes in the specified return buffer the specified double result.
  *
  */
 void write_double_result( output_buffer * output_sm_buf, double d ) ;
 
 
 /**
- * Writes in specified return buffer the specified atom result, based on
- * specified (NULL-terminated) string.
+ * Writes in the specified return buffer the specified atom result, based on
+ * the specified (NULL-terminated) string.
  *
  * Note: not taking ownership of the input string.
  *
  */
-void write_atom_result( output_buffer * output_sm_buf, const char * atom_name ) ;
+void write_atom_result( output_buffer * output_sm_buf,
+						const char * atom_name ) ;
 
 
 /**
- * Writes in specified return buffer the specified (NULL-terminated) string
- * result, of specified length.
+ * Writes in the specified return buffer the specified (NULL-terminated) string
+ * result, of the specified length.
  *
  * Note: not taking ownership of the input string.
  *
  */
-void write_string_with_length_result( output_buffer * output_sm_buf, const char * string,
-  size_t length ) ;
+void write_string_with_length_result( output_buffer * output_sm_buf,
+									  const char * string, size_t length ) ;
 
 
 /**
- * Writes in specified return buffer the specified string result.
+ * Writes in the specified return buffer the specified string result.
  *
  * Note: not taking ownership of the input string.
  *
@@ -95,8 +97,8 @@ void write_string_result( output_buffer * output_sm_buf, const char * string ) ;
 
 
 /**
- * Writes in specified return buffer the specified binary result, of specified
- * size.
+ * Writes in the specified return buffer the specified binary result, of the
+ * specified size.
  *
  * Note: not taking ownership of the input binary.
  *
@@ -106,8 +108,8 @@ void write_binary_result( output_buffer * output_sm_buf, const void * content,
 
 
 /**
- * Writes in specified return buffer the specified binary result obtained from a
- * string.
+ * Writes in the specified return buffer the specified binary result obtained
+ * from a string.
  *
  * Note: not taking ownership of the input string.
  *
@@ -118,7 +120,7 @@ void write_binary_string_result( output_buffer * output_sm_buf,
 
 
 /**
- * Writes in specified return buffer the specified list header result.
+ * Writes in the specified return buffer the specified list header result.
  *
  * For a list declared of size N (hence having N elements), the N next writes
  * will correspond to the expected terms to form said list.
@@ -133,12 +135,13 @@ void write_list_header_result( output_buffer * output_sm_buf,
 
 
 /**
- * Writes in specified return buffer an empty list.
+ * Writes in the specified return buffer an empty list.
  *
  * Especially useful to write lists whose size is not known a priori, by
  * cons'ing elements one by one until none is left.
  *
- * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header for more information.
+ * See http://erlang.org/doc/man/ei.html#ei_x_encode_list_header for more
+ * information.
  *
  */
 void write_empty_list_result( output_buffer * output_sm_buf ) ;
@@ -146,7 +149,7 @@ void write_empty_list_result( output_buffer * output_sm_buf ) ;
 
 
 /**
- * Writes in specified return buffer the specified tuple header result.
+ * Writes in the specified return buffer the specified tuple header result.
  *
  * For a tuple declared of size N (hence having N elements), the N next writes
  * will correspond to the expected terms to form said tuple.
