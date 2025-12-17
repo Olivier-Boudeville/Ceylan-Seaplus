@@ -1032,7 +1032,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
 Returns debug hints to help the user in case of trouble about a function call.
 """.
 -spec get_call_debug_hints( service_key(), function_driver_id(),
-                       function_params() ) -> ustring().
+                            function_params() ) -> ustring().
 get_call_debug_hints( ServiceKey, FunctionId, Params ) ->
     ServiceName = get_service_name_from_port_key( ServiceKey ),
     Arity = length( Params ),
@@ -1043,8 +1043,7 @@ get_call_debug_hints( ServiceKey, FunctionId, Params ) ->
 
         LogPath ->
             text_utils:format( "~nExtra information may be found in the logs "
-                "of the Seaplus driver, in '~ts'.",
-                [ LogPath ] )
+                "of the Seaplus driver, in '~ts'.", [ LogPath ] )
 
     end,
 
