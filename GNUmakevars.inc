@@ -38,18 +38,25 @@ endif
 
 
 # One may define here:
-# EXECUTION_TARGET := production / development [the default]
-# ENABLE_DEBUG := false / true [the default]
+# - EXECUTION_TARGET := production / development [the default]
+# - ENABLE_DEBUG := false / true [the default]; this debug mode enables verbose
+# logging (details about ongoing operations being reported)
+
+
+# Now in all cases (even non-debug), we enable the (C-side) Seaplus logs, as we
+# want at least some information to be reported in case of a driver crash:
+#
+SEAPLUS_DEBUG_OPT := -DSEAPLUS_ENABLE_LOG=1
 
 
 # Tells whether the debug mode will be activated for the next Seaplus modules to
 # be built (maximum performance versus extended checkings).
 #
 ifeq ($(ENABLE_DEBUG),true)
-	SEAPLUS_DEBUG_OPT := -DDEBUG_SEAPLUS -DSEAPLUS_ENABLE_LOG=1
+	SEAPLUS_DEBUG_OPT := -DDEBUG_SEAPLUS
 	ENABLE_SEAPLUS_DEBUG_OPT = -Dseaplus_debug_mode
 else
-	SEAPLUS_DEBUG_OPT := -DSEAPLUS_ENABLE_LOG=0
+	SEAPLUS_DEBUG_OPT :=
 	ENABLE_SEAPLUS_DEBUG_OPT =
 endif
 
@@ -113,7 +120,7 @@ endif
 # The uniquely-defined version of this layer, for all uses (including rebar, hex
 # and the code itself, see seaplus:get_seaplus_version{_string,}/0):
 #
-SEAPLUS_VERSION := 1.2.1
+SEAPLUS_VERSION := 1.2.2
 
 
 # PROJECT_VERSION should be defined on a per-project basis.
