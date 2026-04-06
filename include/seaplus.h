@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2025 Olivier Boudeville
+ * Copyright (C) 2018-2026 Olivier Boudeville
  *
  * This file is part of the Ceylan-Seaplus library.
  *
@@ -130,7 +130,8 @@ void start_seaplus_driver( input_buffer buf ) ;
 
 
 
-#if SEAPLUS_ENABLE_LOG
+#if SEAPLUS_ENABLE_LOG > 0 && DEBUG_SEAPLUS
+
 
 /* Note that ## is rather gcc-specific:
  * (https://gcc.gnu.org/onlinedocs/gcc/Variadic-Macros.html)
@@ -141,13 +142,16 @@ void start_seaplus_driver( input_buffer buf ) ;
 #define LOG_TRACE( format, ... ) log_trace( format, ## __VA_ARGS__ )
 #define LOG_WARNING( format, ... ) log_warning( format, ## __VA_ARGS__ )
 
-#else // SEAPLUS_ENABLE_LOG
+
+#else // SEAPLUS_ENABLE_LOG > 0 && DEBUG_SEAPLUS
+
 
 #define LOG_DEBUG( format, ... )
 #define LOG_TRACE( format, ... )
 #define LOG_WARNING( format, ... )
 
-#endif // SEAPLUS_ENABLE_LOG
+
+#endif // SEAPLUS_ENABLE_LOG > 0 && DEBUG_SEAPLUS
 
 
 
@@ -162,15 +166,15 @@ void log_warning( const char * format, ... ) ;
 
 
 
-/* Raises specified error, based on a specified arguments: reports it in logs,
- * and halts.
+/* Raises the specified error, based on the specified arguments: reports it in
+ * logs, and halts.
  *
  */
 void raise_error( const char * format, ... ) ;
 
 
-/* Raises specified error, based on a variadic argument: reports it in logs, and
- * halts.
+/* Raises the specified error, based on variadic arguments: reports it in logs,
+ * and halts.
  *
  * Useful to report errors from a driver. For an example, see in Ceylan-Mobile:
  *   void raise_gammu_error( GSM_StateMachine * gammu_fsm,
@@ -183,7 +187,7 @@ void raise_error_variadic( const char * format, va_list *values ) ;
 /**
  * Prepares for the encoding of the next upcoming command.
  *
- * A buffer is specified, as in some cases (ex: interrupt handling) multiple
+ * A buffer is specified, as in some cases (e.g. interrupt handling) multiple
  * output buffers may be useful.
  *
  */
@@ -191,10 +195,10 @@ void prepare_for_command( output_buffer * output_sm_buf ) ;
 
 
 /**
- * Finalizes the current command, provided it performed directly at least one
+ * Finalises the current command, provided it performed directly at least one
  * write, which is by far the most general case.
  *
- * Not to be called if the actual writing is to be done elsewhere (ex: from an
+ * Not to be called if the actual writing is to be done elsewhere (e.g. from an
  * interrupt handler triggered later, asynchronously).
  *
  */

@@ -9,7 +9,7 @@
 
 
 % Part of the foobar Erlang-side API that shall be shared between the
-% integration module (foobar.erl) and the user code (ex: foobar_test.erl).
+% integration module (foobar.erl) and the user code (e.g. foobar_test.erl).
 
 
 % Mirrors foobar's struct foo_data:

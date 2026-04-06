@@ -31,11 +31,11 @@
 Overall *parse transform for the Seaplus layer*, in charge of streamlining the
 integration of any C-based service.
 
-Meant, for a Foobar service, to operate on a foobar.erl stub, so that:
+Meant, for a `Foobar` service, to operate on a `foobar.erl` stub, so that:
 
-- a fully-functional foobar module becomes available
+- a fully-functional `foobar` module becomes available
 
-- a corresponding foobar_seaplus_api_mapping.h C header is generated in order
+- a corresponding `foobar_seaplus_api_mapping.h` C header is generated in order
 to ease the development of the corresponding C-side driver
 """.
 
@@ -159,7 +159,7 @@ specific preprocessor option.
 
 This allows to benefit from all compilation error and warning messages, whereas
 they are seldom available from a code directly run as a parse transform
-(e.g. 'undefined parse transform 'foobar'' as soon as a function or a module is
+(e.g. `undefined parse transform 'foobar'` as soon as a function or a module is
 not found).
 """.
 -spec run_standalone( file_name() ) -> { ast(), module_info() }.
@@ -175,7 +175,7 @@ specified preprocessor options.
 
 This allows to benefit from all compilation error and warning messages, whereas
 they are seldom available from a code directly run as a parse transform
-(e.g. 'undefined parse transform 'foobar'' as soon as a function or a module is
+(e.g. `undefined parse transform 'foobar'` as soon as a function or a module is
 not found).
 """.
 -spec run_standalone( file_name(), [ preprocessor_option() ] ) ->
@@ -477,7 +477,7 @@ handle_control_functions( ModuleInfo ) ->
 
 
 
--doc "Ensures that the start/0 function starts Seaplus as well.".
+-doc "Ensures that the `start/0` function starts Seaplus as well.".
 handle_start_function( ModuleInfo=#module_info{
                                     module={ ModName, _LocForm },
                                     functions=FunctionTable } ) ->
@@ -560,7 +560,7 @@ handle_start_function( ModuleInfo=#module_info{
 
 
 
--doc "Ensures that the start_link/0 function starts Seaplus as well.".
+-doc "Ensures that the `start_link/0` function starts Seaplus as well.".
 handle_start_link_function( ModuleInfo=#module_info{
                                         module={ ModName, _LocForm },
                                         functions=FunctionTable } ) ->
@@ -645,7 +645,7 @@ handle_start_link_function( ModuleInfo=#module_info{
 
 
 
--doc "Ensures that the stop/0 function stops Seaplus as well.".
+-doc "Ensures that the `stop/0` function stops Seaplus as well.".
 handle_stop_function( ModuleInfo=#module_info{ module={ ModName, _LocForm },
                                                functions=FunctionTable } ) ->
 
@@ -888,15 +888,15 @@ write_cases( SourceFile, _FunIds=[ { FunName, Arity } | T ] ) ->
                 "functions).~n~n"
         "\t\t// As an example, supposing that a single input parameter of "
         "type 'int'~n\t\t// applies for this ~ts/~B function:~n"
-        "\t\t// int i = read_int_parameter( read_buf, &index ) ;~n~n"
-        "\t\t// This allows then to call the C counterpart of~n"
-        "\t\t// the ~ts/~B function:~n"
-        "\t\t// For example float f = some_service_function( i ) ;~n~n"
+        "\t\t// int i = read_int_parameter(read_buf, &index) ;~n~n"
+        "\t\t// This allows then calling the C counterpart of~n"
+        "\t\t// the ~ts/~B function, for example:~n"
+        "\t\t// float f = some_service_function(i) ;~n~n"
         "\t\t// Then write the returned result to the Erlang side:~n"
         "\t\t// (refer to seaplus_setters.h for the conversion functions)"
                 "~n"
-        "\t\t// For example write_double_result( &output_sm_buf, "
-        "(double) f ) ;~n~n"
+        "\t\t// For example write_double_result(&output_sm_buf, "
+        "(double) f) ;~n~n"
         "\t\t// Do not forget to deallocate any relevant memory!~n"
         "\t\t// (refer to foobar_seaplus_driver.c for an example)~n~n"
         "\t\tbreak ;~n",
@@ -1015,7 +1015,7 @@ select_for_binding( [ FInfo=#function_info{ name=Name,
 
 
 -doc """
-Either generate (if no clause defined) or transform (otherwise) the listed API
+Either generates (if no clause defined) or transforms (otherwise) the listed API
 functions.
 """.
 post_process_fun_infos( FunInfos, PortDictKey, ExportLoc, DefLoc ) ->
@@ -1117,7 +1117,6 @@ post_process_fun_infos( [ FInfo=#function_info{ name=Name,
 Performs the AST substitutions in the user-provided clauses.
 
 (anonymous mute variables correspond to line numbers)
-
 """.
 -spec call_transformer( ast_base:line(),
                 ast_expression:function_ref_expression(),
@@ -1182,7 +1181,7 @@ get_seaplus_function_ids() ->
 -doc """
 Returns the (atom) key under which the corresponding port will be stored.
 
-This must agree with seaplus:get_service_port_key_for/1; not called directly
+This must agree with `seaplus:get_service_port_key_for/1`; not called directly,
 here as we prefer have this parse transform and the seaplus module not depending
 on each other.
 """.

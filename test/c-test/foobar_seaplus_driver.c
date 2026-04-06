@@ -1,5 +1,3 @@
-
-
 /*
  * C Seaplus driver in charge of converting, for each function exposed by the
  * 'foobar' service API, the Erlang parameters received from
@@ -91,8 +89,8 @@ int main( int argc, char *argv[] )
 	// Current index in the input buffer (for decoding purpose):
 	buffer_index index = 0 ;
 
-	/* Will be set to the corresponding Seaplus-defined function identifier (ex:
-	 * whose value is FOO_1_ID):
+	/* Will be set to the corresponding Seaplus-defined function identifier
+	 * (e.g. whose value is FOO_1_ID):
 	 *
 	 */
 	fun_id current_fun_id ;

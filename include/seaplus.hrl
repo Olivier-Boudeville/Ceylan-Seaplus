@@ -29,7 +29,7 @@
 
 % This header file auto-defines the Seaplus base, generic service functions.
 %
-% It is meant to be included by the bridging modules (ex: for a Foobar service,
+% It is meant to be included by the bridging modules (e.g. for a Foobar service,
 % by foobar.erl).
 
 
@@ -57,14 +57,14 @@
 %
 % Preferred form, to detect crashes of the driver and/or of the integrated
 % library: the current process will then trap EXIT signals, and thus Seaplus
-% will throw a { driver_crashed, ErrorReason } exception if appropriate.
+% will throw a {driver_crashed, ErrorReason} exception if appropriate.
 %
-% As a result, the user code may catch this exception and react accordingly (ex:
-% by restaring the driver).
+% As a result, the user code may catch this exception and react accordingly
+% (e.g. by restarting the driver).
 %
 %-spec start() -> void().
 %start() ->
-    % Allows to register and identify target executable:
+%   % Allows to register and identify target executable:
 %   seaplus:start( ?service_module_name ).
 
 
@@ -84,7 +84,7 @@
 
 
 
-% Restarts the support of this foobar service (ex: to overcome a detected crash
+% Restarts the support of this foobar service (e.g. to overcome a detected crash
 % thereof).
 %
 % Note: performs a start/0, not a start_link/0.

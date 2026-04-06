@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2025 Olivier Boudeville
+ * Copyright (C) 2018-2026 Olivier Boudeville
  *
  * This file is part of the Ceylan-Seaplus library.
  *
@@ -247,6 +247,9 @@ void raise_error(const char *format, ...) {
  *   void raise_gammu_error( GSM_StateMachine * gammu_fsm,
  *                           const char * format, ... )
  *
+ * Of course crashing the Seaplus driver will impact (freeze/time-out) any
+ * process trying to interact with it.
+ *
  */
 void raise_error_variadic(const char *format, va_list *values) {
 
@@ -282,7 +285,8 @@ void start_seaplus_driver(input_buffer buf) {
 
   start_logging(log_filename);
 
-  LOG_DEBUG("Starting the Seaplus C driver, with an input buffer of %u bytes.",
+  // Now always written, even in debug mode:
+  log_debug("Starting the Seaplus C driver, with an input buffer of %u bytes.",
 			input_buffer_size);
 
   ei_error error = ei_init();
@@ -303,7 +307,7 @@ void start_seaplus_driver(input_buffer buf) {
  */
 void stop_seaplus_driver(input_buffer input_buffer) {
 
-  LOG_DEBUG("Stopping the Seaplus C driver.");
+  log_debug("Stopping the Seaplus C driver.");
 
   if (encoded_string != NULL) {
 	free(encoded_string);

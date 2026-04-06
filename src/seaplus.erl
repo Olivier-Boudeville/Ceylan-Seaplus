@@ -1013,7 +1013,7 @@ call_port_for( ServiceKey, FunctionId, Params ) ->
             trace_bridge:error_fmt( "Received exit failure from the driver "
                 "port (~p), reason: ~p", [ TargetPort, Reason ] ),
 
-            throw( { driver_crashed, Reason } )
+            throw( { driver_exited, Reason } )
 
         % Not our business either:
         %{ 'EXIT', OtherPort, Reason } ->

@@ -83,8 +83,8 @@ int main( int argc, char *argv[] )
 	// Current index in the input buffer (for decoding purpose):
 	buffer_index index = 0 ;
 
-	/* Will be set to the corresponding Seaplus-defined function identifier (ex:
-	 * whose value is FOO_1_ID):
+	/* Will be set to the corresponding Seaplus-defined function identifier
+	 * (e.g. whose value is FOO_1_ID):
 	 *
 	 */
 	fun_id current_fun_id ;
@@ -118,15 +118,15 @@ int main( int argc, char *argv[] )
 
 		// As an example, supposing that a single input parameter of type 'int'
 		// applies for this foo/1 function:
-		// int i = read_int_parameter( read_buf, &index ) ;
+		// int i = read_int_parameter(read_buf, &index) ;
 
-		// This allows then to call the C counterpart of
-		// the foo/1 function:
-		// For example float f = some_service_function( i ) ;
+		// This allows then calling the C counterpart of
+		// the foo/1 function, for example:
+		// float f = some_service_function(i) ;
 
 		// Then write the returned result to the Erlang side:
 		// (refer to seaplus_setters.h for the conversion functions)
-		// For example write_double_result( &output_sm_buf, (double) f ) ;
+		// For example write_double_result(&output_sm_buf, (double) f) ;
 
 		// Do not forget to deallocate any relevant memory!
 		// (refer to foobar_seaplus_driver.c for an example)
@@ -146,9 +146,9 @@ int main( int argc, char *argv[] )
 		// applies for this bar/2 function:
 		// int i = read_int_parameter( read_buf, &index ) ;
 
-		// This allows then to call the C counterpart of
-		// the bar/2 function:
-		// For example float f = some_service_function( i ) ;
+		// This allows then calling the C counterpart of
+		// the bar/2 function, for example:
+		// float f = some_service_function( i ) ;
 
 		// Then write the returned result to the Erlang side:
 		// (refer to seaplus_setters.h for the conversion functions)
@@ -170,15 +170,15 @@ int main( int argc, char *argv[] )
 
 		// As an example, supposing that a single input parameter of type 'int'
 		// applies for this baz/2 function:
-		// int i = read_int_parameter( read_buf, &index ) ;
+		// int i = read_int_parameter(read_buf, &index) ;
 
-		// This allows then to call the C counterpart of
-		// the baz/2 function:
-		// For example float f = some_service_function( i ) ;
+		// This allows then calling the C counterpart of
+		// the baz/2 function, for example:
+		// float f = some_service_function(i) ;
 
 		// Then write the returned result to the Erlang side:
 		// (refer to seaplus_setters.h for the conversion functions)
-		// For example write_double_result( &output_sm_buf, (double) f ) ;
+		// For example write_double_result(&output_sm_buf, (double) f) ;
 
 		// Do not forget to deallocate any relevant memory!
 		// (refer to foobar_seaplus_driver.c for an example)
@@ -196,15 +196,15 @@ int main( int argc, char *argv[] )
 
 		// As an example, supposing that a single input parameter of type 'int'
 		// applies for this tur/0 function:
-		// int i = read_int_parameter( read_buf, &index ) ;
+		// int i = read_int_parameter(read_buf, &index) ;
 
-		// This allows then to call the C counterpart of
-		// the tur/0 function:
-		// For example float f = some_service_function( i ) ;
+		// This allows then calling the C counterpart of
+		// the tur/0 function, for example:
+		// float f = some_service_function(i) ;
 
 		// Then write the returned result to the Erlang side:
 		// (refer to seaplus_setters.h for the conversion functions)
-		// For example write_double_result( &output_sm_buf, (double) f ) ;
+		// For example write_double_result(&output_sm_buf, (double) f) ;
 
 		// Do not forget to deallocate any relevant memory!
 		// (refer to foobar_seaplus_driver.c for an example)
@@ -222,15 +222,15 @@ int main( int argc, char *argv[] )
 
 		// As an example, supposing that a single input parameter of type 'int'
 		// applies for this frob/1 function:
-		// int i = read_int_parameter( read_buf, &index ) ;
+		// int i = read_int_parameter(read_buf, &index) ;
 
-		// This allows then to call the C counterpart of
-		// the frob/1 function:
-		// For example float f = some_service_function( i ) ;
+		// This allows then calling the C counterpart of
+		// the frob/1 function, for example:
+		// float f = some_service_function(i) ;
 
 		// Then write the returned result to the Erlang side:
 		// (refer to seaplus_setters.h for the conversion functions)
-		// For example write_double_result( &output_sm_buf, (double) f ) ;
+		// For example write_double_result(&output_sm_buf, (double) f) ;
 
 		// Do not forget to deallocate any relevant memory!
 		// (refer to foobar_seaplus_driver.c for an example)
