@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2025 Olivier Boudeville
+ * Copyright (C) 2018-2026 Olivier Boudeville
  *
  * This file is part of the Ceylan-Seaplus tests and examples.
  *
