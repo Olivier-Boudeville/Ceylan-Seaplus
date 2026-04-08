@@ -141,6 +141,7 @@ void start_seaplus_driver( input_buffer buf ) ;
 #define LOG_DEBUG( format, ... ) log_debug( format, ## __VA_ARGS__ )
 #define LOG_TRACE( format, ... ) log_trace( format, ## __VA_ARGS__ )
 #define LOG_WARNING( format, ... ) log_warning( format, ## __VA_ARGS__ )
+#define LOG_ERROR( format, ... ) log_error( format, ## __VA_ARGS__ )
 
 
 #else // SEAPLUS_ENABLE_LOG > 0 && DEBUG_SEAPLUS
@@ -149,6 +150,7 @@ void start_seaplus_driver( input_buffer buf ) ;
 #define LOG_DEBUG( format, ... )
 #define LOG_TRACE( format, ... )
 #define LOG_WARNING( format, ... )
+#define LOG_ERROR( format, ... )
 
 
 #endif // SEAPLUS_ENABLE_LOG > 0 && DEBUG_SEAPLUS
@@ -163,6 +165,9 @@ void log_trace( const char * format, ... ) ;
 
 // Logs specified warning message.
 void log_warning( const char * format, ... ) ;
+
+// Logs specified error message.
+void log_error( const char * format, ... ) ;
 
 
 

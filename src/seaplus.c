@@ -225,6 +225,30 @@ void log_warning(const char *format, ...) {
   }
 }
 
+
+// Logs the specified error message.
+void log_error(const char *format, ...) {
+
+  if (log_file != NULL) {
+
+	time_t t = time(NULL);
+
+	struct tm tm = *localtime(&t);
+
+	fprintf(log_file, SEAPLUS_TIMESTAMP_FORMAT "[error] ", tm.tm_year + 1900,
+			tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+	va_list arg_ptr;
+
+	va_start(arg_ptr, format);
+	vfprintf(log_file, format, arg_ptr);
+	va_end(arg_ptr);
+
+	fprintf(log_file, "\n");
+  }
+}
+
+
 /* Raises the specified error, based on specified arguments: reports it in logs,
  * and halts.
  *
@@ -252,6 +276,8 @@ void raise_error(const char *format, ...) {
  *
  */
 void raise_error_variadic(const char *format, va_list *values) {
+
+  // (log_error could be used)
 
   if (log_file != NULL) {
 
@@ -292,7 +318,7 @@ void start_seaplus_driver(input_buffer buf) {
   ei_error error = ei_init();
 
   if (error != 0)
-	raise_error("The ei service could not be successfully initialized: %s.",
+	raise_error("The ei service could not be successfully initialised: %s.",
 				strerror(error));
 
   *buf = (byte *)malloc(input_buffer_size);
