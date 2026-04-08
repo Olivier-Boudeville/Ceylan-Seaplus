@@ -555,11 +555,11 @@ When integrating a C service, the most difficult part is ensuring the sanity of 
 
 To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done *by the driver* (including the user code and the Seaplus facilities on which it relies).
 
-This log system is enabled by default when compiling the library (see the ``SEAPLUS_ENABLE_LOG`` preprocessor symbol and `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_ for the various build settings); this allows the ``log_{debug,trace,warning}`` functions to emit driver log, in a dedicated file, for live and/or postmortem analysis.
+This log system is enabled by default when compiling the library (see the ``SEAPLUS_ENABLE_LOG`` preprocessor symbol and `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_ for the various build settings); this allows the ``log_{debug,trace,warning}`` functions to emit driver logs, in a dedicated file, for live and/or postmortem analysis.
 
 If additionally the ``DEBUG_SEAPLUS`` symbol is defined, then many Seaplus internal functions, which make use of the ``LOG_{DEBUG,TRACE,WARNING}`` macros, will log their actions as well.
 
-This ``DEBUG_SEAPLUS`` symbol may either be explicitly set (e.g. with ``make all ENABLE_DEBUG=true``) or implied by the ``development`` (default) execution target (knowing that it is not set with the ``production`` one). So by default Seaplus debug logs will be issued, whereas ``make all EXECUTION_TARGET=production`` will disable them (then no runtime penalty will be incurred).
+This ``DEBUG_SEAPLUS`` symbol may either be explicitly set (e.g. with ``make clean all ENABLE_DEBUG=true``) or implied by the ``development`` (default) execution target (knowing that this symbol is not set with the ``production`` execution target). So by default Seaplus debug logs will be issued, whereas ``make all clean EXECUTION_TARGET=production`` will disable them (and then no runtime penalty will be incurred).
 
 ``make info-c-compile`` and ``make info-c-compile ENABLE_DEBUG=false`` may be run to check the (compile-time) differences.
 
