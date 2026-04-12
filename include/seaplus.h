@@ -157,16 +157,16 @@ void start_seaplus_driver( input_buffer buf ) ;
 
 
 
-// Logs specified debug message.
+// Logs the specified debug message.
 void log_debug( const char * format, ... ) ;
 
-// Logs specified trace message.
+// Logs the specified trace message.
 void log_trace( const char * format, ... ) ;
 
-// Logs specified warning message.
+// Logs the specified warning message.
 void log_warning( const char * format, ... ) ;
 
-// Logs specified error message.
+// Logs the specified error message.
 void log_error( const char * format, ... ) ;
 
 
