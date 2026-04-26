@@ -286,8 +286,8 @@ enum foo_status get_foo_status_from_atom( const char * atom_name )
 
 /* Returns a foo_data record from specified counterpart struct.
  *
- * We want to return a foo_data record, i.e. a { foo_data, Count:: integer(),
- * Value:: float() } triplet.
+ * We want to return a foo_data record, i.e. a {foo_data, Count:: integer(),
+ * Value:: float()} triplet.
  *
  * Note: ownership of the returned term transferred to the caller.
  *
@@ -308,7 +308,7 @@ void write_foo_data_record_from_struct( output_buffer * output_sm_buf,
 /**
  * Returns a tur_status enum from specified atom name (as a string).
  *
- * Note: not taking ownership of the input atom).
+ * Note: not taking ownership of the input atom.
  *
  */
 enum tur_status get_tur_status_enum_from_atom_name( const char * atom_name )
