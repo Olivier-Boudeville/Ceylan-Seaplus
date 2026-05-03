@@ -123,23 +123,24 @@ void start_logging(const char *log_filename) {
 
   if (log_file == NULL) {
 
-	/* Opens a text file for writing, truncating it; if it does not exist,
-	 * then a new file is created:
-	 */
-	log_file = fopen(log_filename, "w");
+    /* Opens a text file for writing, truncating it; if it does not exist,
+     * then a new file is created:
+     */
+    log_file = fopen(log_filename, "w");
 
-	// No buffering wanted here:
-	setbuf(log_file, NULL);
+    // No buffering wanted here:
+    setbuf(log_file, NULL);
 
-	log_debug("Logger for Seaplus driver: starting new session...");
+    log_debug("Logger for Seaplus driver: starting new session...");
 
   } else {
 
-	log_debug("Error: Seaplus session already started.");
+    log_debug("Error: Seaplus session already started.");
   }
 
 #endif // SEAPLUS_ENABLE_LOG
 }
+
 
 void stop_logging() {
 
@@ -147,81 +148,85 @@ void stop_logging() {
 
   if (log_file != NULL) {
 
-	log_debug("Stopping Seaplus session.");
+    log_debug("Stopping Seaplus session.");
 
-	fclose(log_file);
+    fclose(log_file);
 
-	log_file = NULL;
+    log_file = NULL;
   }
 
 #endif // SEAPLUS_ENABLE_LOG
 }
 
+
 #define SEAPLUS_TIMESTAMP_FORMAT "[%d/%d/%d %d:%02d:%02d]"
+
 
 // Logs the specified debug message.
 void log_debug(const char *format, ...) {
 
   if (log_file != NULL) {
 
-	time_t t = time(NULL);
+    time_t t = time(NULL);
 
-	struct tm tm = *localtime(&t);
+    struct tm tm = *localtime(&t);
 
-	fprintf(log_file, SEAPLUS_TIMESTAMP_FORMAT "[debug] ", tm.tm_year + 1900,
-			tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    fprintf(log_file, SEAPLUS_TIMESTAMP_FORMAT "[debug] ", tm.tm_year + 1900,
+            tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-	va_list arg_ptr;
+    va_list arg_ptr;
 
-	va_start(arg_ptr, format);
-	vfprintf(log_file, format, arg_ptr);
-	va_end(arg_ptr);
+    va_start(arg_ptr, format);
+    vfprintf(log_file, format, arg_ptr);
+    va_end(arg_ptr);
 
-	fprintf(log_file, "\n");
+    fprintf(log_file, "\n");
   }
 }
+
 
 // Logs the specified trace message.
 void log_trace(const char *format, ...) {
 
   if (log_file != NULL) {
 
-	time_t t = time(NULL);
+    time_t t = time(NULL);
 
-	struct tm tm = *localtime(&t);
+    struct tm tm = *localtime(&t);
 
-	fprintf(log_file, SEAPLUS_TIMESTAMP_FORMAT "[trace] ", tm.tm_year + 1900,
-			tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    fprintf(log_file, SEAPLUS_TIMESTAMP_FORMAT "[trace] ", tm.tm_year + 1900,
+            tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-	va_list arg_ptr;
+    va_list arg_ptr;
 
-	va_start(arg_ptr, format);
-	vfprintf(log_file, format, arg_ptr);
-	va_end(arg_ptr);
+    va_start(arg_ptr, format);
+    vfprintf(log_file, format, arg_ptr);
+    va_end(arg_ptr);
 
-	fprintf(log_file, "\n");
+    fprintf(log_file, "\n");
   }
 }
+
 
 // Logs the specified warning message.
 void log_warning(const char *format, ...) {
 
   if (log_file != NULL) {
 
-	time_t t = time(NULL);
+    time_t t = time(NULL);
 
-	struct tm tm = *localtime(&t);
+    struct tm tm = *localtime(&t);
 
-	fprintf(log_file, SEAPLUS_TIMESTAMP_FORMAT "[warning] ", tm.tm_year + 1900,
-			tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    fprintf(log_file, SEAPLUS_TIMESTAMP_FORMAT "[warning] ", tm.tm_year + 1900,
+            tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-	va_list arg_ptr;
+    va_list arg_ptr;
 
-	va_start(arg_ptr, format);
-	vfprintf(log_file, format, arg_ptr);
-	va_end(arg_ptr);
+    va_start(arg_ptr, format);
+    vfprintf(log_file, format, arg_ptr);
+    va_end(arg_ptr);
 
-	fprintf(log_file, "\n");
+    fprintf(log_file, "\n");
   }
 }
 
@@ -231,20 +236,20 @@ void log_error(const char *format, ...) {
 
   if (log_file != NULL) {
 
-	time_t t = time(NULL);
+    time_t t = time(NULL);
 
-	struct tm tm = *localtime(&t);
+    struct tm tm = *localtime(&t);
 
-	fprintf(log_file, SEAPLUS_TIMESTAMP_FORMAT "[error] ", tm.tm_year + 1900,
-			tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    fprintf(log_file, SEAPLUS_TIMESTAMP_FORMAT "[error] ", tm.tm_year + 1900,
+            tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-	va_list arg_ptr;
+    va_list arg_ptr;
 
-	va_start(arg_ptr, format);
-	vfprintf(log_file, format, arg_ptr);
-	va_end(arg_ptr);
+    va_start(arg_ptr, format);
+    vfprintf(log_file, format, arg_ptr);
+    va_end(arg_ptr);
 
-	fprintf(log_file, "\n");
+    fprintf(log_file, "\n");
   }
 }
 
@@ -264,6 +269,7 @@ void raise_error(const char *format, ...) {
   va_end(extra_values);
 }
 
+
 /* Raises the specified error, based on a variadic argument: reports it in logs,
  * and halts.
  *
@@ -281,15 +287,17 @@ void raise_error_variadic(const char *format, va_list *values) {
 
   if (log_file != NULL) {
 
-	fprintf(log_file, "[error] ");
-	vfprintf(log_file, format, *values);
-	fprintf(log_file, "\n");
+    fprintf(log_file, "[error] ");
+    vfprintf(log_file, format, *values);
+    fprintf(log_file, "\n");
   }
 
   exit(EXIT_FAILURE);
 }
 
+
 // Reference function comments to be found in seaplus.h.
+
 
 /**
  * Starts the C driver.
@@ -304,28 +312,58 @@ void start_seaplus_driver(input_buffer buf) {
   char log_filename[100];
 
   int res = sprintf(log_filename, "%s.%i.log", default_log_base_filename,
-					current_pid);
+                    current_pid);
 
   if (res < 0)
-	exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
 
   start_logging(log_filename);
 
   // Now always written, even in debug mode:
   log_debug("Starting the Seaplus C driver, with an input buffer of %u bytes.",
-			input_buffer_size);
+            input_buffer_size);
 
+
+  // Needing clarity w.r.t. driver log activation:
+#if SEAPLUS_ENABLE_LOG > 0
+
+  #ifdef DEBUG_SEAPLUS
+
+    log_debug("As SEAPLUS_ENABLE_LOG is defined and not zero, and DEBUG_SEAPLUS is set, all conditional logs are enabled.");
+
+  #else
+
+    log_debug("SEAPLUS_ENABLE_LOG is defined and not zero, but DEBUG_SEAPLUS is not set, so all conditional logs are disabled.");
+
+  #endif
+
+#else
+
+  #ifdef DEBUG_SEAPLUS
+
+    log_debug("SEAPLUS_ENABLE_LOG is not set to a non-zero value (whereas DEBUG_SEAPLUS is set), so all conditional logs are disabled.");
+
+  #else
+
+    log_debug("SEAPLUS_ENABLE_LOG is not set to a non-zero value (and DEBUG_SEAPLUS is not set), so all conditional logs are disabled.");
+
+  #endif
+
+#endif
+
+    
   ei_error error = ei_init();
 
   if (error != 0)
-	raise_error("The ei service could not be successfully initialised: %s.",
-				strerror(error));
+    raise_error("The ei service could not be successfully initialised: %s.",
+                strerror(error));
 
-  *buf = (byte *)malloc(input_buffer_size);
+  *buf = (byte *) malloc(input_buffer_size);
 
   if (*buf == NULL)
-	raise_error("Allocation of the input buffer failed.");
+    raise_error("Allocation of the input buffer failed.");
 }
+
 
 /**
  * Stops the C Seaplus driver.
@@ -336,8 +374,8 @@ void stop_seaplus_driver(input_buffer input_buffer) {
   log_debug("Stopping the Seaplus C driver.");
 
   if (encoded_string != NULL) {
-	free(encoded_string);
-	encoded_string = NULL;
+    free(encoded_string);
+    encoded_string = NULL;
   }
 
   free(*input_buffer);
@@ -348,23 +386,26 @@ void stop_seaplus_driver(input_buffer input_buffer) {
   stop_logging();
 }
 
+
 /**
- * Initializes the main smart buffer (the internal fields thereof) according to
+ * Initialises the main smart buffer (the internal fields thereof) according to
  * the Erlang binary format.
  *
  */
 void init_output_buffer(output_buffer *sm_buf) {
 
   if (ei_x_new_with_version(sm_buf) != 0)
-	raise_error("Initialization of smart buffer failed.");
+    raise_error("Initialization of smart buffer failed.");
 }
+
 
 // Clears the specified smart buffer (the internal fields thereof).
 void clear_output_buffer(output_buffer *sm_buf) {
 
   if (ei_x_free(sm_buf) != 0)
-	raise_error("Clearing of smart buffer failed.");
+    raise_error("Clearing of smart buffer failed.");
 }
+
 
 /**
  * Prepares for the encoding of the next, upcoming command.
@@ -382,8 +423,9 @@ void prepare_for_command(output_buffer *output_sm_buf) {
   init_output_buffer(output_sm_buf);
 }
 
+
 /**
- * Finalizes the current command, supposed to have performed a writing (which is
+ * Finalises the current command, supposed to have performed a writing (which is
  * by far the most general case).
  *
  */
@@ -393,6 +435,7 @@ void finalize_command_after_writing(output_buffer *output_sm_buf) {
 
   clear_output_buffer(output_sm_buf);
 }
+
 
 /**
  * Reads the specified number of bytes from the specified receive buffer.
@@ -410,24 +453,24 @@ byte_count read_exact(byte *buf, byte_count len) {
 
   do {
 
-	// Reading from file descriptor #0:
-	byte_count i = read(0, buf + got, len - got);
+    // Reading from file descriptor #0:
+    byte_count i = read(0, buf + got, len - got);
 
-	if (i <= 0) {
+    if (i <= 0) {
 
-	  // Possibly 0 byte if the port has been closed in the meantime:
-	  if (i == 0)
-		return 0;
+      // Possibly 0 byte if the port has been closed in the meantime:
+      if (i == 0)
+        return 0;
 
-	  // Expected to be -1 (error) then:
-	  raise_error("Reading from buffer %p at position %i "
-				  "for a count of %i bytes failed: %s.",
-				  buf, got, len - got, strerror(errno));
-	}
+      // Expected to be -1 (error) then:
+      raise_error("Reading from buffer %p at position %i "
+                  "for a count of %i bytes failed: %s.",
+                  buf, got, len - got, strerror(errno));
+    }
 
-	LOG_DEBUG("%i bytes actually read.", len);
+    LOG_DEBUG("%i bytes actually read.", len);
 
-	got += i;
+    got += i;
 
   } while (got < len);
 
@@ -435,6 +478,7 @@ byte_count read_exact(byte *buf, byte_count len) {
 
   return len;
 }
+
 
 /**
  * Receives the next command from the port's input file descriptor, and stores
@@ -451,74 +495,75 @@ byte_count read_command(input_buffer buf) {
   // Not reading these length bytes may not be abnormal, if stopping:
   if (len == 2) {
 
-	// Beware to infamous signed chars and negative lengths:
-	len =
-		((((unsigned char *)(*buf))[0]) << 8) | (((unsigned char *)(*buf))[1]);
+    // Beware to infamous signed chars and negative lengths:
+    len =
+        ((((unsigned char *)(*buf))[0]) << 8) | (((unsigned char *)(*buf))[1]);
 
-	LOG_DEBUG("Command payload to read: %d bytes.", len);
+    LOG_DEBUG("Command payload to read: %d bytes.", len);
 
 #ifdef DEBUG_SEAPLUS
-	if (len < 0)
-	  raise_error("Invalid length to read (%d bytes).", len);
+    if (len < 0)
+      raise_error("Invalid length to read (%d bytes).", len);
 #endif
 
-	// Not len + 2, we restart at the beginning of the buffer:
-	if (len > input_buffer_size) {
+    // Not len + 2, we restart at the beginning of the buffer:
+    if (len > input_buffer_size) {
 
-	  /* Better to resize than:
+      /* Better to resize than:
 
-	  raise_error( "Read length (%i) is too high (buffer size: %i).",
-			len, input_buffer_size ) ;
+      raise_error( "Read length (%i) is too high (buffer size: %i).",
+            len, input_buffer_size ) ;
 
-	  */
+      */
 
-	  LOG_DEBUG("Expanding input buffer from %i bytes to %i.",
-				input_buffer_size, len);
+      LOG_DEBUG("Expanding input buffer from %i bytes to %i.",
+                input_buffer_size, len);
 
-	  // May involve a useless copy as will be overwritten:
-	  byte *tmp = (byte *)realloc(*buf, len);
+      // May involve a useless copy as will be overwritten:
+      byte *tmp = (byte *)realloc(*buf, len);
 
-	  if (tmp == NULL) {
+      if (tmp == NULL) {
 
-		raise_error("Could not expand input buffer from %i bytes to %i.",
-					input_buffer_size, len);
+        raise_error("Could not expand input buffer from %i bytes to %i.",
+                    input_buffer_size, len);
 
-	  } else {
+      } else {
 
-		*buf = tmp;
-		input_buffer_size = len;
-	  }
-	}
+        *buf = tmp;
+        input_buffer_size = len;
+      }
+    }
 
-	return read_exact(*buf, len);
+    return read_exact(*buf, len);
 
   } else {
 
-	if (len == 0) {
+    if (len == 0) {
 
-	  LOG_DEBUG("No byte read, port expected to be closed.");
-	  return 0;
+      LOG_DEBUG("No byte read, port expected to be closed.");
+      return 0;
 
-	} else {
+    } else {
 
-	  raise_error("Reading of the length of the command buffer failed "
-				  "(read %i bytes).",
-				  len);
+      raise_error("Reading of the length of the command buffer failed "
+                  "(read %i bytes).",
+                  len);
 
-	  // Silence compiler:
-	  return 0;
-	}
+      // Silence compiler:
+      return 0;
+    }
   }
 }
 
+
 /**
- * Determines, from specified buffer, the information regarding the
+ * Determines, from the specified buffer, the information regarding the
  * (Erlang-side) specified function, namely its function identifier and its
  * parameters, set in the variables whose reference (pointer) is specified.
  *
  */
 void read_function_information(input_buffer input_buffer, buffer_index *index,
-							   fun_id *current_fun_id, arity *param_count) {
+                               fun_id *current_fun_id, arity *param_count) {
 
   LOG_TRACE("Getting function information.");
 
@@ -531,12 +576,12 @@ void read_function_information(input_buffer input_buffer, buffer_index *index,
    *
    */
   if (ei_decode_version(*input_buffer, index, &format_version) != 0)
-	raise_error("The version magic number of the binary term format could "
-				"not be successfully decoded.");
+    raise_error("The version magic number of the binary term format could "
+                "not be successfully decoded.");
 
   LOG_DEBUG("Read Erlang binary term format version number: %i, "
-			"from index %i.",
-			format_version, *index);
+            "from index %i.",
+            format_version, *index);
 
   /*
    * Reads a {FunId, FunParams} pair (e.g. {5, [140, true]}) thanks to, now,
@@ -551,26 +596,26 @@ void read_function_information(input_buffer input_buffer, buffer_index *index,
   tuple_size tuple_s;
 
   if (ei_decode_tuple_header(*input_buffer, index, &tuple_s) != 0)
-	raise_error("The function pair could not be successfully decoded. "
-				"Detected type: %s.",
-				interpret_type_at(input_buffer, index));
+    raise_error("The function pair could not be successfully decoded. "
+                "Detected type: %s.",
+                interpret_type_at(input_buffer, index));
 
   if (tuple_s != 2)
-	raise_error("Unexpected size of function tuple: not a pair, "
-				"%i elements to decode.",
-				tuple_s);
+    raise_error("Unexpected size of function tuple: not a pair, "
+                "%i elements to decode.",
+                tuple_s);
 
   /* Gets the first element of the pair, i.e. the Seaplus-defined function
    * identifier (e.g. whose value is FOO_1_ID):
    *
    */
   if (ei_decode_long(*input_buffer, index, current_fun_id) != 0)
-	raise_error("The function identifier could not be successfully "
-				"decoded. Detected type: %s.",
-				interpret_type_at(input_buffer, index));
+    raise_error("The function identifier could not be successfully "
+                "decoded. Detected type: %s.",
+                interpret_type_at(input_buffer, index));
 
   LOG_DEBUG("Reading command: function identifier is %i (index is %i).",
-			*current_fun_id, *index);
+            *current_fun_id, *index);
 
   /* Second element of the pair is the list of the call parameters (hence the
    * arity of the function to be called can be checked):
@@ -592,6 +637,7 @@ void read_function_information(input_buffer input_buffer, buffer_index *index,
   LOG_TRACE("Function information obtained.");
 }
 
+
 /**
  * Raises an error should the actual arity not be the expected one for the
  * specified function.
@@ -600,12 +646,15 @@ void read_function_information(input_buffer input_buffer, buffer_index *index,
 void check_arity_is(arity expected, arity actual, fun_id id) {
 
   if (expected != actual)
-	raise_error("Expecting arity %u for function identifier %u, "
-				"got %u instead.",
-				expected, id, actual);
+    raise_error("Expecting arity %u for function identifier %u, "
+                "got %u instead.",
+                expected, id, actual);
 }
 
+
+
 // Accessors to (parameter) values (getters).
+
 
 /**
  * Returns the element at the current buffer location, supposed to be a (long,
@@ -619,48 +668,49 @@ long read_int_parameter(input_buffer decode_buffer, buffer_index *index) {
   // Default, normal case:
   if (!encoded_as_string) {
 
-	LOG_DEBUG("Reading long integer at index %i.", *index);
+    LOG_DEBUG("Reading long integer at index %i.", *index);
 
-	ei_error error = ei_decode_long(*decode_buffer, index, &res);
+    ei_error error = ei_decode_long(*decode_buffer, index, &res);
 
-	if (error != 0)
-	  raise_error("Parameter at index %i cannot be decoded to (long) integer: "
-				  "%s; its actual type is %s.",
-				  index, strerror(error),
-				  interpret_type_at(decode_buffer, index));
+    if (error != 0)
+      raise_error("Parameter at index %i cannot be decoded to (long) integer: "
+                  "%s; its actual type is %s.",
+                  index, strerror(error),
+                  interpret_type_at(decode_buffer, index));
 
-	LOG_DEBUG("Read (long, signed) integer parameter %ld.", res);
+    LOG_DEBUG("Read (long, signed) integer parameter %ld.", res);
 
-	return res;
+    return res;
 
   } else {
 
-	// Here we have an incorrect encoding ([0..255] became string()):
-	res = (long)encoded_string[encoded_index];
+    // Here we have an incorrect encoding ([0..255] became string()):
+    res = (long)encoded_string[encoded_index];
 
-	encoded_index++;
+    encoded_index++;
 
-	if (encoded_index == encoded_length) {
+    if (encoded_index == encoded_length) {
 
-	  LOG_DEBUG("Read last small integer %ld of string-based list "
-				"(of size %i).",
-				res, encoded_length);
+      LOG_DEBUG("Read last small integer %ld of string-based list "
+                "(of size %i).",
+                res, encoded_length);
 
-	  free(encoded_string);
-	  encoded_string = NULL;
+      free(encoded_string);
+      encoded_string = NULL;
 
-	  encoded_as_string = false;
+      encoded_as_string = false;
 
-	} else {
+    } else {
 
-	  // Elements start at 1 here:
-	  LOG_DEBUG("Read small integer %ld of string-based list (element %i/%i).",
-				res, encoded_index, encoded_length);
-	}
+      // Elements start at 1 here:
+      LOG_DEBUG("Read small integer %ld of string-based list (element %i/%i).",
+                res, encoded_index, encoded_length);
+    }
 
-	return res;
+    return res;
   }
 }
+
 
 /**
  * Returns the element at current buffer location, supposed to be a (long,
@@ -668,7 +718,7 @@ long read_int_parameter(input_buffer decode_buffer, buffer_index *index) {
  *
  */
 unsigned long read_unsigned_int_parameter(input_buffer decode_buffer,
-										  buffer_index *index) {
+                                          buffer_index *index) {
 
   check_encoded_list();
 
@@ -677,15 +727,16 @@ unsigned long read_unsigned_int_parameter(input_buffer decode_buffer,
   ei_error error = ei_decode_ulong(*decode_buffer, index, &res);
 
   if (error != 0)
-	raise_error("Parameter at index %i cannot be decoded to (long) "
-				"unsigned integer: %s; its actual type is %s.",
-				index, strerror(error),
-				interpret_type_at(decode_buffer, index));
+    raise_error("Parameter at index %i cannot be decoded to (long) "
+                "unsigned integer: %s; its actual type is %s.",
+                index, strerror(error),
+                interpret_type_at(decode_buffer, index));
 
   LOG_DEBUG("Read (long, unsigned) integer parameter %ul.", res);
 
   return res;
 }
+
 
 /**
  * Returns the element at current buffer location, supposed to be a double.
@@ -700,15 +751,16 @@ double read_double_parameter(input_buffer decode_buffer, buffer_index *index) {
   ei_error error = ei_decode_double(*decode_buffer, index, &res);
 
   if (error != 0)
-	raise_error("Parameter at index %i cannot be decoded to double: %s; "
-				"its actual type is %s.",
-				index, strerror(error),
-				interpret_type_at(decode_buffer, index));
+    raise_error("Parameter at index %i cannot be decoded to double: %s; "
+                "its actual type is %s.",
+                index, strerror(error),
+                interpret_type_at(decode_buffer, index));
 
   LOG_DEBUG("Read double parameter %lf.", res);
 
   return res;
 }
+
 
 /**
  * Returns the element at the current buffer location, supposed to be an atom,
@@ -720,23 +772,24 @@ char *read_atom_parameter(input_buffer decode_buffer, buffer_index *index) {
 
   check_encoded_list();
 
-  char *res = (char *)malloc(MAXATOMLEN * sizeof(char));
+  char *res = (char *) malloc(MAXATOMLEN * sizeof(char));
 
   if (res == NULL)
-	raise_error("Failed to allocate atom buffer.");
+    raise_error("Failed to allocate atom buffer.");
 
   ei_error error = ei_decode_atom(*decode_buffer, index, res);
 
   if (error != 0)
-	raise_error("Parameter at index %i cannot be decoded to atom: %s; "
-				"its actual type is %s.",
-				index, strerror(error),
-				interpret_type_at(decode_buffer, index));
+    raise_error("Parameter at index %i cannot be decoded to atom: %s; "
+                "its actual type is %s.",
+                index, strerror(error),
+                interpret_type_at(decode_buffer, index));
 
   LOG_DEBUG("Read atom parameter '%s'.", res);
 
   return res;
 }
+
 
 /**
  * Returns the element at current buffer location, supposed to be a (plain)
@@ -752,27 +805,28 @@ char *read_string_parameter(input_buffer decode_buffer, buffer_index *index) {
   int size;
 
   if (ei_get_type(*decode_buffer, index, &type, &size) != 0)
-	raise_error("Cannot determine the type encoded at index %i", index);
+    raise_error("Cannot determine the type encoded at index %i", index);
 
   if (type != ERL_STRING_EXT)
-	raise_error("Not a string at index %i, got %s.", index,
-				interpret_type_at(decode_buffer, index));
+    raise_error("Not a string at index %i, got %s.", index,
+                interpret_type_at(decode_buffer, index));
 
   // For the null terminator:
-  char *res = (char *)malloc((size + 1) * sizeof(char));
+  char *res = (char *) malloc((size + 1) * sizeof(char));
 
   if (res == NULL)
-	raise_error("Failed to allocate string buffer.");
+    raise_error("Failed to allocate string buffer.");
 
   if (ei_decode_string(*decode_buffer, index, res) != 0)
-	raise_error("Parameter at index %i cannot be decoded to string; "
-				"its actual type is %s.",
-				*index, interpret_type_at(decode_buffer, index));
+    raise_error("Parameter at index %i cannot be decoded to string; "
+                "its actual type is %s.",
+                *index, interpret_type_at(decode_buffer, index));
 
   LOG_DEBUG("Read (plain) string: '%s'.", res);
 
   return res;
 }
+
 
 /**
  * Returns the element at current buffer location, supposed to be a binary,
@@ -791,31 +845,31 @@ char *read_binary_parameter(input_buffer decode_buffer, buffer_index *index) {
   ei_error error = ei_get_type(*decode_buffer, index, &type, &size);
 
   if (error != 0)
-	raise_error("Cannot determine the type encoded at index %i: %s.", index,
-				strerror(error));
+    raise_error("Cannot determine the type encoded at index %i: %s.", index,
+                strerror(error));
 
   if (type != ERL_BINARY_EXT)
-	raise_error("Not a binary at index %i; got %s instead.", index,
-				interpret_type_at(decode_buffer, index));
+    raise_error("Not a binary at index %i; got %s instead.", index,
+                interpret_type_at(decode_buffer, index));
 
   // Incremented for null terminator:
   size_t buf_size = (size + 1) * sizeof(char);
-  char *res = (char *)malloc(buf_size);
+  char *res = (char *) malloc(buf_size);
 
   if (res == NULL)
-	raise_error("Failed to allocate binary buffer.");
+    raise_error("Failed to allocate binary buffer.");
 
   long l_size;
 
   if (ei_decode_binary(*decode_buffer, index, res, &l_size) != 0)
-	raise_error("Parameter at index %i cannot be decoded to binary: %s; "
-				"its actual type is %s.",
-				index, strerror(error),
-				interpret_type_at(decode_buffer, index));
+    raise_error("Parameter at index %i cannot be decoded to binary: %s; "
+                "its actual type is %s.",
+                index, strerror(error),
+                interpret_type_at(decode_buffer, index));
 
   // Never expected to happen:
   if (l_size > buf_size)
-	raise_error("Buffer overrun when decoding binary.");
+    raise_error("Buffer overrun when decoding binary.");
 
   /* Makes it a null-terminated string; proved necessary (otherwise the rest of
    * the buffer will be read):
@@ -828,6 +882,7 @@ char *read_binary_parameter(input_buffer decode_buffer, buffer_index *index) {
   return res;
 }
 
+
 /**
  * Reads the header of a list that is supposed to exist at current buffer
  * location, and sets the specified size accordingly (i.e. with the number of
@@ -838,63 +893,66 @@ char *read_binary_parameter(input_buffer decode_buffer, buffer_index *index) {
  *
  */
 void read_list_header_parameter(input_buffer buffer, buffer_index *index,
-								arity *size) {
+                                arity *size) {
 
   // Init:
   encoded_as_string = false;
 
   if (ei_decode_list_header(*buffer, index, size) != 0) {
 
-	/* Could not be interpreted as a list, probably because term_to_binary/1
-	 * mistook that list for a string...
-	 *
-	 */
+    /* Could not be interpreted as a list, probably because term_to_binary/1
+     * mistook that list for a string...
+     *
+     */
 
-	LOG_DEBUG("List could not be successfully decoded as such; "
-			  "actual detected type: %s (index is %i).",
-			  interpret_type_at(buffer, index), *index);
+    LOG_DEBUG("List could not be successfully decoded as such; "
+              "actual detected type: %s (index is %i).",
+              interpret_type_at(buffer, index), *index);
 
-	int type;
+    int type;
 
-	if (ei_get_type(*buffer, index, &type, size) != 0)
-	  raise_error("The actual type of the list at %i could not be "
-				  "determined.",
-				  index);
+    if (ei_get_type(*buffer, index, &type, size) != 0)
+      raise_error("The actual type of the list at %i could not be "
+                  "determined.",
+                  index);
 
-	if (type != ERL_STRING_EXT)
-	  raise_error("The actual type of the list is not a string either, "
-				  "it is: %s.",
-				  interpret_type_at(buffer, index));
+    if (type != ERL_STRING_EXT)
+      raise_error("The actual type of the list is not a string either, "
+                  "it is: %s.",
+                  interpret_type_at(buffer, index));
 
-	encoded_as_string = true;
+    encoded_as_string = true;
 
-	if (encoded_string != NULL)
-	  free(encoded_string);
+    if (encoded_string != NULL)
+      free(encoded_string);
 
-	// Null-terminated:
-	encoded_string = (char *)malloc((*size + 1) * sizeof(char));
+    // Null-terminated:
+    encoded_string = (char *) malloc((*size + 1) * sizeof(char));
 
-	if (ei_decode_string(*buffer, index, encoded_string) != 0)
-	  raise_error("Detected an unintended string-encoding of parameters, "
-				  "yet was not able to decode it.");
+    if (ei_decode_string(*buffer, index, encoded_string) != 0)
+      raise_error("Detected an unintended string-encoding of parameters, "
+                  "yet was not able to decode it.");
 
-	LOG_DEBUG("Switching to string-based list of size %i", *size);
+    LOG_DEBUG("Switching to string-based list of size %i", *size);
 
-	encoded_index = 0;
+    encoded_index = 0;
 
-	encoded_length = *size;
+    encoded_length = *size;
 
-	return;
+    return;
   }
 
   // Here we had a normal list, nothing more to do.
   LOG_DEBUG("Normal list found at index %i, having %i element(s).", *index,
-			*size);
+            *size);
 }
+
+
 
 /* Second, setters of values, to encode from C to Erlang.
  *
  */
+
 
 /**
  * Writes in the specified return buffer the specified bool result.
@@ -903,8 +961,9 @@ void read_list_header_parameter(input_buffer buffer, buffer_index *index,
 void write_bool_result(output_buffer *output_sm_buf, bool b) {
 
   if (ei_x_encode_boolean(output_sm_buf, b) != 0)
-	raise_error("Erlang bool encoding failed.");
+    raise_error("Erlang bool encoding failed.");
 }
+
 
 /**
  * Writes in the specified return buffer the specified (signed) integer result.
@@ -913,8 +972,9 @@ void write_bool_result(output_buffer *output_sm_buf, bool b) {
 void write_int_result(output_buffer *output_sm_buf, int i) {
 
   if (ei_x_encode_long(output_sm_buf, (long)i) != 0)
-	raise_error("Erlang (signed) integer encoding failed.");
+    raise_error("Erlang (signed) integer encoding failed.");
 }
+
 
 /**
  * Writes in the specified return buffer the specified unsigned integer result.
@@ -923,8 +983,9 @@ void write_int_result(output_buffer *output_sm_buf, int i) {
 void write_unsigned_int_result(output_buffer *output_sm_buf, unsigned int u) {
 
   if (ei_x_encode_ulong(output_sm_buf, (unsigned long)u) != 0)
-	raise_error("Erlang unsigned integer encoding failed.");
+    raise_error("Erlang unsigned integer encoding failed.");
 }
+
 
 /**
  * Writes in the specified return buffer the specified double result.
@@ -933,8 +994,9 @@ void write_unsigned_int_result(output_buffer *output_sm_buf, unsigned int u) {
 void write_double_result(output_buffer *output_sm_buf, double d) {
 
   if (ei_x_encode_double(output_sm_buf, d) != 0)
-	raise_error("Erlang double encoding failed.");
+    raise_error("Erlang double encoding failed.");
 }
+
 
 /**
  * Writes in the specified return buffer the specified atom result, based on
@@ -946,10 +1008,11 @@ void write_double_result(output_buffer *output_sm_buf, double d) {
 void write_atom_result(output_buffer *output_sm_buf, const char *atom_name) {
 
   if (ei_x_encode_atom(output_sm_buf, atom_name) != 0)
-	raise_error("Erlang atom encoding failed for '%s'.", atom_name);
+    raise_error("Erlang atom encoding failed for '%s'.", atom_name);
 
   // Not owned: free( atom_name ) ;
 }
+
 
 /**
  * Writes in the specified return buffer the specified (NULL-terminated) string
@@ -959,15 +1022,16 @@ void write_atom_result(output_buffer *output_sm_buf, const char *atom_name) {
  *
  */
 void write_string_with_length_result(output_buffer *output_sm_buf,
-									 const char *string, size_t length) {
+                                     const char *string, size_t length) {
 
   // Must not include the NULL terminator:
   if (ei_x_encode_string_len(output_sm_buf, string, length) != 0)
-	raise_error("Erlang string encoding failed for '%s' (with length: %i).",
-				string, length);
+    raise_error("Erlang string encoding failed for '%s' (with length: %i).",
+                string, length);
 
   // Not owned: free( string ) ;
 }
+
 
 /**
  * Writes in the specified return buffer the specified (NULL-terminated) string
@@ -979,10 +1043,11 @@ void write_string_with_length_result(output_buffer *output_sm_buf,
 void write_string_result(output_buffer *output_sm_buf, const char *string) {
 
   if (ei_x_encode_string(output_sm_buf, string) != 0)
-	raise_error("Erlang string encoding failed for '%s'.", string);
+    raise_error("Erlang string encoding failed for '%s'.", string);
 
   // Not owned: free( string ) ;
 }
+
 
 /**
  * Writes in the specified return buffer the specified binary result, of
@@ -992,11 +1057,12 @@ void write_string_result(output_buffer *output_sm_buf, const char *string) {
  *
  */
 void write_binary_result(output_buffer *output_sm_buf, const void *content,
-						 byte_count size) {
+                         byte_count size) {
 
   if (ei_x_encode_binary(output_sm_buf, content, size) != 0)
-	raise_error("Erlang binary encoding failed.");
+    raise_error("Erlang binary encoding failed.");
 }
+
 
 /**
  * Writes in the specified return buffer the specified binary result obtained
@@ -1006,12 +1072,13 @@ void write_binary_result(output_buffer *output_sm_buf, const void *content,
  *
  */
 void write_binary_string_result(output_buffer *output_sm_buf,
-								const char *string) {
+                                const char *string) {
 
   // Not including the NULL terminator:
   if (ei_x_encode_binary(output_sm_buf, string, strlen(string)) != 0)
-	raise_error("Erlang binary encoding from string failed.");
+    raise_error("Erlang binary encoding from string failed.");
 }
+
 
 /**
  * Writes in the specified return buffer the specified list header result.
@@ -1029,8 +1096,9 @@ void write_binary_string_result(output_buffer *output_sm_buf,
 void write_list_header_result(output_buffer *output_sm_buf, list_size size) {
 
   if (ei_x_encode_list_header(output_sm_buf, size) != 0)
-	raise_error("List header encoding failed (for size %i).", size);
+    raise_error("List header encoding failed (for size %i).", size);
 }
+
 
 /**
  * Writes in the specified return buffer an empty list.
@@ -1044,8 +1112,9 @@ void write_list_header_result(output_buffer *output_sm_buf, list_size size) {
 void write_empty_list_result(output_buffer *output_sm_buf) {
 
   if (ei_x_encode_empty_list(output_sm_buf) != 0)
-	raise_error("Empty list encoding failed");
+    raise_error("Empty list encoding failed");
 }
+
 
 /**
  * Writes in the specified return buffer the specified tuple header result.
@@ -1057,10 +1126,13 @@ void write_empty_list_result(output_buffer *output_sm_buf) {
 void write_tuple_header_result(output_buffer *output_sm_buf, tuple_size size) {
 
   if (ei_x_encode_tuple_header(output_sm_buf, size) != 0)
-	raise_error("Tuple header encoding failed (for size %i).", size);
+    raise_error("Tuple header encoding failed (for size %i).", size);
 }
 
+
+
 // Lower-level primitives.
+
 
 /**
  * Writes the specified number of bytes to the specified send buffer.
@@ -1076,18 +1148,19 @@ byte_count write_exact(byte *buf, byte_count len) {
 
   do {
 
-	byte_count i = write(1, buf + wrote, len - wrote);
+    byte_count i = write(1, buf + wrote, len - wrote);
 
-	// Writing to file descriptor #1:
-	if (i <= 0)
-	  return i;
+    // Writing to file descriptor #1:
+    if (i <= 0)
+      return i;
 
-	wrote += i;
+    wrote += i;
 
   } while (wrote < len);
 
   return len;
 }
+
 
 /**
  * Sends the content of the specified smart buffer through the port's output
@@ -1105,10 +1178,10 @@ byte_count write_buffer(output_buffer *output_sm_buf) {
   if ( len + 2 > buffer_size )
   {
 
-		raise_error( "Write length (%i) too high (buffer size: %i).",
-		  len, input_buffer_size ) ;
+        raise_error( "Write length (%i) too high (buffer size: %i).",
+          len, input_buffer_size ) ;
 
-		return -1 ;
+        return -1 ;
 
   }
 
@@ -1127,6 +1200,7 @@ byte_count write_buffer(output_buffer *output_sm_buf) {
   return write_exact(output_sm_buf->buff, output_sm_buf->index);
 }
 
+
 /**
  * Ensures that no invalid reading is done if being processing a
  * list-as-a-string.
@@ -1135,10 +1209,11 @@ byte_count write_buffer(output_buffer *output_sm_buf) {
 void check_encoded_list() {
 
   if (encoded_as_string)
-	raise_error("Attempt to read a term whereas still in a string-based list "
-				"(at element %i/%i).",
-				encoded_index, encoded_length);
+    raise_error("Attempt to read a term whereas still in a string-based list "
+                "(at element %i/%i).",
+                encoded_index, encoded_length);
 }
+
 
 /**
  * Returns a string describing the type of the term located in the specified
@@ -1157,128 +1232,128 @@ char *interpret_type_at(const input_buffer buffer, const buffer_index *index) {
   ei_error error = ei_get_type(*buffer, index, &type, &size);
 
   if (error != 0)
-	raise_error("The type of the term at index %i could not be determined: %s.",
-				index, strerror(error));
+    raise_error("The type of the term at index %i could not be determined: %s.",
+                index, strerror(error));
 
   char *res;
 
   switch (type) {
 
   case ERL_SMALL_INTEGER_EXT:
-	return strdup("small integer");
+    return strdup("small integer");
 
   case ERL_INTEGER_EXT:
-	return strdup("integer");
+    return strdup("integer");
 
   case ERL_FLOAT_EXT:
-	return strdup("float");
+    return strdup("float");
 
   case NEW_FLOAT_EXT:
-	return strdup("new float");
+    return strdup("new float");
 
   case ERL_ATOM_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "atom of %i actual characters", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "atom of %i actual characters", size);
+    return res;
 
   case ERL_SMALL_ATOM_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "small atom of %i actual characters", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "small atom of %i actual characters", size);
+    return res;
 
   case ERL_ATOM_UTF8_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "UTF8 atom of %i actual characters", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "UTF8 atom of %i actual characters", size);
+    return res;
 
   case ERL_SMALL_ATOM_UTF8_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "small UTF8 atom of %i actual characters", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "small UTF8 atom of %i actual characters", size);
+    return res;
 
   case ERL_REFERENCE_EXT:
-	return strdup("reference");
+    return strdup("reference");
 
   case ERL_NEW_REFERENCE_EXT:
-	return strdup("new reference");
+    return strdup("new reference");
 
   case ERL_NEWER_REFERENCE_EXT:
-	return strdup("newer reference");
+    return strdup("newer reference");
 
   case ERL_PORT_EXT:
-	return strdup("port");
+    return strdup("port");
 
   case ERL_NEW_PORT_EXT:
-	return strdup("new port");
+    return strdup("new port");
 
   case ERL_PID_EXT:
-	return strdup("PID");
+    return strdup("PID");
 
   case ERL_NEW_PID_EXT:
-	return strdup("new PID");
+    return strdup("new PID");
 
   case ERL_SMALL_TUPLE_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "small tuple of %i elements", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "small tuple of %i elements", size);
+    return res;
 
   case ERL_LARGE_TUPLE_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "large tuple of %i elements", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "large tuple of %i elements", size);
+    return res;
 
   case ERL_NIL_EXT:
-	return strdup("empty list");
+    return strdup("empty list");
 
   case ERL_STRING_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "string of %i actual characters", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "string of %i actual characters", size);
+    return res;
 
   case ERL_LIST_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "list of %i elements", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "list of %i elements", size);
+    return res;
 
   case ERL_BINARY_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "binary of %i bytes", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "binary of %i bytes", size);
+    return res;
 
   case ERL_BIT_BINARY_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "bit binary of %i bytes", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "bit binary of %i bytes", size);
+    return res;
 
   case ERL_SMALL_BIG_EXT:
-	return strdup("small big integer");
+    return strdup("small big integer");
 
   case ERL_LARGE_BIG_EXT:
-	return strdup("large big integer");
+    return strdup("large big integer");
 
   case ERL_NEW_FUN_EXT:
-	return strdup("new fun");
+    return strdup("new fun");
 
   case ERL_MAP_EXT:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "map of %i entries", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "map of %i entries", size);
+    return res;
 
   case ERL_FUN_EXT:
-	return strdup("fun");
+    return strdup("fun");
 
   case ERL_EXPORT_EXT:
-	return strdup("export");
+    return strdup("export");
 
   case ERL_NEW_CACHE:
-	return strdup("new cache");
+    return strdup("new cache");
 
   case ERL_CACHED_ATOM:
-	res = (char *)malloc(string_size * sizeof(char));
-	snprintf(res, string_size, "cached atom of %i actual characters", size);
-	return res;
+    res = (char *) malloc(string_size * sizeof(char));
+    snprintf(res, string_size, "cached atom of %i actual characters", size);
+    return res;
 
   default:
-	return strdup("unexpected type (abnormal)");
+    return strdup("unexpected type (abnormal)");
   }
 }
