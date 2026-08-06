@@ -38,9 +38,7 @@ all-check:
 
 
 register-version-in-header:
-	@if [ -z "$(VERSION_FILE)" ] ; then \
-	echo "Error, no version file defined." 1>&2 ; exit 51 ; else \
-	$(MAKE) register-seaplus ; fi
+	@if [ -z "$(VERSION_FILE)" ]; then echo "Error, no version file defined." 1>&2; exit 51; else $(MAKE) register-seaplus; fi
 
 
 register-seaplus:
@@ -49,7 +47,7 @@ register-seaplus:
 
 # Useful to extract internal layout for re-use in upper layers:
 list-beam-dirs:
-	@for d in $(SEAPLUS_BEAM_DIRS) ; do echo $$(readlink -f $$d) ; done
+	@for d in $(SEAPLUS_BEAM_DIRS); do echo $$(readlink -f $$d); done
 
 
 add-prerequisite-plts: link-plt
@@ -57,7 +55,7 @@ add-prerequisite-plts: link-plt
 
 # As upper layers may rely on the 'seaplus' naming:
 link-plt:
-	@if [ ! "$(PLT_FILE)" = "$(SEAPLUS_PLT_FILE)" ]; then /bin/ln -s --force $(PLT_FILE) $(SEAPLUS_PLT_FILE) ; fi
+	@if [ ! "$(PLT_FILE)" = "$(SEAPLUS_PLT_FILE)" ]; then /bin/ln -s --force $(PLT_FILE) $(SEAPLUS_PLT_FILE); fi
 
 
 # Note: the source archives are not produced in this directory, but in its
