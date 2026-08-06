@@ -553,15 +553,15 @@ Seaplus Log System
 
 When integrating a C service, the most difficult part is ensuring the sanity of the C driver, i.e. knowing what happens within it whenever converting terms back and forth, handling pointers, allocating memory, crashing unexpectedly, having memory leaks, etc. (a.k.a. the joys of C programming).
 
-To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done *by the driver* (including the user code and the Seaplus facilities on which it relies).
+To facilitate troubleshooting, Seaplus provides a log system, allowing to trace the various operations done *by the driver* (including the user code and the Seaplus facilities on which it relies); so these are C-side logs, not Erlang-side ones.
 
 This log system is enabled by default when compiling the library (see the ``SEAPLUS_ENABLE_LOG`` preprocessor symbol and `GNUmakevars.inc <https://github.com/Olivier-Boudeville/Ceylan-Seaplus/blob/master/GNUmakevars.inc>`_ for the various build settings); this allows the ``log_{debug,trace,warning}`` functions to emit driver logs, in a dedicated file, for live and/or postmortem analysis.
 
 If additionally the ``DEBUG_SEAPLUS`` symbol is defined, then many Seaplus internal functions, which make use of the ``LOG_{DEBUG,TRACE,WARNING}`` macros, will log their actions as well.
 
-This ``DEBUG_SEAPLUS`` symbol may either be explicitly set (e.g. with ``make clean all ENABLE_DEBUG=true``) or implied by the ``development`` (default) execution target (knowing that this symbol is not set with the ``production`` execution target). So by default Seaplus debug logs will be issued, whereas ``make all clean EXECUTION_TARGET=production`` will disable them (and then no runtime penalty will be incurred).
+This ``DEBUG_SEAPLUS`` symbol may either be explicitly set (e.g. with ``make clean all ENABLE_SEAPLUS_DEBUG=true``) or implied by the ``development`` (default) execution target (knowing that this symbol is not set with the ``production`` execution target). So by default Seaplus debug logs will be issued, whereas ``make all clean EXECUTION_TARGET=production`` will disable them (and then no runtime penalty will be incurred).
 
-``make info-c-compile`` and ``make info-c-compile ENABLE_DEBUG=false`` may be run to check the (compile-time) differences.
+``make info-c-compile`` and ``make info-c-compile ENABLE_SEAPLUS_DEBUG=false`` may be run to check the (compile-time) differences.
 
 So running a Seaplus-integrated service, with log system enabled, should produce a ``seaplus-driver.N.log`` timestamped text log file, where ``N`` is the (operating system level) PID [#]_ of the process corresponding to the driver.
 

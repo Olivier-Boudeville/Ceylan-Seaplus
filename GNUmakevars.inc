@@ -22,13 +22,17 @@ ifeq ($(EXECUTION_TARGET),development)
 
 	#$(info Execution target is development)
 
+	# In general vs Seaplus-specific:
 	ENABLE_DEBUG = true
+	ENABLE_SEAPLUS_DEBUG = true
 
 else ifeq ($(EXECUTION_TARGET),production)
 
 	#$(info Execution target is production)
 
+	# In general vs Seaplus-specific:
 	ENABLE_DEBUG = false
+	ENABLE_SEAPLUS_DEBUG = false
 
 else
 
@@ -39,25 +43,51 @@ endif
 
 # One may define here:
 # - EXECUTION_TARGET := production / development [the default]
-# - ENABLE_DEBUG := false / true [the default]; this debug mode enables verbose
-# logging (details about ongoing operations being reported)
-
-
-# Now in all cases (even non-debug), we enable the (C-side) Seaplus logs, as we
-# want at least some information to be reported in case of a driver crash:
+# - ENABLE_DEBUG: the general, inherited flag for the enabling of debugging
+# - ENABLE_SEAPLUS_DEBUG := false / true [the default]; this debug mode enables
+# verbose logging (details about ongoing Seaplus operations being reported)
 #
-SEAPLUS_DEBUG_OPT := -DSEAPLUS_ENABLE_LOG=1
+# A Seaplus-based driver may set DEBUG_SEAPLUS (e.g. with -DDEBUG_SEAPLUS) in
+# order to enable the traces it may send, in addition to any traces sent by
+# Seaplus itself (as controlled by the ENABLE_SEAPLUS_DEBUG flag); indeed the
+# LOG_* macros are controlled by: '#if SEAPLUS_ENABLE_LOG > 0 && DEBUG_SEAPLUS'
+# (refer to seaplus.h).
+
+
+# Now in all cases (even non-debug), we enable the (driver-side) Seaplus logs
+# (not implying enabling all traces) through the C compiler options, as we want
+# at least some information to be reported in case of a driver crash:
+#
+SEAPLUS_DEBUG_OPT += -DSEAPLUS_ENABLE_LOG=1
+
+
+# Not using ENABLE_DEBUG here, as upper layers could set it for themselves
+# without wanting Seaplus to behave the same. So ENABLE_SEAPLUS_DEBUG is defined
+# and used here.
+
+ifndef ENABLE_SEAPLUS_DEBUG
+
+	# Not activated unless requested:
+	ENABLE_SEAPLUS_DEBUG=false
+
+endif
 
 
 # Tells whether the debug mode will be activated for the next Seaplus modules to
 # be built (maximum performance versus extended checkings).
 #
-ifeq ($(ENABLE_DEBUG),true)
+ifeq ($(ENABLE_SEAPLUS_DEBUG),true)
+
 	SEAPLUS_DEBUG_OPT := -DDEBUG_SEAPLUS
+
+	# Does not seem to be actually used now:
 	ENABLE_SEAPLUS_DEBUG_OPT = -Dseaplus_debug_mode
+
 else
+
 	SEAPLUS_DEBUG_OPT :=
 	ENABLE_SEAPLUS_DEBUG_OPT =
+
 endif
 
 
@@ -71,7 +101,7 @@ endif
 #  - driver: information about the Seaplus-generated driver
 
 # Defining debug flags (at least the most verbose are by default commented-out):
-ifeq ($(ENABLE_DEBUG),true)
+ifeq ($(ENABLE_SEAPLUS_DEBUG),true)
 	#SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_general
 	#SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_port
 	#SEAPLUS_DEBUG_FLAGS += -Dseaplus_debug_driver

@@ -24,8 +24,17 @@ TEST := foobar_test
 include $(SEAPLUS_TOP)/GNUmakesettings.inc
 
 
+# If wanting to enable the traces specifically sent by this driver
+# (SEAPLUS_ENABLE_LOG being set by default):
+#
+C_COMPILER_OPT_FOR_OBJ += -DDEBUG_SEAPLUS
+
+
+# Note that the Seaplus compile flags (like EXECUTION_TARGET, debug-related
+# ones, etc.), are not inherited here, in Seaplus-deriving applications.
+#
 %.o: %.c
-	@echo "   Compiling $<"
+	@echo "   Compiling from c-test $<"
 	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(FOOBAR_INC_OPT) -o $@ -c $<
 
 
@@ -77,8 +86,7 @@ $(TARGET_DRIVER_OBJ): foobar.beam
 $(TARGET_DRIVER_EXEC): $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB_PATH)
 	@$(MAKE) -s $(TARGET_DRIVER_OBJ)
 	@echo "   Linking driver $(TARGET_DRIVER)"
-	$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) \
-	 $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT) -L$(FOOBAR_LIB_DIR) -lfoobar
+	$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT) -L$(FOOBAR_LIB_DIR) -lfoobar
 
 
 # If having to investigate:
