@@ -31,7 +31,10 @@
 Allows to test the full chain, from the initial service call to the obtaining of
 its result.
 
-Erlang counterpart translation of foobar_test.c, with additions at the end.
+Erlang counterpart translation of `foobar_test.c`, with additions at the end.
+
+As this test runs on purpose a function crashing the driver, each run will yield
+two `seaplus-driver.*.log` files.
 """.
 
 
