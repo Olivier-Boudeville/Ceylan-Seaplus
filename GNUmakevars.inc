@@ -49,11 +49,12 @@ endif
 # - ENABLE_SEAPLUS_DEBUG := false / true [the default]; this debug mode enables
 # verbose logging (details about ongoing Seaplus operations being reported)
 #
-# A Seaplus-based driver may set DEBUG_SEAPLUS (e.g. with -DDEBUG_SEAPLUS) in
-# order to enable the traces it may send, in addition to any traces sent by
-# Seaplus itself (as controlled by the ENABLE_SEAPLUS_DEBUG flag); indeed the
-# LOG_* macros are controlled by: '#if SEAPLUS_ENABLE_LOG > 0 && DEBUG_SEAPLUS'
-# (refer to seaplus.h).
+# The build of a Seaplus-based driver for a given application may set
+# DEBUG_SEAPLUS (e.g. with -DDEBUG_SEAPLUS) in order to enable the traces
+# ("extendend logs") it may send, in addition to any traces ("base logs") sent
+# by the Seaplus library itself (as controlled by the ENABLE_SEAPLUS_DEBUG
+# flag); indeed the LOG_* macros are gated by: '#if SEAPLUS_ENABLE_LOG > 0
+# && DEBUG_SEAPLUS' (refer to seaplus.h).
 
 
 # Now in all cases (even non-debug), we enable the (driver-side) Seaplus logs
