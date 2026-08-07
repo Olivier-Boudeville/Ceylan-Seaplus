@@ -24,7 +24,9 @@ ifeq ($(EXECUTION_TARGET),development)
 
 	# In general vs Seaplus-specific:
 	ENABLE_DEBUG = true
-	ENABLE_SEAPLUS_DEBUG = true
+
+	# Otherwise the upper layers would inherit it was well:
+	#ENABLE_SEAPLUS_DEBUG = true
 
 else ifeq ($(EXECUTION_TARGET),production)
 
